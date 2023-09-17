@@ -7,44 +7,12 @@
 #include <fmt/core.h>
 #include <Eigen/Core>
 
+#include "PathFinderController.hpp"
 #include "utils/utils.hpp"
 #include "utils/matplotlibcpp.h"
 
 using namespace Eigen;
 namespace plt = matplotlibcpp;
-
-class PathFinderController
-{
-private:
-    double kp_rho;
-    double kp_alpha;
-    double kp_beta;
-public:
-    PathFinderController(double _kp_rho, double _kp_alpha, double _kp_beta) {
-        kp_rho = _kp_rho;
-        kp_alpha = _kp_alpha;
-        kp_beta = _kp_beta;
-    }
-    ~PathFinderController() {}
-
-    std::tuple<double, double, double> calc_control_command(
-        double x_diff, double y_diff, double theta, double theta_goal);
-};
-
-std::tuple<double, double, double> PathFinderController::calc_control_command(
-    double x_diff, double y_diff, double theta, double theta_goal)
-{
-    double rho = hypot(x_diff, y_diff);
-    double alpha = std::fmod(std::atan2(y_diff, x_diff) - theta + M_PI, 2 * M_PI) - M_PI;
-    double beta = std::fmod(theta_goal - theta - alpha + M_PI, 2 * M_PI) - M_PI;
-    double v = kp_rho * rho;
-    double w = kp_alpha * alpha - kp_beta * beta;
-    if (alpha > M_PI_2 || alpha < -M_PI_2) {
-        v = -v;
-    } 
-
-    return std::make_tuple(rho, v, w);
-}
 
 PathFinderController controller = PathFinderController(9, 15, 3);
 double dt = 0.01;
@@ -53,16 +21,6 @@ constexpr int MAX_LINEAR_SPEED = 15;
 constexpr int MAX_ANGULAR_SPEED = 10;
 bool show_animation = true;
 
-Matrix3d transformation_matrix(double x, double y, double theta)
-{
-    Matrix3d trans;
-    trans << cos(theta), -sin(theta), x, 
-            sin(theta), cos(theta), y, 
-            0, 0, 1;
-    
-    return trans;
-}
-
 void plot_vehicle(double x, double y, double theta, 
             const std::vector<double>& x_traj, const std::vector<double>& y_traj)
 {
@@ -70,7 +28,7 @@ void plot_vehicle(double x, double y, double theta,
     Vector3d p2_i(-0.5, 0.25, 1);
     Vector3d p3_i(-0.5, -0.25, 1);
 
-    Matrix3d T = transformation_matrix(x, y, theta);
+    Matrix3d T = Utils::transformation_matrix2d(x, y, theta);
     Vector3d p1 = T * p1_i;
     Vector3d p2 = T * p2_i;
     Vector3d p3 = T * p3_i;
@@ -131,7 +89,7 @@ void move_to_pose(double x_start, double y_start, double theta_start,
         }
         epoch++;
         if (epoch > 320) {
-            fmt::print("Planning failed, current deviation: {}\n", rho);
+            fmt::print("Planning failed, current deviation: {:.5f}\n", rho);
             break;
         }
     }
