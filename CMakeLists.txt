@@ -13,8 +13,11 @@ include_directories( "/usr/include/eigen3")
 
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
-add_executable(move_to_pose move_to_pose/move_to_pose.cpp utils/utils.cpp)
+add_executable(move_to_pose Control/move_to_pose/move_to_pose.cpp utils/utils.cpp)
 target_link_libraries(move_to_pose fmt::fmt ${PYTHON_LIBRARIES})
 
-add_executable(move_to_pose_robot move_to_pose/move_to_pose_robot.cpp utils/utils.cpp)
+add_executable(move_to_pose_robot Control/move_to_pose/move_to_pose_robot.cpp utils/utils.cpp)
 target_link_libraries(move_to_pose_robot fmt::fmt ${PYTHON_LIBRARIES})
+
+add_executable(breadth_first_search PathPlanning/GraphBased/breadth_first_search.cpp utils/utils.cpp)
+target_link_libraries(breadth_first_search fmt::fmt ${PYTHON_LIBRARIES})

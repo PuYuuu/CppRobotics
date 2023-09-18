@@ -115,15 +115,9 @@ void plot_vehicle(double x, double y, double theta, string color,
     Vector3d p1 = T * p1_i;
     Vector3d p2 = T * p2_i;
     Vector3d p3 = T * p3_i;
-    std::vector<double> line1_x = {p1[0], p2[0]};
-    std::vector<double> line1_y = {p1[1], p2[1]};
-    std::vector<double> line2_x = {p2[0], p3[0]};
-    std::vector<double> line2_y = {p2[1], p3[1]};
-    std::vector<double> line3_x = {p1[0], p3[0]};
-    std::vector<double> line3_y = {p1[1], p3[1]};
-    plt::plot(line1_x, line1_y, color + "-");
-    plt::plot(line2_x, line2_y, color + "-");
-    plt::plot(line3_x, line3_y, color + "-");
+    plt::plot({p1[0], p2[0]}, {p1[1], p2[1]}, color + "-");
+    plt::plot({p2[0], p3[0]}, {p2[1], p3[1]}, color + "-");
+    plt::plot({p1[0], p3[0]}, {p1[1], p3[1]}, color + "-");
     plt::plot(x_traj, y_traj, color + "--");
 }
 

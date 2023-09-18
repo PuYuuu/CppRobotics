@@ -1,5 +1,9 @@
 #pragma once
 
+#include <vector>
+#include <climits>
+#include <algorithm>
+
 #include <Eigen/Core>
 
 using namespace Eigen;
@@ -24,6 +28,38 @@ Matrix3d transformation_matrix2d(T x, T y, T theta)
             0, 0, 1;
     
     return trans;
+}
+
+template <typename T>
+T max(std::vector<T> vec)
+{
+    int size = vec.size();
+    assert(size > 0);
+
+    T ret = vec[0];
+    for (int idx = 1; idx < size; ++idx) {
+        if (vec[idx] > ret) {
+            ret = vec[idx];
+        }
+    }
+    
+    return ret;
+}
+
+template <typename T>
+T min(std::vector<T> vec)
+{
+    int size = vec.size();
+    assert(size > 0);
+
+    T ret = vec[0];
+    for (int idx = 1; idx < size; ++idx) {
+        if (vec[idx] < ret) {
+            ret = vec[idx];
+        }
+    }
+    
+    return ret;
 }
 
 }
