@@ -21,3 +21,6 @@ target_link_libraries(move_to_pose_robot fmt::fmt ${PYTHON_LIBRARIES})
 
 add_executable(breadth_first_search PathPlanning/GraphBased/breadth_first_search.cpp utils/utils.cpp)
 target_link_libraries(breadth_first_search fmt::fmt ${PYTHON_LIBRARIES})
+
+add_executable(depth_first_search PathPlanning/GraphBased/depth_first_search.cpp utils/utils.cpp)
+target_link_libraries(depth_first_search fmt::fmt ${PYTHON_LIBRARIES})

@@ -1,8 +1,8 @@
 #include <cmath>
+#include <stack>
 #include <vector>
 #include <algorithm>
 #include <memory>
-#include <queue>
 #include <unordered_map>
 
 #include <fmt/core.h>
@@ -10,7 +10,7 @@
 #include "utils/utils.hpp"
 #include "utils/matplotlibcpp.h"
 
-using std::queue;
+using std::stack;
 using std::vector;
 using std::shared_ptr;
 using std::unordered_map;
@@ -37,7 +37,7 @@ public:
     ~Node() {}
 };
 
-class BreadthFirstSearchPlanner
+class DepthFirstSearchPlanner
 {
 private:
     double minx;
@@ -51,26 +51,26 @@ private:
     vector<vector<bool>> obstacle_map;
     vector<vector<double>> motion;
 public:
-    BreadthFirstSearchPlanner() {}
-    BreadthFirstSearchPlanner(vector<double> ox, vector<double> oy, double reso, double radius) {
+    DepthFirstSearchPlanner() {}
+    DepthFirstSearchPlanner(vector<double> ox, vector<double> oy, double reso, double radius) {
         map_resolution = reso;
         robot_radius = radius;
         calc_obstacle_map(ox, oy);
         motion = get_motion_model();
     }
-    ~BreadthFirstSearchPlanner() {}
+    ~DepthFirstSearchPlanner() {}
     void calc_obstacle_map(const vector<double>& ox, const vector<double>& oy);
+    vector<vector<double>> get_motion_model(void);
     double calc_grid_position(int index, double minp);
+    vector<vector<double>> planning(double sx, double sy, double gx, double gy);
     double calc_xyindex(double position, double min_pos);
     double calc_grid_index(shared_ptr<Node> node);
-    vector<vector<double>> get_motion_model(void);
-    vector<vector<double>> planning(double sx, double sy, double gx, double gy);
     bool verify_node(shared_ptr<Node> node);
     vector<vector<double>> calc_final_path(shared_ptr<Node> ngoal, 
         unordered_map<double, shared_ptr<Node>>& closed_set);
 };
 
-void BreadthFirstSearchPlanner::calc_obstacle_map(const vector<double>& ox, const vector<double>& oy)
+void DepthFirstSearchPlanner::calc_obstacle_map(const vector<double>& ox, const vector<double>& oy)
 {
     minx = round(Utils::min(ox));
     miny = round(Utils::min(oy));
@@ -103,70 +103,47 @@ void BreadthFirstSearchPlanner::calc_obstacle_map(const vector<double>& ox, cons
     }
 }
 
-double BreadthFirstSearchPlanner::calc_xyindex(double position, double min_pos)
-{
-    return round((position - min_pos) / map_resolution);
-}
-
-double BreadthFirstSearchPlanner::calc_grid_position(int index, double minp)
-{
-    return index * map_resolution + minp;
-}
-
-double BreadthFirstSearchPlanner::calc_grid_index(shared_ptr<Node> node)
-{
-    return (node->y - miny) * xwidth + (node->x - minx);
-}
-
-vector<vector<double>> BreadthFirstSearchPlanner::get_motion_model(void)
+vector<vector<double>> DepthFirstSearchPlanner::get_motion_model(void)
 {
     vector<vector<double>> motion = {{1, 0, 1}, {0, 1, 1}, {-1, 0, 1}, {0, -1, 1},
                 {-1, -1, sqrt(2)}, {-1, 1, sqrt(2)}, {1, -1, sqrt(2)}, {1, 1, sqrt(2)}};
     return motion;
 }
 
-bool BreadthFirstSearchPlanner::verify_node(shared_ptr<Node> node)
+double DepthFirstSearchPlanner::calc_grid_position(int index, double minp)
 {
-    double px = calc_grid_position(node->x, minx);
-    double py = calc_grid_position(node->y, miny);
-    if (px < minx || py < miny || px >= maxx || py >= maxy || obstacle_map[node->x][node->y]) {
-        return false;
-    }
-
-    return true;
+    return index * map_resolution + minp;
 }
 
-vector<vector<double>> BreadthFirstSearchPlanner::planning(
-    double sx, double sy, double gx, double gy)
+
+vector<vector<double>> DepthFirstSearchPlanner::planning(double sx, double sy, double gx, double gy)
 {
     shared_ptr<Node> nstart = std::make_shared<Node>(calc_xyindex(sx, minx),
                                 calc_xyindex(sy, miny), 0.0, -1, nullptr);
     shared_ptr<Node> ngoal = std::make_shared<Node>(calc_xyindex(gx, minx),
                                 calc_xyindex(gy, miny), 0.0, -1, nullptr);
+    
     unordered_map<double, shared_ptr<Node>> open_set;
     unordered_map<double, shared_ptr<Node>> closed_set;
     open_set[calc_grid_index(nstart)] = nstart;
-    queue<shared_ptr<Node>> node_queue;
-    node_queue.emplace(nstart);
+    stack<shared_ptr<Node>> node_stack;
+    node_stack.emplace(nstart);
 
     while (true) {
-        if (open_set.size() == 0 || node_queue.empty()) {
+        if (open_set.size() == 0 || node_stack.empty()) {
             fmt::print("Open set is empty..\n");
             break;
         }
 
-        shared_ptr<Node> current = node_queue.front();
-        double key = calc_grid_index(current);
-        node_queue.pop();
-        open_set.erase(key);
-        closed_set[key] = current;
+        shared_ptr<Node> current = node_stack.top();
+        node_stack.pop();
+        double c_id = calc_grid_index(current);
+        open_set.erase(c_id);
 
         if (show_animation) {
             plt::plot({calc_grid_position(current->x, minx)},
                     {calc_grid_position(current->y, miny)}, "xc");
-            if (closed_set.size() % 10 == 0) {
-                plt::pause(0.001);
-            }
+            plt::pause(0.01);
         }
         if (current->x == ngoal->x && current->y == ngoal->y) {
             fmt::print("Find goal\n");
@@ -177,25 +154,47 @@ vector<vector<double>> BreadthFirstSearchPlanner::planning(
 
         for (const vector<double>& m : motion) {
             shared_ptr<Node> node = std::make_shared<Node>(current->x + m[0], current->y + m[1],
-                                                    current->cost + m[2], key, nullptr);
+                                                    current->cost + m[2], c_id, nullptr);
             double n_id = calc_grid_index(node);
             if (!verify_node(node)) {
                 continue;
             }
 
-            if (closed_set.find(n_id) == closed_set.end() && open_set.find(n_id) == open_set.end()) {
+            if (closed_set.find(n_id) == closed_set.end()) {
                 node->parent = current;
                 open_set[n_id] = node;
-                node_queue.emplace(node);
+                closed_set[n_id] = node;
+                node_stack.emplace(node);
             }
-        }    
+        }
     }
     vector<vector<double>> path = calc_final_path(ngoal, closed_set);
-
+    
     return path;
 }
 
-vector<vector<double>> BreadthFirstSearchPlanner::calc_final_path(shared_ptr<Node> ngoal, 
+double DepthFirstSearchPlanner::calc_xyindex(double position, double min_pos)
+{
+    return round((position - min_pos) / map_resolution);
+}
+
+double DepthFirstSearchPlanner::calc_grid_index(shared_ptr<Node> node)
+{
+    return (node->y - miny) * xwidth + (node->x - minx);
+}
+
+bool DepthFirstSearchPlanner::verify_node(shared_ptr<Node> node)
+{
+    double px = calc_grid_position(node->x, minx);
+    double py = calc_grid_position(node->y, miny);
+    if (px < minx || py < miny || px >= maxx || py >= maxy || obstacle_map[node->x][node->y]) {
+        return false;
+    }
+
+    return true;
+}
+
+vector<vector<double>> DepthFirstSearchPlanner::calc_final_path(shared_ptr<Node> ngoal, 
         unordered_map<double, shared_ptr<Node>>& closed_set)
 {
     vector<vector<double>> path = {{calc_grid_position(ngoal->x, minx)}, 
@@ -219,8 +218,8 @@ int main(int argc, char** argv)
     double grid_size = 2.0;
     double robot_radius = 1.0;
 
-    vector<double> obstacle_x;
-    vector<double> obstacle_y;
+    std::vector<double> obstacle_x;
+    std::vector<double> obstacle_y;
     for (int i = -10; i < 60; ++i) {
         obstacle_x.emplace_back(i);
         obstacle_y.emplace_back(-10.0);
@@ -253,8 +252,8 @@ int main(int argc, char** argv)
         plt::axis("equal");
     }
 
-    BreadthFirstSearchPlanner bfs = BreadthFirstSearchPlanner(obstacle_x, obstacle_y, grid_size, robot_radius);
-    vector<vector<double>> path = bfs.planning(start_x, start_y, goal_x, goal_y);
+    DepthFirstSearchPlanner dfs = DepthFirstSearchPlanner(obstacle_x, obstacle_y, grid_size, robot_radius);
+    vector<vector<double>> path = dfs.planning(start_x, start_y, goal_x, goal_y);
 
     if (show_animation) {
         plt::plot(path[0], path[1], "-r");
@@ -264,4 +263,3 @@ int main(int argc, char** argv)
 
     return 0;
 }
-
