@@ -68,14 +68,14 @@ vector<vector<double>> DepthFirstSearchPlanner::planning(double sx, double sy, d
 
         for (const vector<double>& m : get_motion()) {
             shared_ptr<Node> node = std::make_shared<Node>(current->x + m[0], current->y + m[1],
-                                                    current->cost + m[2], c_id, nullptr);
+                                                    current->cost + m[2], c_id, current);
             double n_id = calc_grid_index(node);
             if (!verify_node(node)) {
                 continue;
             }
 
             if (closed_set.find(n_id) == closed_set.end()) {
-                node->parent = current;
+                // node->parent = current;
                 open_set[n_id] = node;
                 closed_set[n_id] = node;
                 node_stack.emplace(node);
