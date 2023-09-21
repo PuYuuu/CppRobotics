@@ -11,26 +11,29 @@
 #include "utils/matplotlibcpp.h"
 #include "GraphSearchPlanner.hpp"
 
-using std::queue;
 using std::vector;
 using std::shared_ptr;
 using std::unordered_map;
 namespace plt = matplotlibcpp;
 constexpr bool show_animation = true;
 
-class BreadthFirstSearchPlanner : public GraphSearchPlanner
+class AStarPlanner : public GraphSearchPlanner
 {
+private:
+    /* data */
 public:
-    BreadthFirstSearchPlanner() {}
-    BreadthFirstSearchPlanner(vector<double> ox, vector<double> oy, double reso, double radius) :
+    AStarPlanner() {}
+    AStarPlanner(vector<double> ox, vector<double> oy, double reso, double radius) :
         GraphSearchPlanner(ox, oy, reso, radius) {}
-    ~BreadthFirstSearchPlanner() {}
+    ~AStarPlanner() {}
 
     vector<vector<double>> planning(double sx, double sy, double gx, double gy) override;
+    shared_ptr<Node> get_mincost_node(
+        const unordered_map<double, shared_ptr<Node>>& node_set, shared_ptr<Node> goal);
+    double calc_heuristic(shared_ptr<Node> node1, shared_ptr<Node> node2);
 };
 
-vector<vector<double>> BreadthFirstSearchPlanner::planning(
-    double sx, double sy, double gx, double gy)
+vector<vector<double>> AStarPlanner::planning(double sx, double sy, double gx, double gy)
 {
     shared_ptr<Node> nstart = std::make_shared<Node>(calc_xyindex(sx, get_minx()),
                                 calc_xyindex(sy, get_miny()), 0.0, -1, nullptr);
@@ -39,20 +42,16 @@ vector<vector<double>> BreadthFirstSearchPlanner::planning(
     unordered_map<double, shared_ptr<Node>> open_set;
     unordered_map<double, shared_ptr<Node>> closed_set;
     open_set[calc_grid_index(nstart)] = nstart;
-    queue<shared_ptr<Node>> node_queue;
-    node_queue.emplace(nstart);
 
     while (true) {
-        if (open_set.size() == 0 || node_queue.empty()) {
+        if (open_set.size() == 0) {
             fmt::print("Open set is empty..\n");
             break;
         }
 
-        shared_ptr<Node> current = node_queue.front();
-        double key = calc_grid_index(current);
-        node_queue.pop();
-        open_set.erase(key);
-        closed_set[key] = current;
+        shared_ptr<Node> current = get_mincost_node(open_set, ngoal);
+        double c_id = calc_grid_index(current);
+        open_set.erase(c_id);
 
         if (show_animation) {
             plt::plot({calc_grid_position(current->x, get_minx())},
@@ -68,37 +67,59 @@ vector<vector<double>> BreadthFirstSearchPlanner::planning(
             break;
         }
 
+        closed_set[c_id] = current;
         for (const vector<double>& m : get_motion()) {
             shared_ptr<Node> node = std::make_shared<Node>(current->x + m[0], current->y + m[1],
-                                                    current->cost + m[2], key, current);
+                                                    current->cost + m[2], c_id, current);
             double n_id = calc_grid_index(node);
-            if (!verify_node(node)) {
+
+            if (!verify_node(node) || closed_set.find(n_id) != closed_set.end()) {
                 continue;
             }
 
-            if (closed_set.find(n_id) == closed_set.end() && open_set.find(n_id) == open_set.end()) {
-                // node->parent = current;
+            if (open_set.find(n_id) == open_set.end() || open_set[n_id]->cost >= node->cost) {
                 open_set[n_id] = node;
-                node_queue.emplace(node);
             }
-        }    
+        }
     }
     vector<vector<double>> path = calc_final_path(ngoal, closed_set);
 
     return path;
 }
 
+shared_ptr<Node> AStarPlanner::get_mincost_node(
+    const unordered_map<double, shared_ptr<Node>>& node_set, shared_ptr<Node> goal)
+{
+    shared_ptr<Node> min_node = nullptr;
+    for (const auto& n : node_set ) {
+        if (min_node == nullptr || 
+            ((min_node->cost + calc_heuristic(min_node, goal)) > 
+            (n.second->cost + calc_heuristic(n.second, goal)))) {
+            min_node = n.second;
+        }
+    }
+    return min_node;
+}
+
+double AStarPlanner::calc_heuristic(shared_ptr<Node> node1, shared_ptr<Node> node2)
+{
+    double weight = 1.0;
+    double distance = weight * hypot(node1->x - node2->x, node1->y - node2->y);
+
+    return distance;
+}
+
 int main(int argc, char** argv)
 {
-    double start_x = 10.0;
-    double start_y = 10.0;
+    double start_x = 10;
+    double start_y = 10;
     double goal_x = 50.0;
     double goal_y = 50.0;
     double grid_size = 2.0;
     double robot_radius = 1.0;
 
-    vector<double> obstacle_x;
-    vector<double> obstacle_y;
+    std::vector<double> obstacle_x;
+    std::vector<double> obstacle_y;
     for (int i = -10; i < 60; ++i) {
         obstacle_x.emplace_back(i);
         obstacle_y.emplace_back(-10.0);
@@ -131,8 +152,8 @@ int main(int argc, char** argv)
         plt::axis("equal");
     }
 
-    BreadthFirstSearchPlanner bfs = BreadthFirstSearchPlanner(obstacle_x, obstacle_y, grid_size, robot_radius);
-    vector<vector<double>> path = bfs.planning(start_x, start_y, goal_x, goal_y);
+    AStarPlanner astar = AStarPlanner(obstacle_x, obstacle_y, grid_size, robot_radius);
+    vector<vector<double>> path = astar.planning(start_x, start_y, goal_x, goal_y);
 
     if (show_animation) {
         plt::plot(path[0], path[1], "-r");

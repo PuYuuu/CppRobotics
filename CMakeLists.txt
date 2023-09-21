@@ -30,3 +30,7 @@ target_link_libraries(depth_first_search fmt::fmt ${PYTHON_LIBRARIES})
 add_executable(dijkstra PathPlanning/GraphBased/dijkstra.cpp
     PathPlanning/GraphBased/GraphSearchPlanner.cpp utils/utils.cpp)
 target_link_libraries(dijkstra fmt::fmt ${PYTHON_LIBRARIES})
+
+add_executable(astar PathPlanning/GraphBased/astar.cpp
+    PathPlanning/GraphBased/GraphSearchPlanner.cpp utils/utils.cpp)
+target_link_libraries(astar fmt::fmt ${PYTHON_LIBRARIES})
