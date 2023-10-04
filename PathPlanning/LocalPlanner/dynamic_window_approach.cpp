@@ -224,7 +224,9 @@ int main (int argc, char** argv)
 
     while (true) {
         Vector2d u;
+        // Utils::TicToc t_m;
         vector<RobotState> predicted_trajectory = dwa_control(x, u, config, goal, obs);
+        // fmt::print("dwa_control() costtime: {:.3f} ms\n", t_m.toc());
         x = motion(x, u[0], u[1], config->dt);
 
         if (show_animation) {
