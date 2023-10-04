@@ -206,6 +206,7 @@ void plot_robot(double x, double y, double yaw, Config* config)
         plt::plot({p4[0], p1[0]}, {p4[1], p1[1]}, "k-");
     } else if (config->robot_type == Circle) {
         // todo
+        // I'm confused how to draw a circle of specific size in matplotlibcpp
     }
 }
 

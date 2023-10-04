@@ -19,24 +19,24 @@ target_link_libraries(move_to_pose fmt::fmt ${PYTHON_LIBRARIES})
 add_executable(move_to_pose_robot Control/move_to_pose/move_to_pose_robot.cpp utils/utils.cpp)
 target_link_libraries(move_to_pose_robot fmt::fmt ${PYTHON_LIBRARIES})
 
-add_executable(breadth_first_search PathPlanning/GraphBased/breadth_first_search.cpp
-    PathPlanning/GraphBased/GraphSearchPlanner.cpp utils/utils.cpp)
+add_executable(breadth_first_search PathPlanning/GlobalPlanner/breadth_first_search.cpp
+    PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)
 target_link_libraries(breadth_first_search fmt::fmt ${PYTHON_LIBRARIES})
 
-add_executable(depth_first_search PathPlanning/GraphBased/depth_first_search.cpp
-    PathPlanning/GraphBased/GraphSearchPlanner.cpp utils/utils.cpp)
+add_executable(depth_first_search PathPlanning/GlobalPlanner/depth_first_search.cpp
+    PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)
 target_link_libraries(depth_first_search fmt::fmt ${PYTHON_LIBRARIES})
 
-add_executable(dijkstra PathPlanning/GraphBased/dijkstra.cpp
-    PathPlanning/GraphBased/GraphSearchPlanner.cpp utils/utils.cpp)
+add_executable(dijkstra PathPlanning/GlobalPlanner/dijkstra.cpp
+    PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)
 target_link_libraries(dijkstra fmt::fmt ${PYTHON_LIBRARIES})
 
-add_executable(astar PathPlanning/GraphBased/astar.cpp
-    PathPlanning/GraphBased/GraphSearchPlanner.cpp utils/utils.cpp)
+add_executable(astar PathPlanning/GlobalPlanner/astar.cpp
+    PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)
 target_link_libraries(astar fmt::fmt ${PYTHON_LIBRARIES})
 
-add_executable(astar_bidirectional PathPlanning/GraphBased/astar_bidirectional.cpp
-    PathPlanning/GraphBased/GraphSearchPlanner.cpp utils/utils.cpp)
+add_executable(astar_bidirectional PathPlanning/GlobalPlanner/astar_bidirectional.cpp
+    PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)
 target_link_libraries(astar_bidirectional fmt::fmt ${PYTHON_LIBRARIES})
 
 add_executable(dynamic_window_approach 
