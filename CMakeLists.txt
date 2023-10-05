@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(CppRobotics)
 
 set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_CXX_FLAGS "-std=c++11")
+set(CMAKE_CXX_FLAGS "-std=c++17")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
@@ -42,3 +42,6 @@ target_link_libraries(astar_bidirectional fmt::fmt ${PYTHON_LIBRARIES})
 add_executable(dynamic_window_approach 
     PathPlanning/LocalPlanner/dynamic_window_approach.cpp utils/utils.cpp)
 target_link_libraries(dynamic_window_approach fmt::fmt ${PYTHON_LIBRARIES})
+
+add_executable(pure_pursuit PathTracking/pure_pursuit.cpp utils/utils.cpp)
+target_link_libraries(pure_pursuit fmt::fmt ${PYTHON_LIBRARIES})
