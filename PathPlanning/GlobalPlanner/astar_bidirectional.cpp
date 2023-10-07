@@ -180,7 +180,7 @@ int main(int argc, char** argv)
         obstacle_y.emplace_back(60.0 - i);
     }
     if (show_animation) {
-        plt::plot(obstacle_x, obstacle_y, ".k");
+        plt::plot(obstacle_x, obstacle_y, "sk");
         plt::plot({start_x}, {start_y}, "og");
         plt::plot({goal_x}, {goal_x}, "ob");
         plt::grid(true);

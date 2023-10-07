@@ -26,7 +26,8 @@ public:
     shared_ptr<Node> parent; 
 
     Node() {}
-    Node(double _x, double _y, double _cost, int _parent_index, shared_ptr<Node> _node) {
+    Node(double _x, double _y, double _cost = 0, 
+        int _parent_index = -1, shared_ptr<Node> _node = nullptr) {
         x = _x;
         y = _y;
         cost = _cost;
