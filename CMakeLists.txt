@@ -39,6 +39,9 @@ add_executable(astar_bidirectional PathPlanning/GlobalPlanner/astar_bidirectiona
     PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)
 target_link_libraries(astar_bidirectional fmt::fmt ${PYTHON_LIBRARIES})
 
+add_executable(rrt PathPlanning/GlobalPlanner/rrt.cpp utils/utils.cpp)
+target_link_libraries(rrt fmt::fmt ${PYTHON_LIBRARIES})
+
 add_executable(dynamic_window_approach 
     PathPlanning/LocalPlanner/dynamic_window_approach.cpp utils/utils.cpp)
 target_link_libraries(dynamic_window_approach fmt::fmt ${PYTHON_LIBRARIES})
