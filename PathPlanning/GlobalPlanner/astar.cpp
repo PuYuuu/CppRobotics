@@ -151,7 +151,7 @@ int main(int argc, char** argv)
         plt::axis("equal");
     }
 
-    AStarPlanner astar = AStarPlanner(obstacle_x, obstacle_y, grid_size, robot_radius);
+    AStarPlanner astar(obstacle_x, obstacle_y, grid_size, robot_radius);
     vector<vector<double>> path = astar.planning(start_x, start_y, goal_x, goal_y);
 
     if (show_animation) {

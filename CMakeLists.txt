@@ -4,7 +4,7 @@ project(CppRobotics)
 set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_FLAGS "-std=c++17")
 
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/../bin)
 
 find_package(PythonLibs REQUIRED)
 find_package(fmt REQUIRED)
@@ -18,6 +18,9 @@ target_link_libraries(move_to_pose fmt::fmt ${PYTHON_LIBRARIES})
 
 add_executable(move_to_pose_robot Control/move_to_pose/move_to_pose_robot.cpp utils/utils.cpp)
 target_link_libraries(move_to_pose_robot fmt::fmt ${PYTHON_LIBRARIES})
+
+add_executable(cubic_spline_planner PathPlanning/CurvesGenerator/cubic_spline_planner.cpp utils/utils.cpp)
+target_link_libraries(cubic_spline_planner fmt::fmt ${PYTHON_LIBRARIES})
 
 add_executable(breadth_first_search PathPlanning/GlobalPlanner/breadth_first_search.cpp
     PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)

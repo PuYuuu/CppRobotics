@@ -63,6 +63,49 @@ T min(std::vector<T> vec)
     return ret;
 }
 
+template <typename T>
+std::vector<T> diff(const std::vector<T>& vec)
+{
+    std::vector<T> ret;
+    for (size_t idx = 1; idx < vec.size(); ++idx) {
+        ret.push_back(vec[idx] - vec[idx - 1]);
+    }
+    
+    return ret;
+}
+
+template <typename T>
+std::vector<T> cumsum(std::vector<T> vec)
+{
+    std::vector<T> output;
+    T tmp = 0;
+    for(size_t idx = 0; idx < vec.size(); ++idx) {
+        tmp += vec[idx];
+        output.push_back(tmp);
+    }
+
+    return output;
+}
+
+template <typename T>
+int search_index(std::vector<T> nums, T target)
+{
+    int left = 0, right = nums.size() - 1;
+    while(left <= right){
+        int mid = (right - left) / 2 + left;
+        int num = nums[mid];
+        if (num == target) {
+            return mid;
+        } else if (num > target) {
+            right = mid - 1;
+        } else {
+            left = mid + 1;
+        }
+    }
+
+    return -1;
+}
+
 class TicToc
 {
 public:

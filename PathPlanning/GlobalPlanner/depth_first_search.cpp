@@ -131,7 +131,7 @@ int main(int argc, char** argv)
         plt::axis("equal");
     }
 
-    DepthFirstSearchPlanner dfs = DepthFirstSearchPlanner(obstacle_x, obstacle_y, grid_size, robot_radius);
+    DepthFirstSearchPlanner dfs(obstacle_x, obstacle_y, grid_size, robot_radius);
     vector<vector<double>> path = dfs.planning(start_x, start_y, goal_x, goal_y);
 
     if (show_animation) {

@@ -243,7 +243,7 @@ int main(int argc, char** argv)
     Vector2d start(0, 0);
     Vector2d goal(6, 10);
     Vector2d area(-2, 13);
-    RRT rrt = RRT(start, goal, obstacle_list, area);
+    RRT rrt(start, goal, obstacle_list, area);
     vector<vector<double>> path = rrt.planning();
     fmt::print("rrt planning costtime: {:.3f} s\n", t_m.toc() / 1000);
 
