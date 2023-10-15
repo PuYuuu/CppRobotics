@@ -19,7 +19,8 @@ target_link_libraries(move_to_pose fmt::fmt ${PYTHON_LIBRARIES})
 add_executable(move_to_pose_robot Control/move_to_pose/move_to_pose_robot.cpp utils/utils.cpp)
 target_link_libraries(move_to_pose_robot fmt::fmt ${PYTHON_LIBRARIES})
 
-add_executable(cubic_spline_planner PathPlanning/CurvesGenerator/cubic_spline_planner.cpp utils/utils.cpp)
+add_executable(cubic_spline_planner PathPlanning/CurvesGenerator/cubic_spline_planner.cpp 
+    PathPlanning/CurvesGenerator/cubic_spline.cpp utils/utils.cpp)
 target_link_libraries(cubic_spline_planner fmt::fmt ${PYTHON_LIBRARIES})
 
 add_executable(breadth_first_search PathPlanning/GlobalPlanner/breadth_first_search.cpp
@@ -51,3 +52,7 @@ target_link_libraries(dynamic_window_approach fmt::fmt ${PYTHON_LIBRARIES})
 
 add_executable(pure_pursuit PathTracking/pure_pursuit.cpp utils/utils.cpp)
 target_link_libraries(pure_pursuit fmt::fmt ${PYTHON_LIBRARIES})
+
+add_executable(stanley_controller PathTracking/stanley_controller.cpp 
+    PathPlanning/CurvesGenerator/cubic_spline.cpp utils/utils.cpp)
+target_link_libraries(stanley_controller fmt::fmt ${PYTHON_LIBRARIES})
