@@ -23,6 +23,9 @@ add_executable(cubic_spline_planner PathPlanning/CurvesGenerator/cubic_spline_pl
     PathPlanning/CurvesGenerator/cubic_spline.cpp utils/utils.cpp)
 target_link_libraries(cubic_spline_planner fmt::fmt ${PYTHON_LIBRARIES})
 
+add_executable(bezier_path PathPlanning/CurvesGenerator/bezier_path.cpp utils/utils.cpp)
+target_link_libraries(bezier_path fmt::fmt ${PYTHON_LIBRARIES})
+
 add_executable(breadth_first_search PathPlanning/GlobalPlanner/breadth_first_search.cpp
     PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)
 target_link_libraries(breadth_first_search fmt::fmt ${PYTHON_LIBRARIES})
