@@ -6,56 +6,67 @@ set(CMAKE_CXX_FLAGS "-std=c++17")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/../bin)
 
-find_package(PythonLibs REQUIRED)
-find_package(fmt REQUIRED)
-include_directories(${PYTHON_INCLUDE_DIRS})
-include_directories( "/usr/include/eigen3")
+add_library(matplotlib_cpp INTERFACE)
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+target_link_libraries(matplotlib_cpp INTERFACE
+  Python3::Python
+  Python3::Module
+)
 
+find_package(Python3 COMPONENTS NumPy)
+if(Python3_NumPy_FOUND)
+  target_link_libraries(matplotlib_cpp INTERFACE Python3::NumPy)
+else()
+  target_compile_definitions(matplotlib_cpp INTERFACE WITHOUT_NUMPY)
+endif()
+
+find_package(fmt REQUIRED)
+include_directories( "/usr/include/eigen3")
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
 add_executable(move_to_pose Control/move_to_pose/move_to_pose.cpp utils/utils.cpp)
-target_link_libraries(move_to_pose fmt::fmt ${PYTHON_LIBRARIES})
+target_link_libraries(move_to_pose fmt::fmt matplotlib_cpp)
 
 add_executable(move_to_pose_robot Control/move_to_pose/move_to_pose_robot.cpp utils/utils.cpp)
-target_link_libraries(move_to_pose_robot fmt::fmt ${PYTHON_LIBRARIES})
+target_link_libraries(move_to_pose_robot fmt::fmt matplotlib_cpp)
 
 add_executable(cubic_spline_planner PathPlanning/CurvesGenerator/cubic_spline_planner.cpp 
     PathPlanning/CurvesGenerator/cubic_spline.cpp utils/utils.cpp)
-target_link_libraries(cubic_spline_planner fmt::fmt ${PYTHON_LIBRARIES})
+target_link_libraries(cubic_spline_planner fmt::fmt matplotlib_cpp)
 
 add_executable(bezier_path PathPlanning/CurvesGenerator/bezier_path.cpp utils/utils.cpp)
-target_link_libraries(bezier_path fmt::fmt ${PYTHON_LIBRARIES})
+target_link_libraries(bezier_path fmt::fmt matplotlib_cpp)
 
 add_executable(breadth_first_search PathPlanning/GlobalPlanner/breadth_first_search.cpp
     PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)
-target_link_libraries(breadth_first_search fmt::fmt ${PYTHON_LIBRARIES})
+target_link_libraries(breadth_first_search fmt::fmt matplotlib_cpp)
 
 add_executable(depth_first_search PathPlanning/GlobalPlanner/depth_first_search.cpp
     PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)
-target_link_libraries(depth_first_search fmt::fmt ${PYTHON_LIBRARIES})
+target_link_libraries(depth_first_search fmt::fmt matplotlib_cpp)
 
 add_executable(dijkstra PathPlanning/GlobalPlanner/dijkstra.cpp
     PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)
-target_link_libraries(dijkstra fmt::fmt ${PYTHON_LIBRARIES})
+target_link_libraries(dijkstra fmt::fmt matplotlib_cpp)
 
 add_executable(astar PathPlanning/GlobalPlanner/astar.cpp
     PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)
-target_link_libraries(astar fmt::fmt ${PYTHON_LIBRARIES})
+target_link_libraries(astar fmt::fmt matplotlib_cpp)
 
 add_executable(astar_bidirectional PathPlanning/GlobalPlanner/astar_bidirectional.cpp
     PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)
-target_link_libraries(astar_bidirectional fmt::fmt ${PYTHON_LIBRARIES})
+target_link_libraries(astar_bidirectional fmt::fmt matplotlib_cpp)
 
 add_executable(rrt PathPlanning/GlobalPlanner/rrt.cpp utils/utils.cpp)
-target_link_libraries(rrt fmt::fmt ${PYTHON_LIBRARIES})
+target_link_libraries(rrt fmt::fmt matplotlib_cpp)
 
 add_executable(dynamic_window_approach 
     PathPlanning/LocalPlanner/dynamic_window_approach.cpp utils/utils.cpp)
-target_link_libraries(dynamic_window_approach fmt::fmt ${PYTHON_LIBRARIES})
+target_link_libraries(dynamic_window_approach fmt::fmt matplotlib_cpp)
 
 add_executable(pure_pursuit PathTracking/pure_pursuit.cpp utils/utils.cpp)
-target_link_libraries(pure_pursuit fmt::fmt ${PYTHON_LIBRARIES})
+target_link_libraries(pure_pursuit fmt::fmt matplotlib_cpp)
 
 add_executable(stanley_controller PathTracking/stanley_controller.cpp 
     PathPlanning/CurvesGenerator/cubic_spline.cpp utils/utils.cpp)
-target_link_libraries(stanley_controller fmt::fmt ${PYTHON_LIBRARIES})
+target_link_libraries(stanley_controller fmt::fmt matplotlib_cpp)
