@@ -41,10 +41,11 @@ private:
     double robot_radius;
     vector<Node*> node_list;
     vector<vector<double>> obstacle_list;
+    vector<vector<double>> boundary;
     std::mt19937 engine;
 public:
     RRT(Vector2d _start, Vector2d _goal, vector<vector<double>> obs,
-        Vector2d rand_area, double expand = 1.0, double goal_sample = 0.5, 
+        Vector2d rand_area, double expand = 0.5, double goal_sample = 0.5, 
         int _max_iter = 1000, double _robot_radius = 0.5) {
         start = new Node(_start[0], _start[1]);
         goal = new Node(_goal[0], _goal[1]);
@@ -66,7 +67,8 @@ public:
     Node* steer(Node* from_node, Node* to_node);
     Vector2d calc_distance_and_angle(Node* from_node, Node* to_node);
     bool check_collision(Node* new_node);
-    void plot_circle(double x, double y, double size, string style = "-b");
+    void plot_circle(double x, double y, double size,
+                    bool is_fill = false, string style = "-b");
     void draw_graph(Node rnd);
     vector<vector<double>> generate_final_course(void);
 };
@@ -80,6 +82,18 @@ RRT::~RRT()
 
 vector<vector<double>> RRT::planning(void)
 {
+    boundary.resize(2);
+    for (double i = min_rand - 1; i < (max_rand + 1); i += 0.2) {
+        boundary[0].push_back(i);
+        boundary[0].push_back(max_rand + 1);
+        boundary[0].push_back(i);
+        boundary[0].push_back(min_rand - 1);
+        boundary[1].push_back(min_rand - 1);
+        boundary[1].push_back(i);
+        boundary[1].push_back(max_rand + 1);
+        boundary[1].push_back(i);
+    }
+
     node_list.push_back(start);
     
     for (int iter = 0; iter < max_iter; ++iter) {
@@ -171,11 +185,6 @@ bool RRT::check_collision(Node* new_node)
         double dy = obs[1] - new_node->y;
         double d = hypot(dx, dy);
 
-        // fmt::print("obs: {}, {}, {}\n", obs[0], obs[1], obs[2]);
-        // fmt::print("node: {}, {}\n", new_node->x, new_node->x);
-        // fmt::print("d: {}, {}, {}\n", dx, dy, d);
-        // fmt::print("pow: {}\n", pow(obs[2] + robot_radius, 2));
-
         if (d <= (obs[2] + robot_radius)) {
             return false;
         }
@@ -184,7 +193,7 @@ bool RRT::check_collision(Node* new_node)
     return true;
 }
 
-void RRT::plot_circle(double x, double y, double size, string style)
+void RRT::plot_circle(double x, double y, double size, bool is_fill, string style)
 {
     vector<double> xl;
     vector<double> yl;
@@ -192,16 +201,21 @@ void RRT::plot_circle(double x, double y, double size, string style)
         xl.push_back(x + size * cos(deg));
         yl.push_back(y + size * sin(deg));
     }
-    plt::plot(xl, yl, style);
+    if (is_fill) {
+        plt::fill(xl, yl, {{"color", "gray"}});
+    } else {
+        plt::plot(xl, yl, style);
+    }
 }
 
 void RRT::draw_graph(Node rnd)
 {
     plt::clf();
     
+    plt::plot(boundary[0], boundary[1], "sk");
     plt::plot({rnd.x}, {rnd.y}, "^k");
     if (robot_radius > 0.0) {
-        plot_circle(rnd.x, rnd.y, robot_radius, "-r");
+        plot_circle(rnd.x, rnd.y, robot_radius, false, "-r");
     }
 
     for (Node* n : node_list) {
@@ -211,7 +225,7 @@ void RRT::draw_graph(Node rnd)
     }
 
     for (vector<double> obs : obstacle_list) {
-        plot_circle(obs[0], obs[1], obs[2]);
+        plot_circle(obs[0], obs[1], obs[2], true);
     }
 
     plt::plot({start->x}, {start->y}, "xr");
