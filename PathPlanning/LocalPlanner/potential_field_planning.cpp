@@ -2,6 +2,8 @@
 #include <vector>
 #include <algorithm>
 #include <limits>
+#include <queue>
+#include <set>
 
 #include <fmt/core.h>
 #include <Eigen/Core>
@@ -30,7 +32,7 @@ double calc_repulsive_potential(Vector2d xy, const vector<vector<double>>& obs, 
     }
     int minid = 0;
     double dmin = hypot(xy[0] - obs[0][0], xy[1] - obs[1][0]);
-    for (size_t idx = 1; idx < obs.size(); ++idx) {
+    for (size_t idx = 1; idx < obs[0].size(); ++idx) {
         double d = hypot(xy[0] - obs[0][idx], xy[1] - obs[1][idx]);
         if (dmin >= d) {
             dmin = d;
@@ -82,6 +84,31 @@ vector<vector<int>> get_motion_model(void)
     return motion;
 }
 
+bool oscillations_detection(std::queue<Vector2i> previous_ids, Vector2i ixy)
+{
+    previous_ids.emplace(ixy);
+    int ids_size = previous_ids.size();
+
+    if (ids_size > OSCILLATIONS_DETECTION_LENGTH) {
+        previous_ids.pop();
+    }
+
+    std::set<std::pair<int, int>> previous_ids_set;
+    for (int idx = 0; idx < ids_size; ++idx) {
+        Vector2i tmp = previous_ids.front();
+        std::pair<int, int> tmp_pair = {tmp[0], tmp[1]};
+        previous_ids.pop();
+        if (previous_ids_set.count(tmp_pair)) {
+            return true;
+        } else {
+            previous_ids_set.insert(tmp_pair);
+        }
+        previous_ids.emplace(tmp);
+    }
+    
+    return false;
+}
+
 vector<vector<double>> potential_field_planning(Vector2d start, Vector2d goal,
                     const vector<vector<double>>& obs, double reso, double rr)
 {
@@ -96,13 +123,17 @@ vector<vector<double>> potential_field_planning(Vector2d start, Vector2d goal,
     if (show_animation) {
         int nrows = pmap.size();
         int ncols = pmap[0].size();
-        
         vector<float> im(nrows * ncols);
-        double max_pmap = -1;
+        vector<vector<double>> pmap_t(ncols, vector<double>(nrows, 0.0));
+
+        for (int i = 0; i < nrows; i++) {
+            for (int j = 0; j < ncols; j++) {
+                pmap_t[j][i] = pmap[i][j];
+            }
+        }
         for (size_t j = 0; j < ncols; ++j) {
             for (size_t i = 0; i < nrows; ++i) {
-                im.at(ncols * i + j) = pmap[i][j];
-                max_pmap = std::max(max_pmap, pmap[i][j]);
+                im.at(nrows * j + i) = pmap_t[j][i];
             }
         }
 
@@ -111,9 +142,7 @@ vector<vector<double>> potential_field_planning(Vector2d start, Vector2d goal,
 
         plt::grid(true);
         plt::axis("equal");
-        // There is currently no good way to display it, which also makes 
-        // debugging difficult, and the method currently fails.
-        // plt::imshow(imptr, ncols, nrows, colors);
+        plt::imshow(imptr, ncols, nrows, colors, {{"vmax", "100"}, {"cmap", "Blues"}});
 
         plt::plot({static_cast<double>(ix)}, {static_cast<double>(iy)}, "*k");
         plt::plot({static_cast<double>(gix)}, {static_cast<double>(giy)}, "*m");
@@ -121,7 +150,8 @@ vector<vector<double>> potential_field_planning(Vector2d start, Vector2d goal,
 
     vector<vector<double>> path = {{start[0]}, {start[1]}};
     vector<vector<int>> motions = get_motion_model();
-    
+    std::queue<Vector2i> previous_ids;
+
     while (d >= reso) {
         double minp = std::numeric_limits<double>::max() - 10;
         int minix = -1;
@@ -148,6 +178,11 @@ vector<vector<double>> potential_field_planning(Vector2d start, Vector2d goal,
         path[0].push_back(xp);
         path[1].push_back(yp);
 
+        if (oscillations_detection(previous_ids, {ix, iy})) {
+            fmt::print("Oscillation detected at ({},{})!\n",ix, iy);
+            break;
+        }
+
         if (show_animation) {
             plt::plot({static_cast<double>(ix)}, {static_cast<double>(iy)}, ".r");
             plt::pause(0.01);
@@ -166,7 +201,9 @@ int main (int argc, char** argv)
     vector<vector<double>> obstacles = {{15.0, 5.0, 20.0, 25.0}, 
                                         {25.0, 15.0, 26.0, 25.0}};
 
+    Utils::TicToc t_m;
     potential_field_planning(start, goal, obstacles, grid_size, robot_radius);
+    fmt::print("potential_field_planning costtime: {:.3f} s\n", t_m.toc() / 1000);
     if (show_animation) {
         plt::show();
     }
