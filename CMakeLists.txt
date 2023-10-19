@@ -64,6 +64,10 @@ add_executable(dynamic_window_approach
     PathPlanning/LocalPlanner/dynamic_window_approach.cpp utils/utils.cpp)
 target_link_libraries(dynamic_window_approach fmt::fmt matplotlib_cpp)
 
+add_executable(potential_field_planning 
+    PathPlanning/LocalPlanner/potential_field_planning.cpp utils/utils.cpp)
+target_link_libraries(potential_field_planning fmt::fmt matplotlib_cpp)
+
 add_executable(pure_pursuit PathTracking/pure_pursuit.cpp utils/utils.cpp)
 target_link_libraries(pure_pursuit fmt::fmt matplotlib_cpp)
 
