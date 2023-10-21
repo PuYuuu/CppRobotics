@@ -30,12 +30,15 @@ target_link_libraries(move_to_pose fmt::fmt matplotlib_cpp)
 add_executable(move_to_pose_robot Control/move_to_pose/move_to_pose_robot.cpp utils/utils.cpp)
 target_link_libraries(move_to_pose_robot fmt::fmt matplotlib_cpp)
 
-add_executable(cubic_spline_planner PathPlanning/CurvesGenerator/cubic_spline_planner.cpp 
+add_executable(cubic_spline_path PathPlanning/CurvesGenerator/cubic_spline_path.cpp 
     PathPlanning/CurvesGenerator/cubic_spline.cpp utils/utils.cpp)
-target_link_libraries(cubic_spline_planner fmt::fmt matplotlib_cpp)
+target_link_libraries(cubic_spline_path fmt::fmt matplotlib_cpp)
 
 add_executable(bezier_path PathPlanning/CurvesGenerator/bezier_path.cpp utils/utils.cpp)
 target_link_libraries(bezier_path fmt::fmt matplotlib_cpp)
+
+add_executable(bspline_path PathPlanning/CurvesGenerator/bspline_path.cpp utils/utils.cpp)
+target_link_libraries(bspline_path fmt::fmt matplotlib_cpp)
 
 add_executable(breadth_first_search PathPlanning/GlobalPlanner/breadth_first_search.cpp
     PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)
