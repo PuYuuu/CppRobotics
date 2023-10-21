@@ -18,7 +18,7 @@ constexpr double max_simulation_time = 100.0;
 double k = 0.5;     // control gain
 double Kp = 1.0;    // speed proportional gain
 double dt = 0.1;    // [s] time difference
-double L = 2.9;     // [m] Wheel base of vehicle
+double L = 2.5;     // [m] Wheel base of vehicle
 double max_steer = M_PI_2 / 3.0;  // [rad] max steering angle
 
 vector<vector<double>> calc_spline_course(vector<double> x, vector<double> y, double ds = 0.1)
@@ -124,13 +124,13 @@ double stanley_control(RobotState& state, vector<double> cx, vector<double> cy,
 
 int main(int argc, char** argv)
 {
-    vector<double> ax = {0.0, 100.0, 100.0, 50.0, 60.0};
-    vector<double> ay = {0.0, 0.0, -30.0, -20.0, 0.0};
+    vector<double> ax = {0.0, 50.0, 50.0, 25.0, 30.0};
+    vector<double> ay = {0.0, 0.0, -15.0, -10.0, 0.0};
     vector<vector<double>> c = calc_spline_course(ax, ay, 0.1);
     vector<double> cx = c[0];
     vector<double> cy = c[1];
     vector<double> cyaw = c[2];
-    double target_speed = 30.0 / 3.6;
+    double target_speed = 20.0 / 3.6;
     
     RobotState state(-0.0, 5.0, 20 * M_PI / 180.0, 0.0);
     size_t last_idx = cx.size() - 1;
@@ -142,6 +142,7 @@ int main(int argc, char** argv)
     vector<double> t = {0.0};
     auto _target = calc_target_index(state, cx, cy);
     size_t target_idx = _target.first;
+    Utils::VehicleConfig vc;
     Utils::TicToc t_m;
 
     while (max_simulation_time >= time && last_idx > target_idx) {
@@ -158,9 +159,10 @@ int main(int argc, char** argv)
 
         if (show_animation) {
             plt::cla();
-            plt::named_plot("course", cx, cy, ".r");
+            plt::named_plot("course", cx, cy, "-r");
             plt::named_plot("trajectory", x, y, "-b");
             plt::plot({cx[target_idx]}, {cy[target_idx]}, "xg");
+            Utils::draw_vehicle({state.x, state.y, state.yaw}, di, vc);
             plt::legend();
             plt::axis("equal");
             plt::grid(true);

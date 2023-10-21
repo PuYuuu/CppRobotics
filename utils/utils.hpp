@@ -2,12 +2,16 @@
 
 #include <chrono>
 #include <vector>
+#include <string>
 #include <climits>
 #include <algorithm>
 
 #include <Eigen/Core>
 
+#include "matplotlibcpp.h"
+
 using namespace Eigen;
+namespace plt = matplotlibcpp;
 
 namespace Utils {
 
@@ -126,5 +130,26 @@ public:
 private:
     std::chrono::time_point<std::chrono::system_clock> start, end;
 };
+
+class VehicleConfig
+{
+public:
+    double RF;  // [m] distance from rear to vehicle front end of vehicle
+    double RB;  // [m] distance from rear to vehicle back end of vehicle
+    double W;   // [m] width of vehicle
+    double WD;  // [m] distance between left-right wheels
+    double WB;  // [m] Wheel base
+    double TR;  // [m] Tyre radius
+    double TW;  // [m] Tyre width
+    double MAX_STEER;
+
+    // Default parameters
+    VehicleConfig() : RF(3.3), RB(0.8), W(2.4), WB(2.5), TR(0.44), TW(0.7), MAX_STEER(0.65) {
+        WD = 0.7 * W; 
+    }
+    ~VehicleConfig() {}
+};
+
+void draw_vehicle(Vector3d state, double steer, VehicleConfig c, std::string color="-k");
 
 }

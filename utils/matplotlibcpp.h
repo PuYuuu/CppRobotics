@@ -1,5 +1,7 @@
 #pragma once
 
+// This project uses matplotlib-cpp for visualization, and also makes
+// some adaptations and modifications based on it.
 // https://github.com/lava/matplotlib-cpp
 
 // Python headers must be included before any system headers, since
@@ -371,7 +373,7 @@ PyObject* get_array(const std::vector<Numeric>& v)
         PyArray_UpdateFlags(reinterpret_cast<PyArrayObject*>(varray), NPY_ARRAY_OWNDATA);
         return varray;
     }
-
+    _import_array();
     PyObject* varray = PyArray_SimpleNewFromData(1, &vsize, type, (void*)(v.data()));
     return varray;
 }

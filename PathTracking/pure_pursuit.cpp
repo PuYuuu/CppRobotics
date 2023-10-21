@@ -12,7 +12,7 @@
 using std::vector;
 using std::tuple;
 namespace plt = matplotlibcpp;
-constexpr double WB = 2.9;
+constexpr double WB = 2.5;
 constexpr double dt = 0.1;
 constexpr double k = 0.1;
 constexpr double Lfc = 2.0;
@@ -166,16 +166,15 @@ tuple<int, double> pure_pursuit_steer_control(RobotState& state, TargetCourse& t
 
 int main(int argc, char** argv)
 {
-    Utils::TicToc t_m;
     vector<double> cx;
     vector<double> cy;
     for (double idx = 0; idx <= 50; idx += 0.5) {
-        double tmp = sin(idx / 5.0) * idx;
+        double tmp = sin(idx / 5.0) * idx / 2;
         cx.emplace_back(idx);
         cy.emplace_back(tmp);
     }
 
-    double target_speed = 10.0 / 3.6;
+    double target_speed = 20.0 / 3.6;
     double T = 100.0;
     RobotState state = RobotState(-0.0, -3.0, 0.0, 0.0);
     int lastIndex = cx.size() - 1;
@@ -185,6 +184,8 @@ int main(int argc, char** argv)
     TargetCourse target_course = TargetCourse(cx, cy);
     tuple<int, double> result = target_course.search_target_index(state);
     int target_id = std::get<0>(result);
+    Utils::VehicleConfig vc;
+    Utils::TicToc t_m;
 
     while (T >= time && lastIndex > target_id) {
         double ai = proportional_control(target_speed, state.velocity);
@@ -202,6 +203,7 @@ int main(int argc, char** argv)
             plt::named_plot("course", cx, cy, "-r");
             plt::named_plot("trajectory", states.x, states.y, "-b");
             plt::plot({cx[target_id]}, {cy[target_id]}, "xg");
+            Utils::draw_vehicle({state.x, state.y, state.yaw}, di, vc);
             plt::axis("equal");
             plt::grid(true);
             plt::legend();
