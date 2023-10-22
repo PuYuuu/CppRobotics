@@ -158,6 +158,7 @@ void run_simulation(std::vector<Robot>& robots)
                     sin(robo.pose_start.theta), "r");
                 plt::arrow(robo.pose_target.x, robo.pose_target.y, cos(robo.pose_target.theta), 
                     sin(robo.pose_target.theta), "g");
+                plt::title("move_to_pose_robots");
                 plot_vehicle(robo.pose.x, robo.pose.y, robo.pose.theta, robo.color,
                     robo.x_traj, robo.y_traj);
             }

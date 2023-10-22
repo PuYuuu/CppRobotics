@@ -79,6 +79,7 @@ void move_to_pose(double x_start, double y_start, double theta_start,
             plt::clf();
             plt::arrow(x_start, y_start, cos(theta_start), sin(theta_start), "r");
             plt::arrow(x_goal, y_goal, cos(theta_goal), sin(theta_goal), "g");
+            plt::title("move_to_pose");
             plot_vehicle(x, y, theta, x_traj, y_traj);
         }
         epoch++;

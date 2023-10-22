@@ -293,6 +293,5 @@ int main(int argc, char** argv)
         plt::show();
     }
     
-
     return 0;
 }
