@@ -185,6 +185,7 @@ vector<vector<double>> potential_field_planning(Vector2d start, Vector2d goal,
 
         if (show_animation) {
             plt::plot({static_cast<double>(ix)}, {static_cast<double>(iy)}, ".r");
+            plt::title("Potential Field Planning");
             plt::pause(0.01);
         }
     }

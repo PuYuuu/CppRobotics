@@ -128,6 +128,7 @@ int main(int argc, char** argv)
         plt::plot({start_x}, {start_y}, "og");
         plt::plot({goal_x}, {goal_x}, "xb");
         plt::grid(true);
+        plt::title("Breadth-first Search");
         plt::axis("equal");
     }
 

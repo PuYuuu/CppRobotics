@@ -30,6 +30,7 @@ int main(int argc, char** argv)
         plt::named_plot("Cubic spline interpolation", xi, yi, "r");
         plt::grid(true);
         plt::legend();
+        plt::title("Cubic Spline");
         plt::show();
     } else {
         vector<double> x = {-2.5, 0.0, 2.5, 5.0, 7.5, 3.0, -1.0};
@@ -58,6 +59,7 @@ int main(int argc, char** argv)
         plt::xlabel("x[m]");
         plt::ylabel("y[m]");
         plt::legend();
+        plt::title("Cubic Spline Interpolation");
 
         plt::figure();
         plt::named_plot("yaw", s, ryaw, "-r");

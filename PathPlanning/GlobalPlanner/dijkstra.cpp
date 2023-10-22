@@ -15,6 +15,8 @@ constexpr bool show_animation = true;
 
 class Dijkstra : public GraphSearchPlanner
 {
+private:
+    shared_ptr<Node> get_mincost_node(const unordered_map<double, shared_ptr<Node>>& node_set);
 public:
     Dijkstra() {}
     Dijkstra(vector<double> ox, vector<double> oy, double reso, double radius) :
@@ -22,7 +24,6 @@ public:
     ~Dijkstra() {}
 
     vector<vector<double>> planning(double sx, double sy, double gx, double gy) override;
-    shared_ptr<Node> get_mincost_node(const unordered_map<double, shared_ptr<Node>>& node_set);
 };
 
 vector<vector<double>> Dijkstra::planning(double sx, double sy, double gx, double gy)
@@ -131,6 +132,7 @@ int main(int argc, char** argv)
         plt::plot({start_x}, {start_y}, "og");
         plt::plot({goal_x}, {goal_x}, "xb");
         plt::grid(true);
+        plt::title("Dijkstra");
         plt::axis("equal");
     }
 

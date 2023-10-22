@@ -246,6 +246,7 @@ int main (int argc, char** argv)
             plot_robot(x[0], x[1], x[2], config);
             plt::axis("equal");
             plt::grid(true);
+            plt::title("Dynamic Window Approach");
             plt::pause(0.0001);
         }
         double dist_to_goal = hypot(x[0] - goal[0], x[1] - goal[1]);

@@ -43,6 +43,16 @@ private:
     vector<vector<double>> obstacle_list;
     vector<vector<double>> boundary;
     std::mt19937 engine;
+
+    Node get_random_node(void);
+    Node* get_nearest_node(Node rnd_node);
+    Node* steer(Node* from_node, Node* to_node);
+    Vector2d calc_distance_and_angle(Node* from_node, Node* to_node);
+    bool check_collision(Node* new_node);
+    void plot_circle(double x, double y, double size,
+                    bool is_fill = false, string style = "-b");
+    void draw_graph(Node rnd);
+    vector<vector<double>> generate_final_course(void);
 public:
     RRT(Vector2d _start, Vector2d _goal, vector<vector<double>> obs,
         Vector2d rand_area, double expand = 0.5, double goal_sample = 0.5, 
@@ -62,15 +72,6 @@ public:
     ~RRT();
 
     vector<vector<double>> planning(void);
-    Node get_random_node(void);
-    Node* get_nearest_node(Node rnd_node);
-    Node* steer(Node* from_node, Node* to_node);
-    Vector2d calc_distance_and_angle(Node* from_node, Node* to_node);
-    bool check_collision(Node* new_node);
-    void plot_circle(double x, double y, double size,
-                    bool is_fill = false, string style = "-b");
-    void draw_graph(Node rnd);
-    vector<vector<double>> generate_final_course(void);
 };
 
 RRT::~RRT()
@@ -232,6 +233,7 @@ void RRT::draw_graph(Node rnd)
     plt::plot({goal->x}, {goal->y}, "xr");
     plt::axis("equal");
     plt::grid(true);
+    plt::title("Rapid-exploration Random Tree");
     plt::pause(0.01);
 }
 

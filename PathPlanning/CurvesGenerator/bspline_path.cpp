@@ -174,8 +174,10 @@ int main(int argc, char** argv)
     plt::named_plot("Interpolated B-Spline path", path[0], path[1], "-b");
     plt::named_plot("way points", way_point[0], way_point[1], "-og");
     // plot_curvature(path);
-    plt::title("B-Spline interpolation");
+    plt::title("B-Spline Interpolation");
     plt::legend();
+	plt::xlabel("x[m]");
+	plt::ylabel("y[m]");
     plt::grid(true);
     plt::axis("equal");
     plt::show();

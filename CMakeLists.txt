@@ -63,6 +63,9 @@ target_link_libraries(astar_bidirectional fmt::fmt matplotlib_cpp)
 add_executable(rrt PathPlanning/GlobalPlanner/rrt.cpp utils/utils.cpp)
 target_link_libraries(rrt fmt::fmt matplotlib_cpp)
 
+add_executable(prm PathPlanning/GlobalPlanner/probabilistic_road_map.cpp utils/utils.cpp)
+target_link_libraries(prm fmt::fmt matplotlib_cpp)
+
 add_executable(dynamic_window_approach 
     PathPlanning/LocalPlanner/dynamic_window_approach.cpp utils/utils.cpp)
 target_link_libraries(dynamic_window_approach fmt::fmt matplotlib_cpp)

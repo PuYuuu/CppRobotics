@@ -19,7 +19,11 @@ constexpr bool show_animation = true;
 class BidirectionalAStarPlanner : public GraphSearchPlanner
 {
 private:
-    /* data */
+    shared_ptr<Node> get_mincost_node(
+        const unordered_map<double, shared_ptr<Node>>& node_set, shared_ptr<Node> goal);
+    double calc_heuristic(shared_ptr<Node> node1, shared_ptr<Node> node2);
+    vector<vector<double>> calc_final_bidirectional_path(shared_ptr<Node> n1, shared_ptr<Node> n2,
+        unordered_map<double, shared_ptr<Node>>& set1, unordered_map<double, shared_ptr<Node>>& set2);
 public:
     BidirectionalAStarPlanner() {}
     BidirectionalAStarPlanner(vector<double> ox, vector<double> oy, double reso, double radius) :
@@ -27,11 +31,6 @@ public:
     ~BidirectionalAStarPlanner() {}
 
     vector<vector<double>> planning(double sx, double sy, double gx, double gy) override;
-    shared_ptr<Node> get_mincost_node(
-        const unordered_map<double, shared_ptr<Node>>& node_set, shared_ptr<Node> goal);
-    double calc_heuristic(shared_ptr<Node> node1, shared_ptr<Node> node2);
-    vector<vector<double>> calc_final_bidirectional_path(shared_ptr<Node> n1, shared_ptr<Node> n2,
-        unordered_map<double, shared_ptr<Node>>& set1, unordered_map<double, shared_ptr<Node>>& set2);
 };
 
 vector<vector<double>> BidirectionalAStarPlanner::planning(double sx, double sy, double gx, double gy)
@@ -136,10 +135,8 @@ vector<vector<double>> BidirectionalAStarPlanner::calc_final_bidirectional_path(
     vector<vector<double>> path2 = calc_final_path(n2, set2);
     std::reverse(path1[0].begin(), path1[0].end());
     std::reverse(path1[1].begin(), path1[1].end());
-    fmt::print("path1 size: {}, path2 size: {}", path1[0].size(), path2[0].size());
     path1[0].insert(path1[0].end(), path2[0].begin(), path2[0].end());
     path1[1].insert(path1[1].end(), path2[1].begin(), path2[1].end());
-    fmt::print("path1 size: {}, path2 size: {}", path1[0].size(), path2[0].size());
 
     return path1;
 }
@@ -183,6 +180,7 @@ int main(int argc, char** argv)
         plt::plot(obstacle_x, obstacle_y, "sk");
         plt::plot({start_x}, {start_y}, "og");
         plt::plot({goal_x}, {goal_x}, "ob");
+        plt::title("Bidirectional-A*");
         plt::grid(true);
         plt::axis("equal");
     }

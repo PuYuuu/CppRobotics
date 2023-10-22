@@ -166,7 +166,7 @@ int main(int argc, char** argv)
             plt::legend();
             plt::axis("equal");
             plt::grid(true);
-            plt::title("Speed[km/h]:" + std::to_string(state.v * 3.6).substr(0, 5));
+            plt::title("Stanley Controller Speed[km/h]:" + std::to_string(state.v * 3.6).substr(0, 5));
             plt::pause(0.001);
         }
     }

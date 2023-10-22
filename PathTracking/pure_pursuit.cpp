@@ -208,7 +208,7 @@ int main(int argc, char** argv)
             plt::grid(true);
             plt::legend();
             // plt::xlim(-10, 55);
-            plt::title("Speed[km/h]:" + std::to_string(state.velocity * 3.6).substr(0,4));
+            plt::title("Pure Pursuit Speed[km/h]:" + std::to_string(state.velocity * 3.6).substr(0,4));
             plt::pause(0.001);
         }
     }

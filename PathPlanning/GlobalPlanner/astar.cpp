@@ -19,7 +19,9 @@ constexpr bool show_animation = true;
 class AStarPlanner : public GraphSearchPlanner
 {
 private:
-    /* data */
+    shared_ptr<Node> get_mincost_node(
+        const unordered_map<double, shared_ptr<Node>>& node_set, shared_ptr<Node> goal);
+    double calc_heuristic(shared_ptr<Node> node1, shared_ptr<Node> node2);
 public:
     AStarPlanner() {}
     AStarPlanner(vector<double> ox, vector<double> oy, double reso, double radius) :
@@ -27,9 +29,6 @@ public:
     ~AStarPlanner() {}
 
     vector<vector<double>> planning(double sx, double sy, double gx, double gy) override;
-    shared_ptr<Node> get_mincost_node(
-        const unordered_map<double, shared_ptr<Node>>& node_set, shared_ptr<Node> goal);
-    double calc_heuristic(shared_ptr<Node> node1, shared_ptr<Node> node2);
 };
 
 vector<vector<double>> AStarPlanner::planning(double sx, double sy, double gx, double gy)
@@ -148,6 +147,7 @@ int main(int argc, char** argv)
         plt::plot({start_x}, {start_y}, "og");
         plt::plot({goal_x}, {goal_x}, "xb");
         plt::grid(true);
+        plt::title("A*");
         plt::axis("equal");
     }
 
