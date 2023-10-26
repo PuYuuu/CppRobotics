@@ -36,6 +36,16 @@ Matrix3d transformation_matrix2d(T x, T y, T theta)
 }
 
 template <typename T>
+Matrix2d rotation_matrix2d(T theta)
+{
+    Matrix2d rotation;
+    rotation << cos(theta), -sin(theta), 
+            sin(theta), cos(theta);
+    
+    return rotation;
+}
+
+template <typename T>
 T max(std::vector<T> vec)
 {
     int size = vec.size();

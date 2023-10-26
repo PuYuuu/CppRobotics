@@ -40,6 +40,9 @@ target_link_libraries(bezier_path fmt::fmt matplotlib_cpp)
 add_executable(bspline_path PathPlanning/CurvesGenerator/bspline_path.cpp utils/utils.cpp)
 target_link_libraries(bspline_path fmt::fmt matplotlib_cpp)
 
+add_executable(dubins_path PathPlanning/CurvesGenerator/dubins_path.cpp utils/utils.cpp)
+target_link_libraries(dubins_path fmt::fmt matplotlib_cpp)
+
 add_executable(breadth_first_search PathPlanning/GlobalPlanner/breadth_first_search.cpp
     PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)
 target_link_libraries(breadth_first_search fmt::fmt matplotlib_cpp)

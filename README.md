@@ -1,5 +1,5 @@
 # CppRobotics
-![Language](https://img.shields.io/badge/language-c++-brightgreen)![Static Badge](https://img.shields.io/badge/eigen-3.3.7-blue)
+![Language](https://img.shields.io/badge/language-c++-brightgreen)  ![Static Badge](https://img.shields.io/badge/eigen-3.3.7-blue)
 
 Cpp implementation of robotics algorithms including localization, path planning, path tracking and control, inspired by [PythonRobotics](https://github.com/AtsushiSakai/PythonRobotics).
 
