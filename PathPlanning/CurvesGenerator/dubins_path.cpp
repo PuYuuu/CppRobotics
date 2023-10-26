@@ -297,6 +297,7 @@ int main(int argc, char** argv)
         plt::legend();
         plt::grid(true);
         plt::axis("equal");
+        plt::title("Dubins Path");
         plt::show();
     }
 

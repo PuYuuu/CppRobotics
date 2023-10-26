@@ -34,6 +34,7 @@ Find all the executable files in **$workspace/bin**.
 </table>
 </div>
 
+
 ### PathPlanning
 
 #### CurvesGenerator
@@ -46,14 +47,14 @@ Find all the executable files in **$workspace/bin**.
   </tr>
 </table>
 </div>
-<div align=center>
+<div align=right>
 <table>
   <tr>
+    <td><img src="./assets/images/dubins.png" width="400"/></a></td>
     <td><img src="./assets/images/bezier.gif" width="400"/></a></td>
   </tr>
 </table>
 </div>
-
 
 #### GlobalPlanner
 
@@ -105,6 +106,7 @@ Find all the executable files in **$workspace/bin**.
   </tr>
 </table>
 </div>
+
 
 ### PathTracking
 
