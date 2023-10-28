@@ -24,10 +24,10 @@ find_package(fmt REQUIRED)
 include_directories( "/usr/include/eigen3")
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
-add_executable(move_to_pose Control/move_to_pose/move_to_pose.cpp utils/utils.cpp)
+add_executable(move_to_pose Control/move_to_pose.cpp utils/utils.cpp)
 target_link_libraries(move_to_pose fmt::fmt matplotlib_cpp)
 
-add_executable(move_to_pose_robot Control/move_to_pose/move_to_pose_robot.cpp utils/utils.cpp)
+add_executable(move_to_pose_robot Control/move_to_pose_robot.cpp utils/utils.cpp)
 target_link_libraries(move_to_pose_robot fmt::fmt matplotlib_cpp)
 
 add_executable(cubic_spline_path PathPlanning/CurvesGenerator/cubic_spline_path.cpp 
