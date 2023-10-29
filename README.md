@@ -23,38 +23,18 @@ Find all the executable files in **$workspace/bin**.
 
 ## 🎈Animations
 
-### Control
+### Perception
 
 <div align=right>
 <table>
   <tr>
-    <td><img src="./assets/images/move_to_pose.gif" width="400"/></a></td>
-    <td><img src="./assets/images/move_to_pose_robots.gif" width="400"/></a></td>
+    <td><img src="./assets/images/ekf.gif" width="400"/></a></td>
+    <td><img src="./assets/images/rectangle_fitting.gif" width="400"/></a></td>
   </tr>
 </table>
 </div>
-
 
 ### PathPlanning
-
-#### CurvesGenerator
-
-<div align=right>
-<table>
-  <tr>
-    <td><img src="./assets/images/cubic.png" width="400"/></a></td>
-    <td><img src="./assets/images/bspline.png" width="400"/></a></td>
-  </tr>
-</table>
-</div>
-<div align=right>
-<table>
-  <tr>
-    <td><img src="./assets/images/dubins.png" width="400"/></a></td>
-    <td><img src="./assets/images/bezier.gif" width="400"/></a></td>
-  </tr>
-</table>
-</div>
 
 #### GlobalPlanner
 
@@ -107,6 +87,24 @@ Find all the executable files in **$workspace/bin**.
 </table>
 </div>
 
+#### CurvesGenerator
+
+<div align=right>
+<table>
+  <tr>
+    <td><img src="./assets/images/cubic.png" width="400"/></a></td>
+    <td><img src="./assets/images/bspline.png" width="400"/></a></td>
+  </tr>
+</table>
+</div>
+<div align=right>
+<table>
+  <tr>
+    <td><img src="./assets/images/dubins.png" width="400"/></a></td>
+    <td><img src="./assets/images/bezier.gif" width="400"/></a></td>
+  </tr>
+</table>
+</div>
 
 ### PathTracking
 
@@ -115,6 +113,17 @@ Find all the executable files in **$workspace/bin**.
   <tr>
     <td><img src="./assets/images/pure_pursuit.gif" width="400"/></a></td>
     <td><img src="./assets/images/stanley.gif" width="400"/></a></td>
+  </tr>
+</table>
+</div>
+
+### Control
+
+<div align=right>
+<table>
+  <tr>
+    <td><img src="./assets/images/move_to_pose.gif" width="400"/></a></td>
+    <td><img src="./assets/images/move_to_pose_robots.gif" width="400"/></a></td>
   </tr>
 </table>
 </div>
