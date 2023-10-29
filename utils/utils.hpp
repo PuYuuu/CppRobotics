@@ -120,6 +120,24 @@ int search_index(std::vector<T> nums, T target)
     return -1;
 }
 
+template <typename T>
+double variance(const std::vector<T>& data) 
+{
+    if (data.empty()) {
+        return 0.0;
+    }
+
+    double mean = std::accumulate(data.begin(), data.end(), 0.0) / data.size();
+
+    double variance = 0.0;
+    for (const double& value : data) {
+        variance += pow(value - mean, 2);
+    }
+    variance /= data.size();
+
+    return variance;
+}
+
 class TicToc
 {
 public:

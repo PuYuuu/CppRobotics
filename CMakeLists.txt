@@ -84,5 +84,8 @@ add_executable(stanley_controller PathTracking/stanley_controller.cpp
     PathPlanning/CurvesGenerator/cubic_spline.cpp utils/utils.cpp)
 target_link_libraries(stanley_controller fmt::fmt matplotlib_cpp)
 
-add_executable(ekf_location Perception/extend_kalman_filter_location utils/utils.cpp)
+add_executable(ekf_location Perception/extend_kalman_filter_location.cpp utils/utils.cpp)
 target_link_libraries(ekf_location fmt::fmt matplotlib_cpp)
+
+add_executable(rectangle_fitting Perception/rectangle_fitting utils/utils.cpp)
+target_link_libraries(rectangle_fitting fmt::fmt matplotlib_cpp)

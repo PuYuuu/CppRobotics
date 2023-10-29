@@ -160,7 +160,7 @@ int main(int argc, char** argv)
 
     std::random_device seed;
     std::mt19937 gen(seed());
-    std::normal_distribution<> gaussian_d(0,1);
+    std::normal_distribution<> gaussian_d(0, 1);
 
     while (SIM_TIME >= time) {
         time += DT;
@@ -202,9 +202,10 @@ int main(int argc, char** argv)
             plt::named_plot("Dead-reckoning", hxDR_vec[0], hxDR_vec[1], "-k");
             plt::named_plot("Estimation", hxEst_vec[0], hxEst_vec[1], "-r");
             plot_covariance_ellipse(xEst(0), xEst(1), PEst.block(0,0,2,2));
+            plt::title("EKF Localization");
             plt::axis("equal");
             plt::grid(true);
-            plt::legend({{"loc", "upper left"}});
+            plt::legend({{"loc", "upper right"}});
             plt::pause(0.005);
         }
     }
