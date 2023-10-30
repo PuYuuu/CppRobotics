@@ -172,12 +172,21 @@ public:
     double MAX_STEER;
 
     // Default parameters
-    VehicleConfig() : RF(3.3), RB(0.8), W(2.4), WB(2.5), TR(0.44), TW(0.7), MAX_STEER(0.65) {
-        WD = 0.7 * W; 
+    VehicleConfig(double scale = 1.0) : RF(3.3), RB(0.8), W(2.4), WB(2.5), TR(0.44), TW(0.7), MAX_STEER(0.65) {
+        WD = 0.7 * W;
+        
+        RF *= scale;
+        RB *= scale;
+        W *= scale;
+        WD *= scale;
+        WB *= scale;
+        TR *= scale;
+        TW *= scale;
     }
     ~VehicleConfig() {}
 };
 
-void draw_vehicle(Vector3d state, double steer, VehicleConfig c, std::string color="-k");
+void draw_vehicle(Vector3d state, double steer, VehicleConfig c,
+                bool draw_wheel = true, std::string color="-k");
 
 }

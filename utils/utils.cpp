@@ -15,7 +15,7 @@ static void plot(VectorXd vec_x, VectorXd vec_y, std::string style)
 
 namespace Utils {
     
-void draw_vehicle(Vector3d state, double steer, VehicleConfig c, std::string color)
+void draw_vehicle(Vector3d state, double steer, VehicleConfig c, bool draw_wheel, std::string color)
 {
     Matrix<double, 2, 5> vehicle;
     Matrix<double, 2, 5> wheel;
@@ -34,32 +34,35 @@ void draw_vehicle(Vector3d state, double steer, VehicleConfig c, std::string col
     rot1 << cos(state[2]), -sin(state[2]), sin(state[2]), cos(state[2]);
     rot2 << cos(steer), -sin(steer), sin(steer), cos(steer);
 
-    frWheel = rot2 * frWheel;
-    flWheel = rot2 * flWheel;
-   
-    frWheel += Vector2d(c.WB, -c.WD / 2).replicate(1, 5);
-    flWheel += Vector2d(c.WB, c.WD / 2).replicate(1, 5);
- 
-    rrWheel.row(1) -= VectorXd::Constant(5, c.WD / 2);
-    rlWheel.row(1) += VectorXd::Constant(5, c.WD / 2);
- 
-    frWheel = rot1 * frWheel;
-    flWheel = rot1 * flWheel;
-    rrWheel = rot1 * rrWheel;
-    rlWheel = rot1 * rlWheel;
     vehicle = rot1 * vehicle;
-
-    frWheel += Vector2d(state[0], state[1]).replicate(1, 5);
-    flWheel += Vector2d(state[0], state[1]).replicate(1, 5);
-    rrWheel += Vector2d(state[0], state[1]).replicate(1, 5);
-    rlWheel += Vector2d(state[0], state[1]).replicate(1, 5);
     vehicle += Vector2d(state[0], state[1]).replicate(1, 5);
-
     plot(vehicle.row(0), vehicle.row(1), color);
-    plot(frWheel.row(0), frWheel.row(1), color);
-    plot(flWheel.row(0), flWheel.row(1), color);
-    plot(rrWheel.row(0), rrWheel.row(1), color);
-    plot(rlWheel.row(0), rlWheel.row(1), color);
+
+    if (draw_wheel) {
+        frWheel = rot2 * frWheel;
+        flWheel = rot2 * flWheel;
+    
+        frWheel += Vector2d(c.WB, -c.WD / 2).replicate(1, 5);
+        flWheel += Vector2d(c.WB, c.WD / 2).replicate(1, 5);
+    
+        rrWheel.row(1) -= VectorXd::Constant(5, c.WD / 2);
+        rlWheel.row(1) += VectorXd::Constant(5, c.WD / 2);
+    
+        frWheel = rot1 * frWheel;
+        flWheel = rot1 * flWheel;
+        rrWheel = rot1 * rrWheel;
+        rlWheel = rot1 * rlWheel;
+        
+        frWheel += Vector2d(state[0], state[1]).replicate(1, 5);
+        flWheel += Vector2d(state[0], state[1]).replicate(1, 5);
+        rrWheel += Vector2d(state[0], state[1]).replicate(1, 5);
+        rlWheel += Vector2d(state[0], state[1]).replicate(1, 5);
+        
+        plot(frWheel.row(0), frWheel.row(1), color);
+        plot(flWheel.row(0), flWheel.row(1), color);
+        plot(rrWheel.row(0), rrWheel.row(1), color);
+        plot(rlWheel.row(0), rlWheel.row(1), color);
+    }
 }
 
 }
