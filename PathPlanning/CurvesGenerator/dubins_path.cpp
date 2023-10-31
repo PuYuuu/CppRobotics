@@ -287,17 +287,24 @@ int main(int argc, char** argv)
     Vector3d goal(-3., -3., -M_PI_4);
     double curvature = 1.0;
     string mode;
+    Utils::VehicleConfig vc(0.25);
 
     vector<vector<double>> path = plan_dubins_path(start, goal, curvature, mode);
 
     if (show_animation) {
-        plt::named_plot(mode, path[0], path[1]);
-        plt::arrow(start[0], start[1], cos(start[2]), sin(start[2]), "r", 0.075);
-        plt::arrow(goal[0], goal[1], cos(goal[2]), sin(goal[2]), "g", 0.075);
-        plt::legend();
-        plt::grid(true);
-        plt::axis("equal");
-        plt::title("Dubins Path");
+        for (size_t idx = 0; idx < path[0].size(); ++idx) {
+            plt::cla();
+            plt::named_plot(mode, path[0], path[1]);
+            plt::arrow(start[0], start[1], cos(start[2]), sin(start[2]), "r", 0.075);
+            plt::arrow(goal[0], goal[1], cos(goal[2]), sin(goal[2]), "g", 0.075);
+
+            Utils::draw_vehicle({path[0][idx], path[1][idx], path[2][idx]}, 0, vc, false);
+            plt::legend({{"loc", "upper right"}});
+            plt::grid(true);
+            plt::axis("equal");
+            plt::title("Dubins Path Planning");
+            plt::pause(0.001);
+        }
         plt::show();
     }
 
