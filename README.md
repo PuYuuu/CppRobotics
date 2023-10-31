@@ -48,22 +48,22 @@ Find all the executable files in **$workspace/bin**.
   </tr>
 </table>
 </div>
-
 <div align=right>
 <table>
   <tr>
+    <td><img src="./assets/images/dijkstra.gif" width="400"/></a></td>
     <td><img src="./assets/images/astar.gif" width="400"/></a></td>
-    <td><img src="./assets/images/astar-bidirectional.gif" width="400"/></a></td>
   </tr>
 </table>
 </div>
 <div align=center>
 <table>
   <tr>
-    <td><img src="./assets/images/dijkstra.gif" width="400"/></a></td>
+    <td><img src="./assets/images/astar-bidirectional.gif" width="400"/></a></td>
   </tr>
 </table>
 </div>
+
 
 ##### Sampling_based Planning
 
@@ -100,11 +100,20 @@ Find all the executable files in **$workspace/bin**.
 <div align=right>
 <table>
   <tr>
-    <td><img src="./assets/images/dubins.png" width="400"/></a></td>
+    <td><img src="./assets/images/dubins.gif" width="400"/></a></td>
     <td><img src="./assets/images/bezier.gif" width="400"/></a></td>
   </tr>
 </table>
 </div>
+
+<div align=center>
+<table>
+  <tr>
+    <td><img src="./assets/images/reeds_shepp.gif" width="400"/></a></td>
+  </tr>
+</table>
+</div>
+
 
 ### PathTracking
 
