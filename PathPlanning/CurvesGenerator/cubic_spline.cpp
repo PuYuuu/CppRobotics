@@ -6,7 +6,7 @@ CubicSpline::CubicSpline(vector<double> _x, vector<double> _y)
     x = _x;
     y = _y;
     nx = x.size();
-    h = Utils::diff(x);
+    h = utils::diff(x);
     bool not_valid = std::any_of(h.begin(), h.end(), 
                                 [](double val) { return val < 0; });
     if (not_valid) {
@@ -110,14 +110,14 @@ CubicSpline2D::CubicSpline2D(vector<double> _x, vector<double> _y)
 
 vector<double> CubicSpline2D::calc_s(vector<double> _x, vector<double> _y)
 {
-    vector<double> dx = Utils::diff(_x);
-    vector<double> dy = Utils::diff(_y);
+    vector<double> dx = utils::diff(_x);
+    vector<double> dy = utils::diff(_y);
     vector<double> ds;
     vector<double> s = {0};
     for (size_t idx = 0; idx < dx.size(); ++idx) {
         ds.push_back(hypot(dx[idx], dy[idx]));
     }
-    vector<double> cum = Utils::cumsum(ds);
+    vector<double> cum = utils::cumsum(ds);
     s.insert(s.end(), cum.begin(), cum.end());
 
     return s;

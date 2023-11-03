@@ -13,7 +13,7 @@
 using namespace Eigen;
 namespace plt = matplotlibcpp;
 
-namespace Utils {
+namespace utils {
 
 template <typename T>
 int sign(T num) {

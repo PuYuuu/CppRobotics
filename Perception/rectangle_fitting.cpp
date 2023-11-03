@@ -108,10 +108,10 @@ public:
 
 Vector4d LShapeFitting::find_min_max(const vector<double>& c1, const vector<double>& c2)
 {
-    double c1_max = Utils::max(c1);
-    double c2_max = Utils::max(c2);
-    double c1_min = Utils::min(c1);
-    double c2_min = Utils::min(c2);
+    double c1_max = utils::max(c1);
+    double c2_max = utils::max(c2);
+    double c1_min = utils::min(c1);
+    double c2_min = utils::min(c2);
     Vector4d min_max;
     min_max << c1_max, c1_min, c2_max, c2_min;
 
@@ -204,8 +204,8 @@ double LShapeFitting::calc_variance_criterion(const vector<double>& c1, const ve
         }
     }
 
-    double v1 = -Utils::variance(e1);
-    double v2 = -Utils::variance(e2);
+    double v1 = -utils::variance(e1);
+    double v2 = -utils::variance(e2);
     double gamma = v1 + v2;
 
     return gamma;
@@ -219,7 +219,7 @@ RectangleData LShapeFitting::rectangle_search(const vector<vector<double>>& cxy)
     for (double theta = 0; theta < M_PI_2 - d_theta; theta += d_theta) {
         vector<double> c1;
         vector<double> c2;
-        Matrix2d l_rot = Utils::rotation_matrix2d(theta);
+        Matrix2d l_rot = utils::rotation_matrix2d(theta);
         for (size_t idx = 0; idx < cxy[0].size(); ++idx) {
             Vector2d xy(cxy[0][idx], cxy[1][idx]);
             Matrix<double, 1, 2> le_xy = xy.transpose() * l_rot;
@@ -254,16 +254,16 @@ RectangleData LShapeFitting::rectangle_search(const vector<vector<double>>& cxy)
     RectangleData rect;
     rect.a[0] = cos_s;
     rect.b[0] = sin_s;
-    rect.c[0] = Utils::min(c1_s);
+    rect.c[0] = utils::min(c1_s);
     rect.a[1] = -sin_s;
     rect.b[1] = cos_s;
-    rect.c[1] = Utils::min(c2_s);
+    rect.c[1] = utils::min(c2_s);
     rect.a[2] = cos_s;
     rect.b[2] = sin_s;
-    rect.c[2] = Utils::max(c1_s);
+    rect.c[2] = utils::max(c1_s);
     rect.a[3] = -sin_s;
     rect.b[3] = cos_s;
-    rect.c[3] = Utils::max(c2_s);
+    rect.c[3] = utils::max(c2_s);
 
     return rect;
 }

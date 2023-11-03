@@ -195,7 +195,7 @@ void plot_robot(double x, double y, double yaw, Config* config)
         outline[2] << config->robot_length / 2, -config->robot_width / 2, 1;
         outline[3] << -config->robot_length / 2, -config->robot_width / 2, 1;
 
-        Matrix3d T = Utils::transformation_matrix2d(x, y, yaw);
+        Matrix3d T = utils::transformation_matrix2d(x, y, yaw);
         Vector3d p1 = T * outline[0];
         Vector3d p2 = T * outline[1];
         Vector3d p3 = T * outline[2];
@@ -224,7 +224,7 @@ int main (int argc, char** argv)
 
     while (true) {
         Vector2d u;
-        // Utils::TicToc t_m;
+        // utils::TicToc t_m;
         vector<RobotState> predicted_trajectory = dwa_control(x, u, config, goal, obs);
         // fmt::print("dwa_control() costtime: {:.3f} ms\n", t_m.toc());
         x = motion(x, u[0], u[1], config->dt);

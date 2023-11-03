@@ -28,7 +28,7 @@ void plot_vehicle(double x, double y, double theta,
     Vector3d p2_i(-0.5, 0.25, 1);
     Vector3d p3_i(-0.5, -0.25, 1);
 
-    Matrix3d T = Utils::transformation_matrix2d(x, y, theta);
+    Matrix3d T = utils::transformation_matrix2d(x, y, theta);
     Vector3d p1 = T * p1_i;
     Vector3d p2 = T * p2_i;
     Vector3d p3 = T * p3_i;
@@ -66,10 +66,10 @@ void move_to_pose(double x_start, double y_start, double theta_start,
         
         std::tie(rho, v, w) = controller.calc_control_command(x_diff, y_diff, theta, theta_goal);
         if (abs(v) > MAX_LINEAR_SPEED) {
-            v = Utils::sign(v) * MAX_LINEAR_SPEED;
+            v = utils::sign(v) * MAX_LINEAR_SPEED;
         }
         if (abs(w) > MAX_ANGULAR_SPEED) {
-            w = Utils::sign(w) * MAX_ANGULAR_SPEED;
+            w = utils::sign(w) * MAX_ANGULAR_SPEED;
         }
         theta = theta + w * dt;
         x = x + v * cos(theta) * dt;

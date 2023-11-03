@@ -2,10 +2,10 @@
 
 void GraphSearchPlanner::calc_obstacle_map(const vector<double>& ox, const vector<double>& oy)
 {
-    minx = round(Utils::min(ox));
-    miny = round(Utils::min(oy));
-    maxx = round(Utils::max(ox));
-    maxy = round(Utils::max(oy));
+    minx = round(utils::min(ox));
+    miny = round(utils::min(oy));
+    maxx = round(utils::max(ox));
+    maxy = round(utils::max(oy));
     fmt::print("min_x: {}\n", minx);
     fmt::print("min_y: {}\n", miny);
     fmt::print("max_x: {}\n", maxx);

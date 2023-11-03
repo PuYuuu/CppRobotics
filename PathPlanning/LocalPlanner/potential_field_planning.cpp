@@ -54,10 +54,10 @@ double calc_repulsive_potential(Vector2d xy, const vector<vector<double>>& obs, 
 Vector2d calc_potential_field(Vector2d s, Vector2d g, const vector<vector<double>>& obs, 
     double reso, double rr, vector<vector<double>>& pmap)
 {
-    double minx = std::min(Utils::min(obs[0]), std::min(s[0], g[0])) - AREA_WIDTH / 2.0;
-    double miny = std::min(Utils::min(obs[1]), std::min(s[1], g[1])) - AREA_WIDTH / 2.0;
-    double maxx = std::max(Utils::max(obs[0]), std::max(s[0], g[0])) + AREA_WIDTH / 2.0;
-    double maxy = std::max(Utils::max(obs[1]), std::max(s[1], g[1])) + AREA_WIDTH / 2.0;
+    double minx = std::min(utils::min(obs[0]), std::min(s[0], g[0])) - AREA_WIDTH / 2.0;
+    double miny = std::min(utils::min(obs[1]), std::min(s[1], g[1])) - AREA_WIDTH / 2.0;
+    double maxx = std::max(utils::max(obs[0]), std::max(s[0], g[0])) + AREA_WIDTH / 2.0;
+    double maxy = std::max(utils::max(obs[1]), std::max(s[1], g[1])) + AREA_WIDTH / 2.0;
     int xw = static_cast<int>(round((maxx - minx) / reso));
     int yw = static_cast<int>(round((maxy - miny) / reso));
     vector<vector<double>> pmap_tmp(xw, vector<double>(yw, 0));
@@ -202,7 +202,7 @@ int main (int argc, char** argv)
     vector<vector<double>> obstacles = {{15.0, 5.0, 20.0, 25.0}, 
                                         {25.0, 15.0, 26.0, 25.0}};
 
-    Utils::TicToc t_m;
+    utils::TicToc t_m;
     potential_field_planning(start, goal, obstacles, grid_size, robot_radius);
     fmt::print("potential_field_planning costtime: {:.3f} s\n", t_m.toc() / 1000);
     if (show_animation) {

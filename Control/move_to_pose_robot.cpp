@@ -93,10 +93,10 @@ void Robot::move(double dt)
         is_at_target = true;
     }
     if (abs(linear_velocity) > max_linear_speed) {
-        linear_velocity = Utils::sign(linear_velocity) * max_linear_speed;
+        linear_velocity = utils::sign(linear_velocity) * max_linear_speed;
     }
     if (abs(angular_velocity) > max_angular_speed) {
-        angular_velocity = Utils::sign(angular_velocity) * max_angular_speed;
+        angular_velocity = utils::sign(angular_velocity) * max_angular_speed;
     }
 
     pose.theta = pose.theta + angular_velocity * dt;
@@ -111,7 +111,7 @@ void plot_vehicle(double x, double y, double theta, string color,
     Vector3d p2_i(-0.5, 0.25, 1);
     Vector3d p3_i(-0.5, -0.25, 1);
 
-    Matrix3d T = Utils::transformation_matrix2d(x, y, theta);
+    Matrix3d T = utils::transformation_matrix2d(x, y, theta);
     Vector3d p1 = T * p1_i;
     Vector3d p2 = T * p2_i;
     Vector3d p3 = T * p3_i;

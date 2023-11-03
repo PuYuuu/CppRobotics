@@ -142,8 +142,8 @@ int main(int argc, char** argv)
     vector<double> t = {0.0};
     auto _target = calc_target_index(state, cx, cy);
     size_t target_idx = _target.first;
-    Utils::VehicleConfig vc;
-    Utils::TicToc t_m;
+    utils::VehicleConfig vc;
+    utils::TicToc t_m;
 
     while (max_simulation_time >= time && last_idx > target_idx) {
         double ai = Kp * (target_speed - state.v);
@@ -162,7 +162,7 @@ int main(int argc, char** argv)
             plt::named_plot("course", cx, cy, "-r");
             plt::named_plot("trajectory", x, y, "-b");
             plt::plot({cx[target_idx]}, {cy[target_idx]}, "xg");
-            Utils::draw_vehicle({state.x, state.y, state.yaw}, di, vc);
+            utils::draw_vehicle({state.x, state.y, state.yaw}, di, vc);
             plt::legend();
             plt::axis("equal");
             plt::grid(true);

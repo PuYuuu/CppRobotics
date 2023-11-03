@@ -13,7 +13,7 @@ static void plot(VectorXd vec_x, VectorXd vec_y, std::string style)
     plt::plot(x, y, style);
 }
 
-namespace Utils {
+namespace utils {
     
 void draw_vehicle(Vector3d state, double steer, VehicleConfig c, bool draw_wheel, std::string color)
 {

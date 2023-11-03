@@ -263,7 +263,7 @@ int main(int argc, char** argv)
 {
     vector<vector<double>> obstacle_list = {{5, 5, 1}, {3, 6, 2}, {3, 8, 2}, 
                             {3, 10, 2}, {7, 5, 2}, {9, 5, 2}, {8, 10, 1}};
-    Utils::TicToc t_m;
+    utils::TicToc t_m;
     Vector2d start(0, 0);
     Vector2d goal(6, 10);
     Vector2d area(-2, 13);

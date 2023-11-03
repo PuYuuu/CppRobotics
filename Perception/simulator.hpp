@@ -83,7 +83,7 @@ vector<vector<double>> VehicleSimulator::calc_global_contour(void)
 
     for (size_t idx = 0; idx < vc_xy.size(); ++idx) {
         Vector2d xy = vc_xy[idx];
-        Matrix2d g_rot = Utils::rotation_matrix2d(yaw);
+        Matrix2d g_rot = utils::rotation_matrix2d(yaw);
         Matrix<double, 1, 2> g_xy =  xy.transpose() * g_rot;
         gxy[0].emplace_back(g_xy(0, 0) + x);
         gxy[1].emplace_back(g_xy(0, 1) + y);

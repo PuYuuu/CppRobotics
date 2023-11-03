@@ -184,8 +184,8 @@ int main(int argc, char** argv)
     TargetCourse target_course = TargetCourse(cx, cy);
     tuple<int, double> result = target_course.search_target_index(state);
     int target_id = std::get<0>(result);
-    Utils::VehicleConfig vc;
-    Utils::TicToc t_m;
+    utils::VehicleConfig vc;
+    utils::TicToc t_m;
 
     while (T >= time && lastIndex > target_id) {
         double ai = proportional_control(target_speed, state.velocity);
@@ -203,7 +203,7 @@ int main(int argc, char** argv)
             plt::named_plot("course", cx, cy, "-r");
             plt::named_plot("trajectory", states.x, states.y, "-b");
             plt::plot({cx[target_id]}, {cy[target_id]}, "xg");
-            Utils::draw_vehicle({state.x, state.y, state.yaw}, di, vc);
+            utils::draw_vehicle({state.x, state.y, state.yaw}, di, vc);
             plt::axis("equal");
             plt::grid(true);
             plt::legend();

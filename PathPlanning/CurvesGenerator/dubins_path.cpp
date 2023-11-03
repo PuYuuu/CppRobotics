@@ -266,7 +266,7 @@ vector<vector<double>> plan_dubins_path(Vector3d start, Vector3d goal,
         selected_types = {"LSL", "RSR", "LSR", "RSL", "RLR", "LRL"};
     }
 
-    Matrix2d l_rot = Utils::rotation_matrix2d(s_yaw);
+    Matrix2d l_rot = utils::rotation_matrix2d(s_yaw);
     Vector2d s_to_g(g_x - s_x, g_y - s_y);
     Matrix<double, 1, 2> le_xy = s_to_g.transpose() * l_rot;
     double local_goal_x = le_xy(0, 0);
@@ -276,7 +276,7 @@ vector<vector<double>> plan_dubins_path(Vector3d start, Vector3d goal,
     vector<vector<double>> path = dubins_path_planning_from_origin(
         local_goal_x, local_goal_y, local_goal_yaw, curvature,
         step_size, selected_types, mode);
-    Matrix2d rot = Utils::rotation_matrix2d(-s_yaw);
+    Matrix2d rot = utils::rotation_matrix2d(-s_yaw);
     
     return convert_xy(path, rot, start);
 }
@@ -287,7 +287,7 @@ int main(int argc, char** argv)
     Vector3d goal(-3., -3., -M_PI_4);
     double curvature = 1.0;
     string mode;
-    Utils::VehicleConfig vc(0.25);
+    utils::VehicleConfig vc(0.25);
 
     vector<vector<double>> path = plan_dubins_path(start, goal, curvature, mode);
 
@@ -298,7 +298,7 @@ int main(int argc, char** argv)
             plt::arrow(start[0], start[1], cos(start[2]), sin(start[2]), "r", 0.075);
             plt::arrow(goal[0], goal[1], cos(goal[2]), sin(goal[2]), "g", 0.075);
 
-            Utils::draw_vehicle({path[0][idx], path[1][idx], path[2][idx]}, 0, vc, false);
+            utils::draw_vehicle({path[0][idx], path[1][idx], path[2][idx]}, 0, vc, false);
             plt::legend({{"loc", "upper right"}});
             plt::grid(true);
             plt::axis("equal");

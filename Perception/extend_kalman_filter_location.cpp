@@ -102,7 +102,7 @@ void plot_covariance_ellipse(double x, double y, Matrix2d cov,
     Matrix2d e_vector = ces.pseudoEigenvectors();
 
     double angle = atan2(e_vector(0, 1), e_vector(0, 0));
-    Matrix2d l_rot = Utils::rotation_matrix2d(angle);
+    Matrix2d l_rot = utils::rotation_matrix2d(angle);
     vector<double> px;
     vector<double> py;
     double a = e_vector(0, 1);

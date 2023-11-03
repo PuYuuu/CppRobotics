@@ -31,7 +31,7 @@ public:
 
 double mod2pi(double x)
 {
-    double v = std::fmod(x, 2 * M_PI * Utils::sign(x));
+    double v = std::fmod(x, 2 * M_PI * utils::sign(x));
     if (v < -M_PI) {
         v += 2.0 * M_PI;
     } else if (v > M_PI) {
@@ -62,7 +62,7 @@ Vector3d straight_left_straight(double x, double y, double phi, bool& flag)
         double xd = - y / tan(phi) + x;
         double t = xd - tan(phi / 2.0);
         double u = phi;
-        double v = Utils::sign(y) * hypot(x - xd, y) - tan(phi / 2.0);
+        double v = utils::sign(y) * hypot(x - xd, y) - tan(phi / 2.0);
         flag = true;
         return {t, u, v};
     }
@@ -274,7 +274,7 @@ vector<vector<double>> calc_interpolate_dists_list(vector<double> lengths, doubl
     int idx = 0;
     for (double length : lengths) {
         vector<double> interp_dists;
-        int len_sign = Utils::sign(length);
+        int len_sign = utils::sign(length);
         for (double d = 0; d < abs(length); d += step_size) {
             interp_dists.push_back(len_sign * d);
         }
@@ -395,7 +395,7 @@ int main(int argc, char** argv)
     Vector3d goal(0., 0., -M_PI_2);
     double curvature = 0.1;
     double step_size = 0.05;
-    Utils::VehicleConfig vc(0.5);
+    utils::VehicleConfig vc(0.5);
 
     Path path = reeds_shepp_path(start, goal, curvature, step_size);
     string final_mode = "final course ";
@@ -410,7 +410,7 @@ int main(int argc, char** argv)
             plt::arrow(start[0], start[1], cos(start[2]), sin(start[2]), "r", 0.075);
             plt::arrow(goal[0], goal[1], cos(goal[2]), sin(goal[2]), "g", 0.075);
 
-            Utils::draw_vehicle({path.x[idx], path.y[idx], path.yaw[idx]}, 0, vc, false);
+            utils::draw_vehicle({path.x[idx], path.y[idx], path.yaw[idx]}, 0, vc, false);
             plt::legend({{"loc", "upper left"}});
             plt::grid(true);
             plt::axis("equal");
