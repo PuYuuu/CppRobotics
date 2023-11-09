@@ -1,17 +1,17 @@
 #pragma once
+#ifndef __UTILS_HPP
+#define __UTILS_HPP
 
 #include <chrono>
 #include <vector>
 #include <string>
+#include <numeric>
 #include <climits>
 #include <algorithm>
 
 #include <Eigen/Core>
 
-#include "matplotlibcpp.h"
-
 using namespace Eigen;
-namespace plt = matplotlibcpp;
 
 namespace utils {
 
@@ -43,6 +43,19 @@ Matrix2d rotation_matrix2d(T theta)
             sin(theta), cos(theta);
     
     return rotation;
+}
+
+template <typename T>
+double pi_2_pi(T theta)
+{
+    while (theta > M_PI) {
+        theta -= 2.0 * M_PI;
+    }
+    while (theta < -M_PI) {
+        theta += 2.0 * M_PI;
+    }
+
+    return theta;
 }
 
 template <typename T>
@@ -177,7 +190,7 @@ public:
         
         RF *= scale;
         RB *= scale;
-        W *= scale;
+        W  *= scale;
         WD *= scale;
         WB *= scale;
         TR *= scale;
@@ -190,3 +203,5 @@ void draw_vehicle(Vector3d state, double steer, VehicleConfig c,
                 bool draw_wheel = true, std::string color="-k");
 
 }
+
+#endif

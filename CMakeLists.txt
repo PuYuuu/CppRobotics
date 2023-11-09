@@ -24,6 +24,9 @@ find_package(fmt REQUIRED)
 include_directories( "/usr/include/eigen3")
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
+add_library(RS_Path_LIB SHARED
+    ${PROJECT_SOURCE_DIR}/PathPlanning/CurvesGenerator/reeds_shepp_path.cpp)
+
 add_executable(move_to_pose Control/move_to_pose.cpp utils/utils.cpp)
 target_link_libraries(move_to_pose fmt::fmt matplotlib_cpp)
 
@@ -43,8 +46,8 @@ target_link_libraries(bspline_path fmt::fmt matplotlib_cpp)
 add_executable(dubins_path PathPlanning/CurvesGenerator/dubins_path.cpp utils/utils.cpp)
 target_link_libraries(dubins_path fmt::fmt matplotlib_cpp)
 
-add_executable(reeds_shepp_path PathPlanning/CurvesGenerator/reeds_shepp_path.cpp utils/utils.cpp)
-target_link_libraries(reeds_shepp_path fmt::fmt matplotlib_cpp)
+add_executable(reeds_shepp_planner PathPlanning/CurvesGenerator/reeds_shepp_planner.cpp utils/utils.cpp)
+target_link_libraries(reeds_shepp_planner fmt::fmt matplotlib_cpp RS_Path_LIB)
 
 add_executable(breadth_first_search PathPlanning/GlobalPlanner/breadth_first_search.cpp
     PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)
