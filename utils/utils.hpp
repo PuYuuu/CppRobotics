@@ -185,7 +185,7 @@ public:
     double MAX_STEER;
 
     // Default parameters
-    VehicleConfig(double scale = 1.0) : RF(3.3), RB(0.8), W(2.4), WB(2.5), TR(0.44), TW(0.7), MAX_STEER(0.65) {
+    VehicleConfig(double scale = 1.0) : RF(3.3), RB(0.8), W(2.4), WB(2.5), TR(0.44), TW(0.7), MAX_STEER(0.6) {
         WD = 0.7 * W;
         
         RF *= scale;
@@ -195,6 +195,10 @@ public:
         WB *= scale;
         TR *= scale;
         TW *= scale;
+    }
+    VehicleConfig(double rf, double rb, double w = 2.4, double wb = 2.5, double tr = 0.44, double tw = 0.7,
+        double max_steer = 0.6) : RF(rf), RB(rb), W(w), TR(tr), TW(tw), MAX_STEER(max_steer) {
+        WD = 0.7 * W;
     }
     ~VehicleConfig() {}
 };

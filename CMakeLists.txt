@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(CppRobotics)
 
-set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_CXX_FLAGS "-std=c++17")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/../bin)
@@ -60,6 +60,11 @@ target_link_libraries(depth_first_search fmt::fmt matplotlib_cpp)
 add_executable(dijkstra PathPlanning/GlobalPlanner/dijkstra.cpp
     PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)
 target_link_libraries(dijkstra fmt::fmt matplotlib_cpp)
+
+add_executable(hybrid_astar PathPlanning/GlobalPlanner/HybridAstar/hybrid_astar.cpp
+    PathPlanning/GlobalPlanner/HybridAstar/dynamic_programming_heuristic.cpp
+    utils/KDTree.cpp utils/utils.cpp)
+target_link_libraries(hybrid_astar fmt::fmt matplotlib_cpp RS_Path_LIB)
 
 add_executable(astar PathPlanning/GlobalPlanner/astar.cpp
     PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)

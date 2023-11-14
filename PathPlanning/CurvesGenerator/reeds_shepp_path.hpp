@@ -19,6 +19,10 @@ public:
     vector<double> yaw;
     vector<int> directions;
 
+    Path(vector<double> _x, vector<double> _y, vector<double> _yaw,
+        vector<int> _dir) : x(_x), y(_y), yaw(_yaw), directions(_dir) {
+
+    }
     Path() {}
     ~Path() {}
 };
