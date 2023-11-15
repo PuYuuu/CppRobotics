@@ -199,7 +199,6 @@ int main(int argc, char** argv)
 
         if (show_animation) {
             plt::cla();
-            plt::arrow(state.x, state.y, cos( state.yaw), sin(state.yaw), "k", 0.25);
             plt::named_plot("course", cx, cy, "-r");
             plt::named_plot("trajectory", states.x, states.y, "-b");
             plt::plot({cx[target_id]}, {cy[target_id]}, "xg");

@@ -203,8 +203,10 @@ public:
     ~VehicleConfig() {}
 };
 
+void draw_arrow(double x, double y, double theta, double L, std::string color);
+
 void draw_vehicle(Vector3d state, double steer, VehicleConfig c,
-                bool draw_wheel = true, std::string color="-k");
+    std::string color="-k", bool draw_wheel = true, bool show_arrow = true);
 
 }
 

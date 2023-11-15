@@ -16,8 +16,35 @@ static void plot(VectorXd vec_x, VectorXd vec_y, std::string style)
 }
 
 namespace utils {
-    
-void draw_vehicle(Vector3d state, double steer, VehicleConfig c, bool draw_wheel, std::string color)
+
+void draw_arrow(double x, double y, double theta, double L, std::string color)
+{
+    double angle = M_PI / 6;
+    double d = 0.3 * L;
+
+    double x_start = x;
+    double y_start = y;
+    double x_end = x + L * cos(theta);
+    double y_end = y + L * sin(theta);
+
+    double theta_hat_L = theta + M_PI - angle;
+    double theta_hat_R = theta + M_PI + angle;
+
+    double x_hat_start = x_end;
+    double x_hat_end_L = x_hat_start + d * cos(theta_hat_L);
+    double x_hat_end_R = x_hat_start + d * cos(theta_hat_R);
+
+    double y_hat_start = y_end;
+    double y_hat_end_L = y_hat_start + d * sin(theta_hat_L);
+    double y_hat_end_R = y_hat_start + d * sin(theta_hat_R);
+
+    plt::plot({x_start, x_end}, {y_start, y_end}, color);
+    plt::plot({x_hat_start, x_hat_end_L}, {y_hat_start, y_hat_end_L}, color);
+    plt::plot({x_hat_start, x_hat_end_R}, {y_hat_start, y_hat_end_R}, color);
+}
+
+void draw_vehicle(Vector3d state, double steer,
+    VehicleConfig c, std::string color, bool draw_wheel, bool show_arrow)
 {
     Matrix<double, 2, 5> vehicle;
     Matrix<double, 2, 5> wheel;
@@ -64,6 +91,8 @@ void draw_vehicle(Vector3d state, double steer, VehicleConfig c, bool draw_wheel
         plot(flWheel.row(0), flWheel.row(1), color);
         plot(rrWheel.row(0), rrWheel.row(1), color);
         plot(rlWheel.row(0), rlWheel.row(1), color);
+
+        draw_arrow(state(0), state(1), state(2), c.WB * 0.8, color);
     }
 }
 
