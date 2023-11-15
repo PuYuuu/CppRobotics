@@ -1,12 +1,14 @@
 #include <cmath>
 #include <string>
 #include <fmt/core.h>
+#include <Eigen/Core>
 
 #include "utils/utils.hpp"
 #include "reeds_shepp_path.hpp"
 #include "utils/matplotlibcpp.h"
 
 using std::string;
+using namespace Eigen;
 namespace plt = matplotlibcpp;
 constexpr bool show_animation = true;
 

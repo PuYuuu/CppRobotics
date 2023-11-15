@@ -1,5 +1,9 @@
 #include "GraphSearchPlanner.hpp"
 
+using std::vector;
+using std::unordered_map;
+using std::shared_ptr;
+
 void GraphSearchPlanner::calc_obstacle_map(const vector<double>& ox, const vector<double>& oy)
 {
     minx = round(utils::min(ox));

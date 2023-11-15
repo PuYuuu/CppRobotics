@@ -5,12 +5,14 @@
 #include <unordered_map>
 
 #include <fmt/core.h>
+#include <Eigen/Core>
 
 #include "utils/utils.hpp"
 #include "utils/matplotlibcpp.h"
 
 using std::vector;
 using std::string;
+using namespace Eigen;
 namespace plt = matplotlibcpp;
 constexpr bool show_animation = true;
 

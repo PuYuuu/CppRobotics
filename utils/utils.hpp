@@ -11,8 +11,6 @@
 
 #include <Eigen/Core>
 
-using namespace Eigen;
-
 namespace utils {
 
 template <typename T>
@@ -25,9 +23,9 @@ int sign(T num) {
 }
 
 template <typename T>
-Matrix3d transformation_matrix2d(T x, T y, T theta)
+Eigen::Matrix3d transformation_matrix2d(T x, T y, T theta)
 {
-    Matrix3d trans;
+    Eigen::Matrix3d trans;
     trans << cos(theta), -sin(theta), x, 
             sin(theta), cos(theta), y, 
             0, 0, 1;
@@ -36,9 +34,9 @@ Matrix3d transformation_matrix2d(T x, T y, T theta)
 }
 
 template <typename T>
-Matrix2d rotation_matrix2d(T theta)
+Eigen::Matrix2d rotation_matrix2d(T theta)
 {
-    Matrix2d rotation;
+    Eigen::Matrix2d rotation;
     rotation << cos(theta), -sin(theta), 
             sin(theta), cos(theta);
     
@@ -205,7 +203,7 @@ public:
 
 void draw_arrow(double x, double y, double theta, double L, std::string color);
 
-void draw_vehicle(Vector3d state, double steer, VehicleConfig c,
+void draw_vehicle(Eigen::Vector3d state, double steer, VehicleConfig c,
     std::string color="-k", bool draw_wheel = true, bool show_arrow = true);
 
 }

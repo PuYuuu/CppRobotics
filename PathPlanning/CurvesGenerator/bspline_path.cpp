@@ -2,12 +2,14 @@
 #include <vector>
 #include <string>
 
+#include <Eigen/Core>
 #include <fmt/core.h>
 
 #include "utils/utils.hpp"
 #include "utils/matplotlibcpp.h"
 
 using std::vector;
+using namespace Eigen;
 namespace plt = matplotlibcpp;
 
 enum Type { Uniform, QUniform};

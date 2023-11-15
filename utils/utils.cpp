@@ -1,6 +1,7 @@
 #include "utils.hpp"
 #include "matplotlibcpp.h"
 
+using namespace Eigen;
 namespace plt = matplotlibcpp;
 
 static void plot(VectorXd vec_x, VectorXd vec_y, std::string style)

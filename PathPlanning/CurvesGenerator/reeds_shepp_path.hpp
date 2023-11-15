@@ -5,29 +5,28 @@
 #include <vector>
 #include <Eigen/Core>
 
-using std::vector;
-using namespace Eigen;
-
 class Path
 {
 public:
-    vector<double> lengths;
-    vector<char> ctypes;
+    std::vector<double> lengths;
+    std::vector<char> ctypes;
     double L;
-    vector<double> x;
-    vector<double> y;
-    vector<double> yaw;
-    vector<int> directions;
+    std::vector<double> x;
+    std::vector<double> y;
+    std::vector<double> yaw;
+    std::vector<int> directions;
 
-    Path(vector<double> _x, vector<double> _y, vector<double> _yaw,
-        vector<int> _dir) : x(_x), y(_y), yaw(_yaw), directions(_dir) {
+    Path(std::vector<double> _x, std::vector<double> _y, std::vector<double> _yaw,
+        std::vector<int> _dir) : x(_x), y(_y), yaw(_yaw), directions(_dir) {
 
     }
     Path() {}
     ~Path() {}
 };
 
-vector<Path> calc_rs_paths(Vector3d s, Vector3d g, double maxc, double step_size);
-Path reeds_shepp_path(Vector3d s, Vector3d g, double maxc, double step_size = 0.2);
+std::vector<Path> calc_rs_paths(
+    Eigen::Vector3d s, Eigen::Vector3d g, double maxc, double step_size);
+Path reeds_shepp_path(
+    Eigen::Vector3d s, Eigen::Vector3d g, double maxc, double step_size = 0.2);
 
 #endif

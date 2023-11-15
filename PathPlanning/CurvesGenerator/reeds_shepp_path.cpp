@@ -3,6 +3,9 @@
 #include "utils/utils.hpp"
 #include "reeds_shepp_path.hpp"
 
+using std::vector;
+using namespace Eigen;
+
 double mod2pi(double x)
 {
     double v = std::fmod(x, 2 * M_PI * utils::sign(x));

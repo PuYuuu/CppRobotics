@@ -10,6 +10,8 @@
 #include "GraphSearchPlanner.hpp"
 
 using std::vector;
+using std::shared_ptr;
+using std::unordered_map;
 namespace plt = matplotlibcpp;
 constexpr bool show_animation = true;
 

@@ -1,11 +1,9 @@
 #pragma once
-#ifndef DYNAMIC_PROGRAMMING_HEURISTIC_HPP
-#define DYNAMIC_PROGRAMMING_HEURISTIC_HPP
+#ifndef __DYNAMIC_PROGRAMMING_HEURISTIC_HPP
+#define __DYNAMIC_PROGRAMMING_HEURISTIC_HPP
 
 #include <vector>
 #include <memory>
-
-using std::vector;
 
 class Node
 {
@@ -14,16 +12,16 @@ public:
     int yind;
     int yawind;
     int direction;
-    vector<double> x;
-    vector<double> y;
-    vector<double> yaw;
-    vector<int> directions;
+    std::vector<double> x;
+    std::vector<double> y;
+    std::vector<double> yaw;
+    std::vector<int> directions;
     double steer;
     double cost;
     int pind;
 
-    Node (int _xi, int _yi, int _yawi, int _d, vector<double> _x,
-        vector<double> _y, vector<double> _yaw, vector<int> _ds,
+    Node (int _xi, int _yi, int _yawi, int _d, std::vector<double> _x,
+        std::vector<double> _y, std::vector<double> _yaw, std::vector<int> _ds,
         double _s, double _c, int _p) : xind(_xi), yind(_yi),yawind(_yawi),
         direction(_d), x(_x), y(_y), yaw(_yaw), directions(_ds),
         steer(_s), cost(_c), pind(_p) {
@@ -33,8 +31,8 @@ public:
     ~Node() {}
 };
 
-vector<vector<double>> calc_holonomic_heuristic_with_obstacle(
-    std::shared_ptr<Node> node, const vector<vector<double>>& obs, 
+std::vector<std::vector<double>> calc_holonomic_heuristic_with_obstacle(
+    std::shared_ptr<Node> node, const std::vector<std::vector<double>>& obs, 
     double reso, double rr);
 
 #endif
