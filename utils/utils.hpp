@@ -197,7 +197,7 @@ public:
         TW *= scale;
     }
     VehicleConfig(double rf, double rb, double w = 2.4, double wb = 2.5, double tr = 0.44, double tw = 0.7,
-        double max_steer = 0.6) : RF(rf), RB(rb), W(w), TR(tr), TW(tw), MAX_STEER(max_steer) {
+        double max_steer = 0.6) : RF(rf), RB(rb), W(w), WB(wb), TR(tr), TW(tw), MAX_STEER(max_steer) {
         WD = 0.7 * W;
     }
     ~VehicleConfig() {}

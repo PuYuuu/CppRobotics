@@ -16,9 +16,9 @@
 using std::vector;
 using std::pair;
 using std::shared_ptr;
-using std::make_shared;
 using std::unordered_map;
 using std::make_pair;
+using std::make_shared;
 using namespace Eigen;
 namespace plt = matplotlibcpp;
 
@@ -34,7 +34,6 @@ constexpr double BACKWARD_COST = 5.0;           // backward penalty cost
 constexpr double STEER_CHANGE_COST = 5.0;       // steer angle change penalty cost
 constexpr double STEER_ANGLE_COST = 1.0;        // steer angle penalty cost
 constexpr double H_COST = 15.0;                 // Heuristic cost penalty cost
-constexpr double MAX_STEER = 0.6;               // maximum steering angle
 
 class Para
 {
@@ -134,8 +133,8 @@ vector<vector<double>> generate_obstacle(double x, double y)
     return obs;
 }
 
-Para calc_parameters(vector<vector<double>> obs, double xyreso, double yawreso,
-    KDTree* kdtree, utils::VehicleConfig vc)
+Para calc_parameters(vector<vector<double>> obs,
+    double xyreso, double yawreso, KDTree* kdtree, utils::VehicleConfig vc)
 {
     int minx = round(utils::min(obs[0]) / xyreso);
     int miny = round(utils::min(obs[1]) / xyreso);
@@ -179,7 +178,7 @@ bool is_collision(vector<double>& x, vector<double>& y, vector<double>& yaw, con
         point_t point{cx, cy};
         vector<point_t> ids = P.kdtree->neighborhood_points({cx, cy}, r);
 
-        if (ids.size() < 1) {
+        if (ids.empty()) {
             continue;
         } 
         for (const point_t& ob : ids) {
@@ -197,7 +196,7 @@ bool is_collision(vector<double>& x, vector<double>& y, vector<double>& yaw, con
     return false;
 }
 
-double calc_rs_path_cost(const Path& rspath)
+double calc_rs_path_cost(const Path& rspath, const Para& P)
 {
     double cost = 0.0;
 
@@ -215,16 +214,16 @@ double calc_rs_path_cost(const Path& rspath)
     }
     for (char ctype : rspath.ctypes) {
         if (ctype != 'S') {
-            cost += STEER_ANGLE_COST * abs(MAX_STEER);
+            cost += STEER_ANGLE_COST * abs(P.vc.MAX_STEER);
         }
     }
 
     vector<double> ulist(rspath.ctypes.size(), 0.0);
     for (size_t idx = 0; idx < rspath.ctypes.size(); ++idx) {
         if (rspath.ctypes[idx] == 'R') {
-            ulist[idx] = -MAX_STEER;
+            ulist[idx] = -P.vc.MAX_STEER;
         } else if (rspath.ctypes[idx] == 'L') {
-            ulist[idx] = MAX_STEER;
+            ulist[idx] = P.vc.MAX_STEER;
         }
     }
     for (size_t idx = 0; idx < rspath.ctypes.size() - 1; ++idx) {
@@ -242,8 +241,8 @@ Path analystic_expantion(
     double maxc = tan(P.vc.MAX_STEER) / P.vc.WB;
 
     vector<Path> paths = calc_rs_paths(start, goal, maxc, MOVE_STEP);
-    std::sort(paths.begin(), paths.end(), [](const Path& a, const Path& b) {
-        return calc_rs_path_cost(a) < calc_rs_path_cost(b);
+    std::sort(paths.begin(), paths.end(), [&P](const Path& a, const Path& b) {
+        return calc_rs_path_cost(a, P) < calc_rs_path_cost(b, P);
     });
 
     for (Path path : paths) {
@@ -263,12 +262,12 @@ Path analystic_expantion(
     return Path();
 }
 
-bool update_node_with_analystic_expantion(shared_ptr<Node> n_curr, shared_ptr<Node> ngoal,
-                                                    shared_ptr<Node>& fpath, const Para& P)
+bool update_node_with_analystic_expantion(
+    shared_ptr<Node> n_curr, shared_ptr<Node> ngoal, shared_ptr<Node>& fpath, const Para& P)
 {
     Path path = analystic_expantion(n_curr, ngoal, P);
 
-    if (path.x.size() < 1) {
+    if (path.x.empty() || path.y.empty() || path.yaw.empty()) {
         return false;
     }
 
@@ -276,7 +275,7 @@ bool update_node_with_analystic_expantion(shared_ptr<Node> n_curr, shared_ptr<No
     vector<double> fy(path.y.begin() + 1, path.y.end() - 1);
     vector<double> fyaw(path.yaw.begin() + 1, path.yaw.end() - 1);
     vector<int> fd(path.directions.begin() + 1, path.directions.end() - 1);
-    double fcost = n_curr->cost + calc_rs_path_cost(path);
+    double fcost = n_curr->cost + calc_rs_path_cost(path, P);
     int fpind = calc_index(n_curr, P);
     double fsteer = 0.0;
     fpath = make_shared<Node>(n_curr->xind, n_curr->yind, n_curr->yawind,
@@ -347,8 +346,8 @@ shared_ptr<Node> calc_next_node(
     cost += STEER_CHANGE_COST * abs(n_curr->steer - u);
     cost = n_curr->cost + cost;
     vector<int> directions(xlist.size(), direction);
-    node = make_shared<Node>(xind, yind, yawind, direction, xlist, ylist,
-                yawlist, directions, u, cost, c_id);
+    node = make_shared<Node>(xind, yind, yawind, direction, xlist,
+            ylist, yawlist, directions, u, cost, c_id);
 
     return node;
 }
@@ -440,16 +439,15 @@ Path hybrid_astar_planning(Vector3d start, Vector3d goal,
         int ind = q_priority.top().first;
         q_priority.pop();
         shared_ptr<Node> n_curr = open_set[ind];
+        // TODO(puyu): Theoretically, there is no need for this judgment here.
         if (n_curr == nullptr) {
             continue;
         }
         closed_set[ind] = n_curr;
         open_set.erase(ind);
 
-        shared_ptr<Node> fpath = nullptr;
-        bool update = update_node_with_analystic_expantion(n_curr, ngoal, fpath, P);
+        bool update = update_node_with_analystic_expantion(n_curr, ngoal, fnode, P);
         if (update) {
-            fnode = fpath;
             break;
         }
 
@@ -485,36 +483,32 @@ int main(int argc, char** argv)
     Vector3d start(10.0, 7.0, 120 * M_PI / 180);
     Vector3d goal(45.0, 20.0, M_PI_2);
     vector<vector<double>> obs = generate_obstacle(51, 31);
-    utils::VehicleConfig VC;
+    utils::VehicleConfig VC(4.5, 1.0, 3.0, 3.5, 0.5, 1.0, 0.6);
     utils::TicToc t_m;
 
     Path path = hybrid_astar_planning(start, goal, obs, VC, XY_RESO, YAW_RESO);
     fmt::print("hybrid_astar planning costtime: {:.3f} s\n", t_m.toc() / 1000);
 
-    if (path.x.empty()) {
+    if (path.x.empty() || path.y.empty() || path.yaw.empty()) {
         fmt::print("Searching failed!\n");
         return 0;
     }
 
-    vector<double> x = path.x;
-    vector<double> y = path.y;
-    vector<double> yaw = path.yaw;
-    vector<int> direction = path.directions;
-
     double steer = 0.0;
-    for (size_t idx = 0; idx < x.size(); ++idx) {
+    for (size_t idx = 0; idx < path.x.size(); ++idx) {
         plt::cla();
         plt::plot(obs[0], obs[1], "sk");
-        plt::plot(x, y, "r");
+        plt::plot(path.x, path.y, "r");
 
-        if (idx < x.size() - 2) {
-            double dy = (yaw[idx + 1] - yaw[idx]) / MOVE_STEP;
-            steer = -utils::pi_2_pi(atan(-3.5 * dy / direction[idx]));
+        if (idx < path.x.size() - 2) {
+            double dy = (path.yaw[idx + 1] - path.yaw[idx]) / MOVE_STEP;
+            steer = -utils::pi_2_pi(atan(-3.5 * dy / path.directions[idx]));
         } else {
             steer = 0.0;
         }
 
-        utils::draw_vehicle({x[idx], y[idx], yaw[idx]}, steer, VC);
+        utils::draw_vehicle({goal(0), goal(1), goal(2)}, 0.0, VC, true, "0.4");
+        utils::draw_vehicle({path.x[idx], path.y[idx], path.yaw[idx]}, steer, VC);
         plt::title("Hybrid A*");
         plt::axis("equal");
         plt::pause(0.01);
