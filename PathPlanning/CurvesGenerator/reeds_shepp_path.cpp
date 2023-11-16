@@ -6,23 +6,6 @@
 using std::vector;
 using namespace Eigen;
 
-double mod2pi(double x)
-{
-    double v = std::fmod(x, 2 * M_PI * utils::sign(x));
-    if (v < -M_PI) {
-        v += 2.0 * M_PI;
-    } else if (v > M_PI) {
-        v -= 2.0 * M_PI;
-    }
-
-    return v;
-}
-
-double pi_2_pi(double x)
-{
-    return std::fmod(x + M_PI, 2 * M_PI) - M_PI;
-}
-
 Vector2d polar(double x, double y)
 {
     double r = hypot(x, y);
@@ -34,7 +17,7 @@ Vector2d polar(double x, double y)
 Vector3d straight_left_straight(double x, double y, double phi, bool& flag)
 {
     flag = false;
-    phi = mod2pi(phi);
+    phi = utils::pi_2_pi(phi);
     if (M_PI * 0.01 < phi && phi < M_PI * 0.99 && y != 0) {
         double xd = - y / tan(phi) + x;
         double t = xd - tan(phi / 2.0);
@@ -52,7 +35,7 @@ Vector3d left_straight_left(double x, double y, double phi, bool& flag)
     flag = false;
     Vector2d ut = polar(x - sin(phi), y - 1.0 + cos(phi));
     if (ut(1) >= 0.0) {
-        double v = mod2pi(phi - ut(1));
+        double v = utils::pi_2_pi(phi - ut(1));
         if (v >= 0.0) {
             flag = true;
             return {ut(1), ut(0), v};
@@ -70,8 +53,8 @@ Vector3d left_straight_right(double x, double y, double phi, bool& flag)
     if (u1 >= 4.0) {
         double u = sqrt(u1 - 4.0);
         double theta = atan2(2.0, u);
-        double t = mod2pi(ut1(1) + theta);
-        double v = mod2pi(t - phi);
+        double t = utils::pi_2_pi(ut1(1) + theta);
+        double v = utils::pi_2_pi(t - phi);
 
         if (t >= 0.0 && v >= 0.0) {
             flag = true;
@@ -89,8 +72,8 @@ Vector3d left_right_left(double x, double y, double phi, bool& flag)
 
     if (ut1(0) <= 4.0) {
         double u = -2.0 * asin(0.25 * ut1(0));
-        double t = mod2pi(ut1(1) + 0.5 * u + M_PI);
-        double v = mod2pi(phi - t + u);
+        double t = utils::pi_2_pi(ut1(1) + 0.5 * u + M_PI);
+        double v = utils::pi_2_pi(phi - t + u);
 
         if (t >= 0.0 && 0.0 >= u) {
             flag = true;
@@ -334,7 +317,7 @@ vector<Path> calc_rs_paths(Vector3d s, Vector3d g, double maxc, double step_size
             int direction = static_cast<int>(states[3][idx]);
             path.x.emplace_back(cos(-s(2)) * ix + sin(-s(2)) * iy + s(0));
             path.y.emplace_back(-sin(-s(2)) * ix + cos(-s(2)) * iy + s(1));
-            path.yaw.emplace_back(pi_2_pi(yaw + s(2)));
+            path.yaw.emplace_back(utils::pi_2_pi(yaw + s(2)));
             path.directions.emplace_back(direction);
         }
     

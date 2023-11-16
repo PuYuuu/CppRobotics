@@ -507,7 +507,7 @@ int main(int argc, char** argv)
             steer = 0.0;
         }
 
-        utils::draw_vehicle({goal(0), goal(1), goal(2)}, 0.0, VC, "0.4");
+        utils::draw_vehicle(goal, 0.0, VC, "0.4");
         utils::draw_vehicle({path.x[idx], path.y[idx], path.yaw[idx]}, steer, VC);
         plt::title("Hybrid A*");
         plt::axis("equal");
