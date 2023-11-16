@@ -56,10 +56,11 @@ Find all the executable files in **$workspace/bin**.
   </tr>
 </table>
 </div>
-<div align=center>
+<div align=right>
 <table>
   <tr>
     <td><img src="./assets/images/astar-bidirectional.gif" width="400"/></a></td>
+    <td><img src="./assets/images/hybrid_astar.gif" width="400"/></a></td>
   </tr>
 </table>
 </div>
@@ -105,11 +106,10 @@ Find all the executable files in **$workspace/bin**.
   </tr>
 </table>
 </div>
-<div align=right>
+<div align=center>
 <table>
   <tr>
     <td><img src="./assets/images/reeds_shepp.gif" width="400"/></a></td>
-    <td><img src="./assets/images/hybrid_astar.gif" width="400"/></a></td>
   </tr>
 </table>
 </div>
