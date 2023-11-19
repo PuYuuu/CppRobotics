@@ -23,10 +23,10 @@ using namespace Eigen;
 namespace plt = matplotlibcpp;
 
 constexpr bool show_animation = true;
+constexpr int N_STEER = 3;                      // steer command number
 constexpr double XY_RESO = 2.0;                 // [m]
 constexpr double YAW_RESO = 15 * M_PI / 180;    // [rad]
 constexpr double MOVE_STEP = 0.4;               // [m] path interporate resolution
-constexpr double N_STEER = 20.0;                // steer command number
 constexpr double COLLISION_CHECK_STEP = 5;      // skip number for collision check
 constexpr double EXTEND_BOUND = 1;              // collision check range extended
 constexpr double GEAR_COST = 100.0;             // switch back penalty cost
@@ -310,9 +310,9 @@ bool is_index_ok(int xind, int yind, const vector<double>& xlist,
 }
 
 shared_ptr<Node> calc_next_node(
-    const shared_ptr<const Node>& n_curr, int c_id,double u, int d, const Para& P)
+    const shared_ptr<const Node>& n_curr, int c_id, double u, int d, const Para& P)
 {
-    double step = XY_RESO * 2;
+    double step = XY_RESO * 2.5;
     int nlist = ceil(step / MOVE_STEP);
     vector<double> xlist = {n_curr->x.back() + d * MOVE_STEP * cos(n_curr->yaw.back())};
     vector<double> ylist = {n_curr->y.back() + d * MOVE_STEP * sin(n_curr->yaw.back())};
@@ -454,6 +454,11 @@ Path hybrid_astar_planning(Vector3d start, Vector3d goal,
                 continue;
             }
 
+            if (show_animation) {
+                plt::plot(node->x, node->y, "-");
+                plt::pause(0.001);
+            }
+
             int node_ind = calc_index(node, P);
             if (closed_set.find(node_ind) != closed_set.end()) {
                 continue;
@@ -469,7 +474,8 @@ Path hybrid_astar_planning(Vector3d start, Vector3d goal,
             }
         }
     }
-
+    fmt::print("final expand node: {}\n", open_set.size() + closed_set.size());
+    
     return extract_path(closed_set, fnode, nstart);
 }
 
@@ -483,6 +489,7 @@ int main(int argc, char** argv)
     plt::plot(obs[0], obs[1], "sk");
     utils::draw_vehicle(start, 0.0, VC);
     utils::draw_vehicle(goal, 0.0, VC, "0.4");
+    plt::title("Hybrid A*");
     plt::pause(1.0);
 
     utils::TicToc t_m;
@@ -507,8 +514,10 @@ int main(int argc, char** argv)
             steer = 0.0;
         }
 
-        utils::draw_vehicle(goal, 0.0, VC, "0.4");
         utils::draw_vehicle({path.x[idx], path.y[idx], path.yaw[idx]}, steer, VC);
+        if (idx < path.x.size() - 1) {
+            utils::draw_vehicle(goal, 0.0, VC, "0.4");
+        }
         plt::title("Hybrid A*");
         plt::axis("equal");
         plt::pause(0.01);

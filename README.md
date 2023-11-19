@@ -25,7 +25,7 @@ Find all the executable files in **$workspace/bin**.
 
 ### Perception
 
-<div align=right>
+<div align=center>
 <table>
   <tr>
     <td><img src="./assets/images/ekf.gif" width="400"/></a></td>
@@ -40,7 +40,7 @@ Find all the executable files in **$workspace/bin**.
 
 ##### Search_based Planning
 
-<div align=right>
+<div align=center>
 <table>
   <tr>
     <td><img src="./assets/images/bfs.gif" width="400"/></a></td>
@@ -48,7 +48,7 @@ Find all the executable files in **$workspace/bin**.
   </tr>
 </table>
 </div>
-<div align=right>
+<div align=center>
 <table>
   <tr>
     <td><img src="./assets/images/dijkstra.gif" width="400"/></a></td>
@@ -56,7 +56,7 @@ Find all the executable files in **$workspace/bin**.
   </tr>
 </table>
 </div>
-<div align=right>
+<div align=center>
 <table>
   <tr>
     <td><img src="./assets/images/astar-bidirectional.gif" width="400"/></a></td>
@@ -64,11 +64,17 @@ Find all the executable files in **$workspace/bin**.
   </tr>
 </table>
 </div>
-
+<div align=center>
+<table>
+  <tr>
+    <td><img src="./assets/images/hybrid_astar_trailer.gif" width="400"/></a></td>
+  </tr>
+</table>
+</div>
 
 ##### Sampling_based Planning
 
-<div align=right>
+<div align=center>
 <table>
   <tr>
     <td><img src="./assets/images/rrt.gif" width="400"/></a></td>
@@ -79,7 +85,7 @@ Find all the executable files in **$workspace/bin**.
 
 #### LocalPlanner
 
-<div align=right>
+<div align=center>
 <table>
   <tr>
     <td><img src="./assets/images/dwa.gif" width="400"/></a></td>
@@ -90,7 +96,7 @@ Find all the executable files in **$workspace/bin**.
 
 #### CurvesGenerator
 
-<div align=right>
+<div align=center>
 <table>
   <tr>
     <td><img src="./assets/images/cubic.png" width="400"/></a></td>
@@ -98,7 +104,7 @@ Find all the executable files in **$workspace/bin**.
   </tr>
 </table>
 </div>
-<div align=right>
+<div align=center>
 <table>
   <tr>
     <td><img src="./assets/images/dubins.gif" width="400"/></a></td>
@@ -118,7 +124,7 @@ Find all the executable files in **$workspace/bin**.
 
 ### PathTracking
 
-<div align=right>
+<div align=center>
 <table>
   <tr>
     <td><img src="./assets/images/pure_pursuit.gif" width="400"/></a></td>
@@ -129,7 +135,7 @@ Find all the executable files in **$workspace/bin**.
 
 ### Control
 
-<div align=right>
+<div align=center>
 <table>
   <tr>
     <td><img src="./assets/images/move_to_pose.gif" width="400"/></a></td>
