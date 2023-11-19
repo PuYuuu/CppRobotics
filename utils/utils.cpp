@@ -1,6 +1,8 @@
 #include "utils.hpp"
 #include "matplotlibcpp.h"
 
+#include <fmt/core.h>
+
 using std::string;
 using namespace Eigen;
 namespace plt = matplotlibcpp;
@@ -59,6 +61,10 @@ void draw_vehicle(Vector3d state, double steer,
     Matrix<double, 2, 5> rrWheel = wheel;
     Matrix<double, 2, 5> frWheel = wheel;
     Matrix<double, 2, 5> flWheel = wheel;
+
+    if (steer > c.MAX_STEER) {
+        steer = c.MAX_STEER;
+    }
 
     Matrix2d rot1;
     Matrix2d rot2;

@@ -413,10 +413,8 @@ Path hybrid_astar_planning(Vector3d start, Vector3d goal,
     shared_ptr<Node> ngoal(new Node(
         gxr, gyr, gyawr, 1, {goal(0)}, {goal(1)}, {goal(2)}, {1}, 0.0, 0.0, -1));
     pointVec points;
-    point_t pt;
     for (size_t idx = 0; idx < obs[0].size(); ++idx) {
-        pt = {obs[0][idx], obs[1][idx]};
-        points.push_back(pt);
+        points.push_back({obs[0][idx], obs[1][idx]});
     }
     KDTree kdtree(points);
     
@@ -441,10 +439,6 @@ Path hybrid_astar_planning(Vector3d start, Vector3d goal,
         int ind = q_priority.top().first;
         q_priority.pop();
         shared_ptr<Node> n_curr = open_set[ind];
-        // TODO(puyu): Theoretically, there is no need for this judgment here.
-        if (n_curr == nullptr) {
-            continue;
-        }
         closed_set[ind] = n_curr;
         open_set.erase(ind);
 
@@ -471,7 +465,6 @@ Path hybrid_astar_planning(Vector3d start, Vector3d goal,
             } else {
                 if (open_set[node_ind]->cost > node->cost) {
                     open_set[node_ind] = node;
-                    q_priority.push(make_pair(node_ind, calc_hybrid_cost(node, hmap, P)));
                 }
             }
         }
@@ -486,8 +479,13 @@ int main(int argc, char** argv)
     Vector3d goal(45.0, 20.0, M_PI_2);
     vector<vector<double>> obs = generate_obstacle(51, 31);
     utils::VehicleConfig VC(4.5, 1.0, 3.0, 3.5, 0.5, 1.0, 0.6);
-    utils::TicToc t_m;
 
+    plt::plot(obs[0], obs[1], "sk");
+    utils::draw_vehicle(start, 0.0, VC);
+    utils::draw_vehicle(goal, 0.0, VC, "0.4");
+    plt::pause(1.0);
+
+    utils::TicToc t_m;
     Path path = hybrid_astar_planning(start, goal, obs, VC, XY_RESO, YAW_RESO);
     fmt::print("hybrid_astar planning costtime: {:.3f} s\n", t_m.toc() / 1000);
 

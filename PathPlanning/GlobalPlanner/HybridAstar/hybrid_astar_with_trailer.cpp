@@ -347,6 +347,32 @@ bool update_node_with_analystic_expantion(shared_ptr<Node> n_curr,
     return true;
 }
 
+bool is_index_ok(int xind, int yind, const vector<double>& xlist, 
+    const vector<double>& ylist, const vector<double>& yawlist, 
+    const vector<double>& yawtlist, const Para& P)
+{
+    if (xind <= P.minx || xind >= P.maxx || yind <= P.miny || yind >= P.maxy) {
+        return false;
+    }
+
+    vector<double> nodex;
+    vector<double> nodey;
+    vector<double> nodeyaw;
+    vector<double> nodeyawt;
+    for (size_t idx = 0; idx < xlist.size(); idx += COLLISION_CHECK_STEP) {
+        nodex.push_back(xlist[idx]);
+        nodey.push_back(ylist[idx]);
+        nodeyaw.push_back(yawlist[idx]);
+        nodeyawt.push_back(yawtlist[idx]);
+    }
+
+    if (is_collision(nodex, nodey, nodeyaw, nodeyawt, P)) {
+        return false;
+    }
+
+    return true;
+}
+
 shared_ptr<Node> calc_next_node(
     const shared_ptr<const Node>& n_curr, int c_id,double u, int d, const Para& P)
 {
@@ -369,6 +395,10 @@ shared_ptr<Node> calc_next_node(
     int xind = round(xlist.back() / P.xyreso);
     int yind = round(ylist.back() / P.xyreso);
     int yawind = round(yawlist.back() / P.yawreso);
+
+    if (!is_index_ok(xind, yind, xlist, ylist, yawlist, yawtlist, P)) {
+        return nullptr;
+    }
 
     double cost = 0.0;
     int direction = 1;
@@ -394,30 +424,6 @@ shared_ptr<Node> calc_next_node(
             ylist, yawlist, yawtlist, directions, u, cost, c_id);
 
     return node;
-}
-
-bool is_index_ok(shared_ptr<Node> node, double yawt0, const Para& P)
-{
-    if (node->xind <= P.minx || node->xind >= P.maxx || node->yind <= P.miny || node->yind >= P.maxy) {
-        return false;
-    }
-
-    vector<double> nodex;
-    vector<double> nodey;
-    vector<double> nodeyaw;
-    vector<double> nodeyawt;
-    for (size_t idx = 0; idx < node->x.size(); idx += COLLISION_CHECK_STEP) {
-        nodex.push_back(node->x[idx]);
-        nodey.push_back(node->y[idx]);
-        nodeyaw.push_back(node->yaw[idx]);
-        nodeyawt.push_back(node->yawt[idx]);
-    }
-
-    if (is_collision(nodex, nodey, nodeyaw, nodeyawt, P)) {
-        return false;
-    }
-
-    return true;
 }
 
 bool is_same_grid(const shared_ptr<const Node>& node1, const shared_ptr<const Node>& node2)
@@ -484,13 +490,11 @@ Path hybrid_astar_planning(Vector4d start, Vector4d goal,
         gxr, gyr, gyawr, 1, {goal(0)}, {goal(1)}, {goal(2)}, {goal(3)}, {1}, 0.0, 0.0, -1));
     
     pointVec points;
-    point_t pt;
     for (size_t idx = 0; idx < obs[0].size(); ++idx) {
-        pt = {obs[0][idx], obs[1][idx]};
-        points.push_back(pt);
+        points.push_back({obs[0][idx], obs[1][idx]});
     }
     KDTree kdtree(points);
-    
+
     Para P = calc_parameters(obs, xyreso, yawreso, &kdtree, VC);
     vector<vector<double>> hmap =
         calc_holonomic_heuristic_with_obstacle(ngoal, P.obs, P.xyreso, 1.0);
@@ -523,7 +527,7 @@ Path hybrid_astar_planning(Vector4d start, Vector4d goal,
         for (size_t idx = 0; idx < steer_set.size(); ++idx) {
             shared_ptr<Node> node = calc_next_node(n_curr, ind, steer_set[idx], direc_set[idx], P);
 
-            if (!is_index_ok(node, yawt0, P)) {
+            if (node == nullptr) {
                 continue;
             }
 
@@ -552,15 +556,20 @@ int main(int argc, char** argv)
     Vector4d goal(0.0, 12.0, M_PI_2, M_PI_2);
     vector<vector<double>> obs = generate_obstacle();
     utils::VehicleConfig vc(4.5, 1.0, 3.0, 3.5, 0.5, 1.0, 0.6);
-    utils::TicToc t_m;
 
     plt::plot(obs[0], obs[1], "sk");
     utils::draw_trailer(start, 0.0, vc);
     utils::draw_trailer(goal, 0.0, vc, "0.4");
     plt::pause(1);
 
+    utils::TicToc t_m;
     Path path = hybrid_astar_planning(start, goal, obs, vc, XY_RESO, YAW_RESO);
     fmt::print("hybrid_astar_with_trailer planning costtime: {:.3f} s\n", t_m.toc() / 1000);
+
+    if (path.x.empty() || path.y.empty() || path.yaw.empty()) {
+        fmt::print("Searching failed!\n");
+        return 0;
+    }
 
     double steer = 0.0;
     for (size_t idx = 0; idx < path.x.size(); ++idx) {
