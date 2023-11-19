@@ -181,9 +181,15 @@ public:
     double TR;  // [m] Tyre radius
     double TW;  // [m] Tyre width
     double MAX_STEER;
+    // Trailer
+    double RTR; // [m] rear to trailer wheel
+    double RTF; // [m] distance from rear to vehicle front end of trailer
+    double RTB; // [m] distance from rear to vehicle back end of trailer
 
     // Default parameters
-    VehicleConfig(double scale = 1.0) : RF(3.3), RB(0.8), W(2.4), WB(2.5), TR(0.44), TW(0.7), MAX_STEER(0.6) {
+    VehicleConfig(double scale = 1.0) :
+        RF(3.3), RB(0.8), W(2.4), WB(2.5), TR(0.44), TW(0.7), 
+        MAX_STEER(0.6), RTR(8.0), RTF(1.0), RTB(9.0) {
         WD = 0.7 * W;
         
         RF *= scale;
@@ -194,8 +200,11 @@ public:
         TR *= scale;
         TW *= scale;
     }
-    VehicleConfig(double rf, double rb, double w = 2.4, double wb = 2.5, double tr = 0.44, double tw = 0.7,
-        double max_steer = 0.6) : RF(rf), RB(rb), W(w), WB(wb), TR(tr), TW(tw), MAX_STEER(max_steer) {
+    VehicleConfig(double rf, double rb, double w = 2.4, double wb = 2.5,
+        double tr = 0.44, double tw = 0.7, double max_steer = 0.6, 
+        double rtr = 8.0, double rtf = 1.0, double rtb = 9.0) :
+        RF(rf), RB(rb), W(w), WB(wb), TR(tr), TW(tw), 
+        MAX_STEER(max_steer), RTR(rtr), RTF(rtf), RTB(rtb) {
         WD = 0.7 * W;
     }
     ~VehicleConfig() {}
@@ -204,7 +213,10 @@ public:
 void draw_arrow(double x, double y, double theta, double L, std::string color);
 
 void draw_vehicle(Eigen::Vector3d state, double steer, VehicleConfig c,
-    std::string color="-k", bool draw_wheel = true, bool show_arrow = true);
+    std::string color="-k", bool show_wheel = true, bool show_arrow = true);
+
+void draw_trailer(Eigen::Vector4d state, double steer, VehicleConfig c,
+    std::string color="-k", bool show_wheel = true, bool show_arrow = true);
 
 }
 

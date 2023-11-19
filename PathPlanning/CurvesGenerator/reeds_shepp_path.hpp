@@ -14,12 +14,14 @@ public:
     std::vector<double> x;
     std::vector<double> y;
     std::vector<double> yaw;
+    std::vector<double> yawt;
     std::vector<int> directions;
 
     Path(std::vector<double> _x, std::vector<double> _y, std::vector<double> _yaw,
-        std::vector<int> _dir) : x(_x), y(_y), yaw(_yaw), directions(_dir) {
-
-    }
+        std::vector<int> _dir) : x(_x), y(_y), yaw(_yaw), directions(_dir) {}
+    Path(std::vector<double> _x, std::vector<double> _y, std::vector<double> _yaw,
+        std::vector<double> _yawt, std::vector<int> _dir) : x(_x), y(_y), yaw(_yaw),
+        yawt(_yawt), directions(_dir) {}
     Path() {}
     ~Path() {}
 };

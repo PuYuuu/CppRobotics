@@ -66,6 +66,12 @@ add_executable(hybrid_astar PathPlanning/GlobalPlanner/HybridAstar/hybrid_astar.
     utils/KDTree.cpp utils/utils.cpp)
 target_link_libraries(hybrid_astar fmt::fmt matplotlib_cpp RS_Path_LIB)
 
+add_executable(hybrid_astar_with_trailer 
+    PathPlanning/GlobalPlanner/HybridAstar/hybrid_astar_with_trailer.cpp
+    PathPlanning/GlobalPlanner/HybridAstar/dynamic_programming_heuristic.cpp
+    utils/KDTree.cpp utils/utils.cpp)
+target_link_libraries(hybrid_astar_with_trailer fmt::fmt matplotlib_cpp RS_Path_LIB)
+
 add_executable(astar PathPlanning/GlobalPlanner/astar.cpp
     PathPlanning/GlobalPlanner/GraphSearchPlanner.cpp utils/utils.cpp)
 target_link_libraries(astar fmt::fmt matplotlib_cpp)
