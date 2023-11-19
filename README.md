@@ -67,6 +67,7 @@ Find all the executable files in **$workspace/bin**.
 <div align=center>
 <table>
   <tr>
+    <td><img src="./assets/images/hybrid_astar_trailer_0.gif" width="400"/></a></td>
     <td><img src="./assets/images/hybrid_astar_trailer.gif" width="400"/></a></td>
   </tr>
 </table>

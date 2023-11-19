@@ -107,6 +107,36 @@ vector<vector<double>> generate_obstacle(void)
     return obs;
 }
 
+vector<vector<double>> generate_obstacle_2(void)
+{
+    vector<vector<double>> obs(2);
+    for (int i = -30; i < 31; ++i) {
+        obs[0].push_back(i);
+        obs[1].push_back(20);
+    }
+    for (int i = -30; i < -11; ++i) {
+        obs[0].push_back(i);
+        obs[1].push_back(8);
+    }
+    for (int i = 12; i < 31; ++i) {
+        obs[0].push_back(i);
+        obs[1].push_back(8);
+    }
+    for (int i = 0; i < 8; ++i) {
+        obs[0].push_back(-12);
+        obs[1].push_back(i);
+    }
+    for (int i = 0; i < 8; ++i) {
+        obs[0].push_back(12);
+        obs[1].push_back(i);
+    }
+    for (int i = -12; i < 12; ++i) {
+        obs[0].push_back(i);
+        obs[1].push_back(0);
+    }
+
+    return obs;
+}
 
 Para calc_parameters(vector<vector<double>> obs,
     double xyreso, double yawreso, KDTree* kdtree, utils::VehicleConfig vc)
@@ -559,9 +589,24 @@ Path hybrid_astar_planning(Vector4d start, Vector4d goal,
 
 int main(int argc, char** argv)
 {
-    Vector4d start(18.0, 34.0, M_PI, M_PI);
-    Vector4d goal(0.0, 12.0, M_PI_2, M_PI_2);
-    vector<vector<double>> obs = generate_obstacle();
+    Vector4d start;
+    Vector4d goal;
+    vector<vector<double>> obs;
+
+    if (argc < 2) {
+        fmt::print("Trailer truck parallel parking scene\n");
+        start << -20, 14.0, 0, 0;
+        goal << 2.5, 4, 0, 0;
+        obs = generate_obstacle_2();
+        plt::ylim(-15, 35);
+        plt::title("Hybrid A* with Trailer - Case 0");
+    } else {
+        fmt::print("Trailer truck reversing into parking spot scene\n");
+        start << 18.0, 34.0, M_PI, M_PI;
+        goal << 0.0, 12.0, M_PI_2, M_PI_2;
+        obs = generate_obstacle();
+        plt::title("Hybrid A* with Trailer - Case 1");
+    }
     utils::VehicleConfig vc(4.5, 1.0, 3.0, 3.5, 0.5, 1.0, 0.6);
 
     plt::plot(obs[0], obs[1], "sk");
@@ -595,7 +640,12 @@ int main(int argc, char** argv)
         if (idx < path.x.size() - 1) {
             utils::draw_trailer(goal, 0.0, vc, "0.4");
         }
-
+        
+        if (argc < 2) {
+            plt::title("Hybrid A* with Trailer - Case 0");
+        } else {
+            plt::title("Hybrid A* with Trailer - Case 1");
+        }
         plt::axis("equal");
         plt::pause(0.01);
     }
