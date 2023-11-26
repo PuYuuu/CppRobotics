@@ -1,6 +1,9 @@
 #include "cubic_spline.hpp"
 #include "utils/utils.hpp"
 
+using std::vector;
+using namespace Eigen;
+
 CubicSpline::CubicSpline(vector<double> _x, vector<double> _y)
 {
     x = _x;

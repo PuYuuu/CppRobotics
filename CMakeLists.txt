@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(CppRobotics)
 
-set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_FLAGS "-std=c++17")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/../bin)
@@ -100,6 +100,10 @@ target_link_libraries(pure_pursuit fmt::fmt matplotlib_cpp)
 add_executable(stanley_controller PathTracking/stanley_controller.cpp 
     PathPlanning/CurvesGenerator/cubic_spline.cpp utils/utils.cpp)
 target_link_libraries(stanley_controller fmt::fmt matplotlib_cpp)
+
+add_executable(lqr_with_xy PathTracking/lqr_with_xy.cpp 
+    PathPlanning/CurvesGenerator/cubic_spline.cpp utils/utils.cpp)
+target_link_libraries(lqr_with_xy fmt::fmt matplotlib_cpp)
 
 add_executable(ekf_location Perception/extend_kalman_filter_location.cpp utils/utils.cpp)
 target_link_libraries(ekf_location fmt::fmt matplotlib_cpp)

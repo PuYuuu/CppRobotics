@@ -6,6 +6,8 @@
 #include "utils/matplotlibcpp.h"
 #include "cubic_spline.hpp"
 
+using std::vector;
+using namespace Eigen;
 namespace plt = matplotlibcpp;
 
 int main(int argc, char** argv)

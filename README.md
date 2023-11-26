@@ -1,7 +1,7 @@
 # CppRobotics
 ![Language](https://img.shields.io/badge/language-c++-brightgreen)  ![Static Badge](https://img.shields.io/badge/eigen-3.3.7-blue)
 
-Cpp implementation of robotics algorithms including localization, path planning, path tracking and control, inspired by [PythonRobotics](https://github.com/AtsushiSakai/PythonRobotics).
+Cpp implementation of robotics algorithms including localization, path planning, path tracking and control, inspired by [PythonRobotics](https://github.com/AtsushiSakai/PythonRobotics) and [MotionPlanning](https://github.com/zhm-real/MotionPlanning).
 
 ## 📌Requirement
 
@@ -121,8 +121,6 @@ Find all the executable files in **$workspace/bin**.
 </table>
 </div>
 
-
-
 ### PathTracking
 
 <div align=center>
@@ -130,6 +128,14 @@ Find all the executable files in **$workspace/bin**.
   <tr>
     <td><img src="./assets/images/pure_pursuit.gif" width="400"/></a></td>
     <td><img src="./assets/images/stanley.gif" width="400"/></a></td>
+  </tr>
+</table>
+</div>
+
+<div align=center>
+<table>
+  <tr>
+    <td><img src="./assets/images/lqr-xy.gif" width="400"/></a></td>
   </tr>
 </table>
 </div>
