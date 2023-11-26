@@ -19,37 +19,8 @@ constexpr double STOP_SPEED = 0.05;
 constexpr double DT = 0.1;
 constexpr bool show_animation = true;
 
-class VehicleState
-{
-public:
-    double x;
-    double y;
-    double yaw;
-    double v;
-    utils::VehicleConfig vc;
-
-    VehicleState(utils::VehicleConfig _vc, double _x = 0., double _y = 0.,
-        double _yaw = 0., double _v = 0.) : vc(_vc), x(_x), y(_y), yaw(_yaw), v(_v) {} 
-    ~VehicleState() {}
-    
-    void update(double acc, double delta);
-};
-
-void VehicleState::update(double acc, double delta)
-{
-    if (delta > vc.MAX_STEER) {
-        delta = vc.MAX_STEER;
-    }
-    if (delta < -vc.MAX_STEER) {
-        delta = -vc.MAX_STEER;
-    }
-
-    x += v * cos(yaw) * DT;
-    y += v * sin(yaw) * DT;
-    yaw += v / (vc.RF + vc.RB) * tan(delta) * DT;
-    v += acc * DT;
-}
-
+// How to design a universal customizable state vector
+// LQR controller is a difficult problem for me.
 class LQRController
 {
 private:
@@ -69,7 +40,7 @@ public:
     }
     ~LQRController() {}
 
-    Vector2d compute_input(const VehicleState& state, Vector4d target, double tv);
+    Vector2d compute_input(const utils::VehicleState& state, Vector4d target, double tv);
 };
 
 MatrixXd LQRController::dlqr(void)
@@ -104,7 +75,7 @@ MatrixXd LQRController::solve_dare(void)
     return p_next;
 }
 
-Vector2d LQRController::compute_input(const VehicleState& state, Vector4d target, double tv)
+Vector2d LQRController::compute_input(const utils::VehicleState& state, Vector4d target, double tv)
 {
     double dxl = target[0] - state.x;
     double dyl = target[1] - state.y;
@@ -184,7 +155,7 @@ vector<double> calc_speed_profile(const vector<double>& cyaw, double target_spee
     return speed_profile;
 }
 
-size_t calc_nearest_index(const VehicleState& state,
+size_t calc_nearest_index(const utils::VehicleState& state,
     const vector<double>& cx, const vector<double>& cy)
 {
     size_t nearest_index = -1;
@@ -213,7 +184,7 @@ int main(int argc, char** argv)
     double time = 0.0;
     utils::VehicleConfig vc(0.5);
     vc.MAX_STEER = M_PI_4;
-    VehicleState state(vc, 0., 0., 0., 0.);
+    utils::VehicleState state(vc, 0., 0., 0., 0.);
     vector<double> sp = calc_speed_profile(traj[2], target_speed);
 
     Matrix<double, 5, 5> A = Matrix<double, 5, 5>::Zero();
@@ -239,7 +210,7 @@ int main(int argc, char** argv)
         size_t ind = calc_nearest_index(state, traj[0], traj[1]);
         Vector2d control = lqr.compute_input(
             state, {traj[0][ind], traj[1][ind], traj[2][ind], traj[3][ind]}, sp[ind]);
-        state.update(control[0], control[1]);
+        state.update(control[0], control[1], DT);
 
         time = time + DT;
         if (hypot(state.x - goal[0], state.y - goal[1]) <= GOAL_DIS) {

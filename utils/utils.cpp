@@ -138,4 +138,28 @@ void draw_trailer(Vector4d state, double steer,
     }
 }
 
+void VehicleState::update(double acc, double delta, double dt)
+{
+    if (delta > vc.MAX_STEER) {
+        delta = vc.MAX_STEER;
+    }
+    if (delta < -vc.MAX_STEER) {
+        delta = -vc.MAX_STEER;
+    }
+
+    x += v * cos(yaw) * dt;
+    y += v * sin(yaw) * dt;
+    yaw += v / (vc.RF + vc.RB) * tan(delta) * dt;
+    yaw = pi_2_pi(yaw);
+    v += acc * dt;
+}
+
+double VehicleState::calc_distance(double point_x, double point_y)
+{
+    double dx = x - point_x;
+    double dy = y - point_y;
+    
+    return hypot(dx, dy);
+} 
+
 }

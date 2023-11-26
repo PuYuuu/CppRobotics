@@ -210,6 +210,23 @@ public:
     ~VehicleConfig() {}
 };
 
+class VehicleState
+{
+public:
+    double x;
+    double y;
+    double yaw;
+    double v;
+    VehicleConfig vc;
+
+    VehicleState(VehicleConfig _vc, double _x = 0., double _y = 0.,
+        double _yaw = 0., double _v = 0.) : vc(_vc), x(_x), y(_y), yaw(_yaw), v(_v) {} 
+    ~VehicleState() {}
+    
+    void update(double acc, double delta, double dt = 0.1);
+    double calc_distance(double point_x, double point_y);
+};
+
 void draw_arrow(double x, double y, double theta, double L, std::string color);
 
 void draw_vehicle(Eigen::Vector3d state, double steer, VehicleConfig c,

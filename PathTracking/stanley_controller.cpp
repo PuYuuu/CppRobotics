@@ -13,14 +13,13 @@
 using std::vector;
 using namespace Eigen;
 namespace plt = matplotlibcpp;
+
+constexpr double DT = 0.1;
+constexpr double MAX_SIM_TIME = 100.0;
 constexpr bool show_animation = true;
-constexpr double max_simulation_time = 100.0;
 
 double k = 0.5;     // control gain
 double Kp = 1.0;    // speed proportional gain
-double dt = 0.1;    // [s] time difference
-double L = 2.5;     // [m] Wheel base of vehicle
-double max_steer = M_PI_2 / 3.0;  // [rad] max steering angle
 
 vector<vector<double>> calc_spline_course(vector<double> x, vector<double> y, double ds = 0.1)
 {
@@ -38,51 +37,11 @@ vector<vector<double>> calc_spline_course(vector<double> x, vector<double> y, do
     return output;
 }
 
-double normalize_angle(double angle)
+std::pair<size_t, double> calc_target_index(
+    const utils::VehicleState& state, vector<double> cx, vector<double> cy)
 {
-    while (angle > M_PI) {
-        angle -= (2.0 * M_PI);
-    }
-
-    while (angle < -M_PI) {
-        angle += (2.0 * M_PI);
-    }
-
-    return angle;
-}
-
-class RobotState
-{ 
-public:
-    double x;
-    double y;
-    double yaw;
-    double v;
-
-    RobotState(double _x = 0, double _y = 0, double _yaw = 0, double _v = 0) :
-        x(_x), y(_y), yaw(_yaw), v(_v) { }
-    ~RobotState() {}
-    void update(double acc, double delta);
-};
-
-void RobotState::update(double acc, double delta)
-{
-    if (delta < -max_steer) {
-        delta = -max_steer;
-    } else if (delta > max_steer) {
-        delta = max_steer;
-    }
-    x += (v * cos(yaw) * dt);
-    y += (v * sin(yaw) * dt);
-    yaw += (v / L * tan(delta) * dt);
-    yaw = normalize_angle(yaw);
-    v += (acc * dt);
-}
-
-std::pair<size_t, double> calc_target_index(RobotState& state, vector<double> cx, vector<double> cy)
-{
-    double fx = state.x + L * cos(state.yaw);
-    double fy = state.y + L * sin(state.yaw);
+    double fx = state.x + (state.vc.RF) * cos(state.yaw);
+    double fy = state.y + (state.vc.RF) * sin(state.yaw);
     double min_d = std::numeric_limits<double>::max();
     size_t target_idx = -1;
     Vector2d error_vec;
@@ -104,7 +63,7 @@ std::pair<size_t, double> calc_target_index(RobotState& state, vector<double> cx
     return std::make_pair(target_idx, error_front_axle);
 }
 
-double stanley_control(RobotState& state, vector<double> cx, vector<double> cy,
+double stanley_control(const utils::VehicleState& state, vector<double> cx, vector<double> cy,
     vector<double> cyaw, size_t& last_target_idx)
 {
     auto _target = calc_target_index(state, cx, cy);
@@ -115,7 +74,7 @@ double stanley_control(RobotState& state, vector<double> cx, vector<double> cy,
         current_target_idx = last_target_idx;
     }
 
-    double theta_e = normalize_angle(cyaw[current_target_idx] - state.yaw);
+    double theta_e = utils::pi_2_pi(cyaw[current_target_idx] - state.yaw);
     double theta_d = atan2(k * error_front_axle, state.v);
     double delta = theta_e + theta_d;
     last_target_idx = current_target_idx;
@@ -132,8 +91,9 @@ int main(int argc, char** argv)
     vector<double> cy = c[1];
     vector<double> cyaw = c[2];
     double target_speed = 20.0 / 3.6;
-    
-    RobotState state(-0.0, 5.0, 20 * M_PI / 180.0, 0.0);
+
+    utils::VehicleConfig vc;
+    utils::VehicleState state(vc, 0., 5., 20 * M_PI / 180.0, 0.);
     size_t last_idx = cx.size() - 1;
     double time = 0.0;
     vector<double> x = {state.x};
@@ -143,15 +103,14 @@ int main(int argc, char** argv)
     vector<double> t = {0.0};
     auto _target = calc_target_index(state, cx, cy);
     size_t target_idx = _target.first;
-    utils::VehicleConfig vc;
     utils::TicToc t_m;
 
-    while (max_simulation_time >= time && last_idx > target_idx) {
+    while (MAX_SIM_TIME >= time && last_idx > target_idx) {
         double ai = Kp * (target_speed - state.v);
         double di = stanley_control(state, cx, cy, cyaw, target_idx);
-        state.update(ai, di);
+        state.update(ai, di, DT);
 
-        time += dt;
+        time += DT;
         x.push_back(state.x);
         y.push_back(state.y);
         yaw.push_back(state.yaw);
