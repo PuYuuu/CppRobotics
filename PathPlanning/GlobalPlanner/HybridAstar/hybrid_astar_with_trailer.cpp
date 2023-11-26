@@ -507,17 +507,17 @@ Path extract_path(unordered_map<int, shared_ptr<Node>>& closed,
 Path hybrid_astar_planning(Vector4d start, Vector4d goal,
     vector<vector<double>>& obs, utils::VehicleConfig VC, double xyreso, double yawreso)
 {
-    int sxr = round(start(0) / xyreso);
-    int syr = round(start(1) / xyreso);
-    int syawr = round(utils::pi_2_pi(start(2)) / yawreso);
-    int gxr = round(goal(0) / xyreso);
-    int gyr = round(goal(1) / xyreso);
-    int gyawr = round(utils::pi_2_pi(goal(2)) / yawreso);
+    int sxr = round(start[0] / xyreso);
+    int syr = round(start[1] / xyreso);
+    int syawr = round(utils::pi_2_pi(start[2]) / yawreso);
+    int gxr = round(goal[0] / xyreso);
+    int gyr = round(goal[1] / xyreso);
+    int gyawr = round(utils::pi_2_pi(goal[2]) / yawreso);
 
     shared_ptr<Node> nstart(new Node(
-        sxr, syr, syawr, 1, {start(0)}, {start(1)}, {start(2)}, {start(3)}, {1}, 0.0, 0.0, -1));
+        sxr, syr, syawr, 1, {start[0]}, {start[1]}, {start[2]}, {start[3]}, {1}, 0.0, 0.0, -1));
     shared_ptr<Node> ngoal(new Node(
-        gxr, gyr, gyawr, 1, {goal(0)}, {goal(1)}, {goal(2)}, {goal(3)}, {1}, 0.0, 0.0, -1));
+        gxr, gyr, gyawr, 1, {goal[0]}, {goal[1]}, {goal[2]}, {goal[3]}, {1}, 0.0, 0.0, -1));
     
     pointVec points;
     for (size_t idx = 0; idx < obs[0].size(); ++idx) {
@@ -548,7 +548,7 @@ Path hybrid_astar_planning(Vector4d start, Vector4d goal,
         closed_set[ind] = n_curr;
         open_set.erase(ind);
 
-        bool update = update_node_with_analystic_expantion(n_curr, ngoal, goal(3), fnode, P);
+        bool update = update_node_with_analystic_expantion(n_curr, ngoal, goal[3], fnode, P);
         if (update) {
             break;
         }

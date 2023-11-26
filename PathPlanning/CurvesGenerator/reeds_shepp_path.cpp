@@ -34,11 +34,11 @@ Vector3d left_straight_left(double x, double y, double phi, bool& flag)
 {
     flag = false;
     Vector2d ut = polar(x - sin(phi), y - 1.0 + cos(phi));
-    if (ut(1) >= 0.0) {
-        double v = utils::pi_2_pi(phi - ut(1));
+    if (ut[1] >= 0.0) {
+        double v = utils::pi_2_pi(phi - ut[1]);
         if (v >= 0.0) {
             flag = true;
-            return {ut(1), ut(0), v};
+            return {ut[1], ut[0], v};
         }
     }
 
@@ -49,11 +49,11 @@ Vector3d left_straight_right(double x, double y, double phi, bool& flag)
 {
     flag = false;
     Vector2d ut1 = polar(x + sin(phi), y - 1.0 - cos(phi));
-    double u1 = ut1(0) * ut1(0);
+    double u1 = ut1[0] * ut1[0];
     if (u1 >= 4.0) {
         double u = sqrt(u1 - 4.0);
         double theta = atan2(2.0, u);
-        double t = utils::pi_2_pi(ut1(1) + theta);
+        double t = utils::pi_2_pi(ut1[1] + theta);
         double v = utils::pi_2_pi(t - phi);
 
         if (t >= 0.0 && v >= 0.0) {
@@ -70,9 +70,9 @@ Vector3d left_right_left(double x, double y, double phi, bool& flag)
     flag = false;
     Vector2d ut1 = polar(x - sin(phi), y - 1.0 + cos(phi));
 
-    if (ut1(0) <= 4.0) {
-        double u = -2.0 * asin(0.25 * ut1(0));
-        double t = utils::pi_2_pi(ut1(1) + 0.5 * u + M_PI);
+    if (ut1[0] <= 4.0) {
+        double u = -2.0 * asin(0.25 * ut1[0]);
+        double t = utils::pi_2_pi(ut1[1] + 0.5 * u + M_PI);
         double v = utils::pi_2_pi(phi - t + u);
 
         if (t >= 0.0 && 0.0 >= u) {
@@ -88,8 +88,8 @@ void set_path(vector<Path>& paths, Vector3d lengths, vector<char> ctypes, double
 {
     Path path;
     path.ctypes = ctypes;
-    path.lengths = {lengths(0), lengths(1), lengths(2)};
-    path.L = abs(lengths(0)) + abs(lengths(1)) + abs(lengths(2));
+    path.lengths = {lengths[0], lengths[1], lengths[2]};
+    path.L = abs(lengths[0]) + abs(lengths[1]) + abs(lengths[2]);
 
     for (Path i_path : paths) {
         bool type_is_same = (i_path.ctypes == path.ctypes);
@@ -191,32 +191,32 @@ void curve_curve_curve(double x, double y, double phi, vector<Path>& paths, doub
 
     tuv = left_right_left(xb, yb, phi, flag);
     if (flag) {
-        set_path(paths, {tuv(2), tuv(1), tuv(0)}, {'L', 'R', 'L'}, step_size);
+        set_path(paths, {tuv[2], tuv[1], tuv[0]}, {'L', 'R', 'L'}, step_size);
     }
 
     tuv = left_right_left(-xb, yb, -phi, flag);
     if (flag) {
-        set_path(paths, {-tuv(2), -tuv(1), -tuv(0)}, {'L', 'R', 'L'}, step_size);
+        set_path(paths, {-tuv[2], -tuv[1], -tuv[0]}, {'L', 'R', 'L'}, step_size);
     }
 
     tuv = left_right_left(xb, -yb, -phi, flag);
     if (flag) {
-        set_path(paths, {tuv(2), tuv(1), tuv(0)}, {'R', 'L', 'R'}, step_size);
+        set_path(paths, {tuv[2], tuv[1], tuv[0]}, {'R', 'L', 'R'}, step_size);
     }
 
     tuv = left_right_left(-xb, -yb, phi, flag);
     if (flag) {
-        set_path(paths, {-tuv(2), -tuv(1), -tuv(0)}, {'R', 'L', 'R'}, step_size);
+        set_path(paths, {-tuv[2], -tuv[1], -tuv[0]}, {'R', 'L', 'R'}, step_size);
     }
 }
 
 vector<Path> generate_path(Vector3d q0, Vector3d q1, double max_curvature, double step_size)
 {
-    double dx = q1(0) - q0(0);
-    double dy = q1(1) - q0(1);
-    double dth = q1(2) - q0(2);
-    double c = cos(q0(2));
-    double s = sin(q0(2));
+    double dx = q1[0] - q0[0];
+    double dy = q1[1] - q0[1];
+    double dth = q1[2] - q0[2];
+    double c = cos(q0[2]);
+    double s = sin(q0[2]);
     double x = (c * dx + s * dy) * max_curvature;
     double y = (-s * dx + c * dy) * max_curvature;
 
@@ -249,25 +249,25 @@ Vector4d interpolate(double dist, double length, char mode, double max_curvature
 {
     Vector4d inter(0, 0, 0, 0);
     if (mode == 'S') {
-        inter(0) = origin(0) + dist / max_curvature * cos(origin(2));
-        inter(1) = origin(1) + dist / max_curvature * sin(origin(2));
-        inter(2) = origin(2);
+        inter[0] = origin[0] + dist / max_curvature * cos(origin[2]);
+        inter[1] = origin[1] + dist / max_curvature * sin(origin[2]);
+        inter[2] = origin[2];
     } else {
         double ldx = sin(dist) / max_curvature;
         double ldy = 0.0;
         if (mode == 'L') {
             ldy = (1.0 - cos(dist)) / max_curvature;
-            inter(2) = origin(2) + dist;
+            inter[2] = origin[2] + dist;
         } else if (mode == 'R') {
             ldy = (1.0 - cos(dist)) / -max_curvature;
-            inter(2) = origin(2) - dist;
+            inter[2] = origin[2] - dist;
         }
-        double gdx = cos(-origin(2)) * ldx + sin(-origin(2)) * ldy;
-        double gdy = -sin(-origin(2)) * ldx + cos(-origin(2)) * ldy;
-        inter(0) = origin(0) + gdx;
-        inter(1) = origin(1) + gdy;
+        double gdx = cos(-origin[2]) * ldx + sin(-origin[2]) * ldy;
+        double gdy = -sin(-origin[2]) * ldx + cos(-origin[2]) * ldy;
+        inter[0] = origin[0] + gdx;
+        inter[1] = origin[1] + gdy;
     }
-    inter(3) = length > 0.0 ? 1 : -1;
+    inter[3] = length > 0.0 ? 1 : -1;
     
     return inter;
 }
@@ -289,14 +289,14 @@ vector<vector<double>> generate_local_course(
         for (double dist : interpolate_dists_list[idx]) {
             Vector4d state = interpolate(dist, lengths[idx], modes[idx],
                                         max_curvature, origin);
-            xs.push_back(state(0));
-            ys.push_back(state(1));
-            yaws.push_back(state(2));
-            directions.push_back(state(3));
+            xs.push_back(state[0]);
+            ys.push_back(state[1]);
+            yaws.push_back(state[2]);
+            directions.push_back(state[3]);
         }
-        origin(0) = xs.back();
-        origin(1) = ys.back();
-        origin(2) = yaws.back();
+        origin[0] = xs.back();
+        origin[1] = ys.back();
+        origin[2] = yaws.back();
     }
 
     return {xs, ys, yaws, directions};
@@ -315,9 +315,9 @@ vector<Path> calc_rs_paths(Vector3d s, Vector3d g, double maxc, double step_size
             double iy = states[1][idx];
             double yaw = states[2][idx];
             int direction = static_cast<int>(states[3][idx]);
-            path.x.emplace_back(cos(-s(2)) * ix + sin(-s(2)) * iy + s(0));
-            path.y.emplace_back(-sin(-s(2)) * ix + cos(-s(2)) * iy + s(1));
-            path.yaw.emplace_back(utils::pi_2_pi(yaw + s(2)));
+            path.x.emplace_back(cos(-s[2]) * ix + sin(-s[2]) * iy + s[0]);
+            path.y.emplace_back(-sin(-s[2]) * ix + cos(-s[2]) * iy + s[1]);
+            path.yaw.emplace_back(utils::pi_2_pi(yaw + s[2]));
             path.directions.emplace_back(direction);
         }
     

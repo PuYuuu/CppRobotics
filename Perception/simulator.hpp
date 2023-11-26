@@ -57,8 +57,8 @@ vector<Vector2d> VehicleSimulator::interpolate(vector<Vector2d>& xy_vec)
     for (size_t idx = 0; idx < xy_vec.size() - 1; ++idx) {
         for (double theta = 0; theta <= 1.0; theta += d_theta) {
             Vector2d xy;
-            xy(0) = (1.0 - theta) * xy_vec[idx](0) + theta * xy_vec[idx + 1](0);
-            xy(1) = (1.0 - theta) * xy_vec[idx](1) + theta * xy_vec[idx + 1](1);
+            xy[0] = (1.0 - theta) * xy_vec[idx][0] + theta * xy_vec[idx + 1][0];
+            xy[1] = (1.0 - theta) * xy_vec[idx][1] + theta * xy_vec[idx + 1][1];
             rxy.emplace_back(xy);
         }
     }

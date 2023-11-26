@@ -34,11 +34,11 @@ Vector3d lsl(double alpha, double beta, double d)
 {
     Vector5d trig = calc_trig_funcs(alpha, beta);
 
-    double p_squared = 2 + d * d - (2 * trig(4)) + (2 * d * (trig(0) - trig(1)));
+    double p_squared = 2 + d * d - (2 * trig[4]) + (2 * d * (trig[0] - trig[1]));
     if (p_squared < 0) {
         return {-1, -1, -1};
     }
-    double tmp = atan2((trig(3) - trig(2)), d + trig(0) - trig(1));
+    double tmp = atan2((trig[3] - trig[2]), d + trig[0] - trig[1]);
     double d1 = mod2pi(-alpha + tmp);
     double d2 = sqrt(p_squared);
     double d3 = mod2pi(beta - tmp);
@@ -50,11 +50,11 @@ Vector3d rsr(double alpha, double beta, double d)
 {
     Vector5d trig = calc_trig_funcs(alpha, beta);
 
-    double p_squared = 2 + d * d - (2 * trig(4)) + (2 * d * (trig(1) - trig(0)));
+    double p_squared = 2 + d * d - (2 * trig[4]) + (2 * d * (trig[1] - trig[0]));
     if (p_squared < 0) {
         return {-1, -1, -1};
     }
-    double tmp = atan2((trig(2) - trig(3)), d - trig(0) + trig(1));
+    double tmp = atan2((trig[2] - trig[3]), d - trig[0] + trig[1]);
     double d1 = mod2pi(alpha - tmp);
     double d2 = sqrt(p_squared);
     double d3 = mod2pi(-beta + tmp);
@@ -66,12 +66,12 @@ Vector3d lsr(double alpha, double beta, double d)
 {
     Vector5d trig = calc_trig_funcs(alpha, beta);
 
-    double p_squared = -2 + d * d + (2 * trig(4)) + (2 * d * (trig(0) + trig(1)));
+    double p_squared = -2 + d * d + (2 * trig[4]) + (2 * d * (trig[0] + trig[1]));
     if (p_squared < 0) {
         return {-1, -1, -1};
     }
     double d1 = sqrt(p_squared);
-    double tmp = atan2((-trig(2) - trig(3)), (d + trig(0) + trig(1))) - atan2(-2.0, d1);
+    double tmp = atan2((-trig[2] - trig[3]), (d + trig[0] + trig[1])) - atan2(-2.0, d1);
     double d2 = mod2pi(-alpha + tmp);
     double d3 = mod2pi(-mod2pi(beta) + tmp);
     
@@ -82,12 +82,12 @@ Vector3d rsl(double alpha, double beta, double d)
 {
     Vector5d trig = calc_trig_funcs(alpha, beta);
 
-    double p_squared = d * d - 2 + (2 * trig(4)) - (2 * d * (trig(0) + trig(1)));
+    double p_squared = d * d - 2 + (2 * trig[4]) - (2 * d * (trig[0] + trig[1]));
     if (p_squared < 0) {
         return {-1, -1, -1};
     }
     double d1 = sqrt(p_squared);
-    double tmp = atan2((trig(2) + trig(3)), (d - trig(0) - trig(1))) - atan2(2.0, d1);
+    double tmp = atan2((trig[2] + trig[3]), (d - trig[0] - trig[1])) - atan2(2.0, d1);
     double d2 = mod2pi(alpha - tmp);
     double d3 = mod2pi(beta - tmp);
 
@@ -98,12 +98,12 @@ Vector3d rlr(double alpha, double beta, double d)
 {
     Vector5d trig = calc_trig_funcs(alpha, beta);
 
-    double tmp = (6.0 - d * d + 2.0 * trig(4) + 2.0 * d * (trig(0) - trig(1))) / 8.0;
+    double tmp = (6.0 - d * d + 2.0 * trig[4] + 2.0 * d * (trig[0] - trig[1])) / 8.0;
     if (tmp < 0) {
         return {-1, -1, -1};
     }
     double d2 = mod2pi(2 * M_PI - acos(tmp));
-    double d1 = mod2pi(alpha - atan2(trig(2) - trig(3), d - trig(0) + trig(1)) + d2 / 2.0);
+    double d1 = mod2pi(alpha - atan2(trig[2] - trig[3], d - trig[0] + trig[1]) + d2 / 2.0);
     double d3 = mod2pi(alpha - beta - d1 + d2);
     
     return {d1, d2, d3};
@@ -113,12 +113,12 @@ Vector3d lrl(double alpha, double beta, double d)
 {
     Vector5d trig = calc_trig_funcs(alpha, beta);
 
-    double tmp = (6.0 - d * d + 2.0 * trig(4) + 2.0 * d * (-trig(0) + trig(1))) / 8.0;
+    double tmp = (6.0 - d * d + 2.0 * trig[4] + 2.0 * d * (-trig[0] + trig[1])) / 8.0;
     if (tmp < 0) {
         return {-1, -1, -1};
     }
     double d2 = mod2pi(2 * M_PI - acos(tmp));
-    double d1 = mod2pi(-alpha - atan2(trig(2) - trig(3), d + trig(0) - trig(1)) + d2 / 2.0);
+    double d1 = mod2pi(-alpha - atan2(trig[2] - trig[3], d + trig[0] - trig[1]) + d2 / 2.0);
     double d3 = mod2pi(mod2pi(beta) - alpha - d1 + mod2pi(d2));
     
     return {d1, d2, d3};

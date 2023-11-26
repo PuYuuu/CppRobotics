@@ -58,8 +58,8 @@ Vector2d observation_model(Vector4d x)
 Matrix4d jacob_f(Vector4d x, Vector2d u)
 {
     Matrix4d jF = Matrix4d::Identity();
-    double yaw = x(2);
-    double v = u(0);
+    double yaw = x[2];
+    double v = u[0];
     jF(0, 2) = -DT * v * sin(yaw);
     jF(0, 3) = DT * cos(yaw);
     jF(1, 2) = DT * v * cos(yaw);
@@ -164,14 +164,14 @@ int main(int argc, char** argv)
 
     while (SIM_TIME >= time) {
         time += DT;
-        ud(0) = u(0) + gaussian_d(gen) * input_noise(0, 0);
-        ud(1) = u(1) + gaussian_d(gen) * input_noise(1, 1);
+        ud[0] = u[0] + gaussian_d(gen) * input_noise(0, 0);
+        ud[1] = u[1] + gaussian_d(gen) * input_noise(1, 1);
 
         xTrue = motion_model(xTrue, u);
         xDR = motion_model(xDR, ud);
 
-        z(0) = xTrue(0) + gaussian_d(gen) * gps_noise(0,0);
-        z(1) = xTrue(1) + gaussian_d(gen) * gps_noise(1,1);
+        z[0] = xTrue[0] + gaussian_d(gen) * gps_noise(0, 0);
+        z[1] = xTrue[1] + gaussian_d(gen) * gps_noise(1, 1);
 
         ekf_estimation(xEst, PEst, z, ud, Q, R);
 
@@ -187,21 +187,21 @@ int main(int argc, char** argv)
             vector<vector<double>> hxEst_vec(2);
             vector<vector<double>> hz_vec(2);
             for (size_t idx = 0; idx < hxDR.size(); ++idx) {
-                hxDR_vec[0].push_back(hxDR[idx](0));
-                hxDR_vec[1].push_back(hxDR[idx](1));
-                hxTrue_vec[0].push_back(hxTrue[idx](0));
-                hxTrue_vec[1].push_back(hxTrue[idx](1));
-                hxEst_vec[0].push_back(hxEst[idx](0));
-                hxEst_vec[1].push_back(hxEst[idx](1));
-                hz_vec[0].push_back(hz[idx](0));
-                hz_vec[1].push_back(hz[idx](1));
+                hxDR_vec[0].push_back(hxDR[idx][0]);
+                hxDR_vec[1].push_back(hxDR[idx][1]);
+                hxTrue_vec[0].push_back(hxTrue[idx][0]);
+                hxTrue_vec[1].push_back(hxTrue[idx][1]);
+                hxEst_vec[0].push_back(hxEst[idx][0]);
+                hxEst_vec[1].push_back(hxEst[idx][1]);
+                hz_vec[0].push_back(hz[idx][0]);
+                hz_vec[1].push_back(hz[idx][1]);
             }
 
             plt::named_plot("GPS", hz_vec[0], hz_vec[1], ".g");
             plt::named_plot("Ground-truth", hxTrue_vec[0], hxTrue_vec[1], "-b");
             plt::named_plot("Dead-reckoning", hxDR_vec[0], hxDR_vec[1], "-k");
             plt::named_plot("Estimation", hxEst_vec[0], hxEst_vec[1], "-r");
-            plot_covariance_ellipse(xEst(0), xEst(1), PEst.block(0,0,2,2));
+            plot_covariance_ellipse(xEst[0], xEst[1], PEst.block(0,0,2,2));
             plt::title("EKF Localization");
             plt::axis("equal");
             plt::grid(true);

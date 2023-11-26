@@ -401,17 +401,17 @@ Path extract_path(unordered_map<int, shared_ptr<Node>>& closed,
 Path hybrid_astar_planning(Vector3d start, Vector3d goal,
     const vector<vector<double>>& obs, utils::VehicleConfig VC, double xyreso, double yawreso)
 {
-    int sxr = round(start(0) / xyreso);
-    int syr = round(start(1) / xyreso);
-    int syawr = round(utils::pi_2_pi(start(2)) / yawreso);
-    int gxr = round(goal(0) / xyreso);
-    int gyr = round(goal(1) / xyreso);
-    int gyawr = round(utils::pi_2_pi(goal(2)) / yawreso);
+    int sxr = round(start[0] / xyreso);
+    int syr = round(start[1] / xyreso);
+    int syawr = round(utils::pi_2_pi(start[2]) / yawreso);
+    int gxr = round(goal[0] / xyreso);
+    int gyr = round(goal[1] / xyreso);
+    int gyawr = round(utils::pi_2_pi(goal[2]) / yawreso);
 
     shared_ptr<Node> nstart(new Node(
-        sxr, syr, syawr, 1, {start(0)}, {start(1)}, {start(2)}, {1}, 0.0, 0.0, -1));
+        sxr, syr, syawr, 1, {start[0]}, {start[1]}, {start[2]}, {1}, 0.0, 0.0, -1));
     shared_ptr<Node> ngoal(new Node(
-        gxr, gyr, gyawr, 1, {goal(0)}, {goal(1)}, {goal(2)}, {1}, 0.0, 0.0, -1));
+        gxr, gyr, gyawr, 1, {goal[0]}, {goal[1]}, {goal[2]}, {1}, 0.0, 0.0, -1));
     pointVec points;
     for (size_t idx = 0; idx < obs[0].size(); ++idx) {
         points.push_back({obs[0][idx], obs[1][idx]});

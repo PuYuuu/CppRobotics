@@ -68,11 +68,11 @@ void draw_vehicle(Vector3d state, double steer,
 
     Matrix2d rot1;
     Matrix2d rot2;
-    rot1 << cos(state(2)), -sin(state(2)), sin(state(2)), cos(state(2));
+    rot1 << cos(state[2]), -sin(state[2]), sin(state[2]), cos(state[2]);
     rot2 << cos(steer), -sin(steer), sin(steer), cos(steer);
 
     vehicle = rot1 * vehicle;
-    vehicle += Vector2d(state(0), state(1)).replicate(1, 5);
+    vehicle += Vector2d(state[0], state[1]).replicate(1, 5);
     plot(vehicle.row(0), vehicle.row(1), color);
 
     if (show_wheel) {
@@ -90,10 +90,10 @@ void draw_vehicle(Vector3d state, double steer,
         rrWheel = rot1 * rrWheel;
         rlWheel = rot1 * rlWheel;
         
-        frWheel += Vector2d(state(0), state(1)).replicate(1, 5);
-        flWheel += Vector2d(state(0), state(1)).replicate(1, 5);
-        rrWheel += Vector2d(state(0), state(1)).replicate(1, 5);
-        rlWheel += Vector2d(state(0), state(1)).replicate(1, 5);
+        frWheel += Vector2d(state[0], state[1]).replicate(1, 5);
+        flWheel += Vector2d(state[0], state[1]).replicate(1, 5);
+        rrWheel += Vector2d(state[0], state[1]).replicate(1, 5);
+        rlWheel += Vector2d(state[0], state[1]).replicate(1, 5);
         
         plot(frWheel.row(0), frWheel.row(1), color);
         plot(flWheel.row(0), flWheel.row(1), color);
@@ -101,7 +101,7 @@ void draw_vehicle(Vector3d state, double steer,
         plot(rlWheel.row(0), rlWheel.row(1), color);
     }
     if (show_arrow) {
-        draw_arrow(state(0), state(1), state(2), c.WB * 0.8, color);
+        draw_arrow(state[0], state[1], state[2], c.WB * 0.8, color);
     }
 }
 
@@ -120,10 +120,10 @@ void draw_trailer(Vector4d state, double steer,
     Matrix<double, 2, 5> rrtWheel = wheel;
 
     Matrix2d rot3;
-    rot3 << cos(state(3)), -sin(state(3)), sin(state(3)), cos(state(3));
+    rot3 << cos(state[3]), -sin(state[3]), sin(state[3]), cos(state[3]);
 
     trail = rot3 * trail;
-    trail += Vector2d(state(0), state(1)).replicate(1, 5);
+    trail += Vector2d(state[0], state[1]).replicate(1, 5);
     plot(trail.row(0), trail.row(1), color);
 
     if (show_wheel) {
@@ -131,8 +131,8 @@ void draw_trailer(Vector4d state, double steer,
         rrtWheel += Vector2d(-c.RTR, -c.WD / 2).replicate(1, 5);
         rltWheel = rot3 * rltWheel;
         rrtWheel = rot3 * rrtWheel;
-        rltWheel += Vector2d(state(0), state(1)).replicate(1, 5);
-        rrtWheel += Vector2d(state(0), state(1)).replicate(1, 5);
+        rltWheel += Vector2d(state[0], state[1]).replicate(1, 5);
+        rrtWheel += Vector2d(state[0], state[1]).replicate(1, 5);
         plot(rltWheel.row(0), rltWheel.row(1), color);
         plot(rrtWheel.row(0), rrtWheel.row(1), color);
     }

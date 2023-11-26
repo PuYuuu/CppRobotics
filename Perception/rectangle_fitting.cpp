@@ -170,7 +170,7 @@ vector<vector<int>> LShapeFitting::adoptive_range_segmentation(
 double LShapeFitting::calc_area_criterion(const vector<double>& c1, const vector<double>& c2)
 {
     Vector4d min_max = find_min_max(c1, c2);
-    double alpha = -(min_max(0) - min_max(1)) * (min_max(0) - min_max(1));
+    double alpha = -(min_max[0] - min_max[1]) * (min_max[0] - min_max[1]);
     
     return alpha;
 }
@@ -180,8 +180,8 @@ double LShapeFitting::calc_closeness_criterion(const vector<double>& c1, const v
     Vector4d min_max = find_min_max(c1, c2);
     double beta = 0.0;
     for (size_t idx = 0; idx < c1.size(); ++idx) {
-        double d1 = std::min(min_max(0) - c1[idx], c1[idx] - min_max(1));
-        double d2 = std::min(min_max(2) - c2[idx], c2[idx] - min_max(3));
+        double d1 = std::min(min_max[0] - c1[idx], c1[idx] - min_max[1]);
+        double d2 = std::min(min_max[2] - c2[idx], c2[idx] - min_max(3));
         double d = std::min(std::min(d1, d2), min_dist_of_closeness_criteria);
         beta += (1.0 / d);
     }
@@ -195,8 +195,8 @@ double LShapeFitting::calc_variance_criterion(const vector<double>& c1, const ve
     vector<double> e1;
     vector<double> e2;
     for (size_t idx = 0; idx < c1.size(); ++idx) {
-        double d1 = std::min(min_max(0) - c1[idx], c1[idx] - min_max(1));
-        double d2 = std::min(min_max(2) - c2[idx], c2[idx] - min_max(3));
+        double d1 = std::min(min_max[0] - c1[idx], c1[idx] - min_max[1]);
+        double d2 = std::min(min_max[2] - c2[idx], c2[idx] - min_max(3));
         if (d1 < d2) {
             e1.emplace_back(d1);
         } else {
@@ -235,14 +235,14 @@ RectangleData LShapeFitting::rectangle_search(const vector<vector<double>>& cxy)
             cost = calc_variance_criterion(c1, c2);
         }
 
-        if (min_cost(0) < cost) {
-            min_cost(0) = cost;
-            min_cost(1) = theta;
+        if (min_cost[0] < cost) {
+            min_cost[0] = cost;
+            min_cost[1] = theta;
         }
     }
 
-    double sin_s = sin(min_cost(1));
-    double cos_s = cos(min_cost(1));
+    double sin_s = sin(min_cost[1]);
+    double cos_s = cos(min_cost[1]);
     vector<double> c1_s;
     vector<double> c2_s;
 
