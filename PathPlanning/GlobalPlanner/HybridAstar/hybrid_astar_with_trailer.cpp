@@ -23,7 +23,7 @@ using namespace Eigen;
 namespace plt = matplotlibcpp;
 
 constexpr bool show_animation = true;
-constexpr double N_STEER = 10.0;                // steer command number
+constexpr double N_STEER = 20.0;                // steer command number
 constexpr double GOAL_YAW_ERROR = M_PI / 60;
 constexpr double XY_RESO = 2.0;                 // [m]
 constexpr double YAW_RESO = 15 * M_PI / 180;    // [rad]
@@ -269,13 +269,10 @@ bool is_collision(vector<double>& x, vector<double>& y,
         double d = 1;
         double deltal = (P.vc.RTF - P.vc.RTB) / 2.0;
         double rt = (P.vc.RTF + P.vc.RTB) / 2.0 + d;
-        double ctx = x[idx] + deltal * cos(yaw[idx]);
-        double cty = y[idx] + deltal * sin(yaw[idx]);
+        double ctx = x[idx] + deltal * cos(yawt[idx]);
+        double cty = y[idx] + deltal * sin(yawt[idx]);
         vector<point_t> ids = P.kdtree->neighborhood_points({ctx, cty}, rt);
 
-        if (ids.empty()) {
-            continue;
-        } 
         for (const point_t& ob : ids) {
             double xot = ob[0] - ctx;
             double yot = ob[1] - cty;
@@ -292,9 +289,6 @@ bool is_collision(vector<double>& x, vector<double>& y,
         double cy = y[idx] + deltal * sin(yaw[idx]);
         ids = P.kdtree->neighborhood_points({cx, cy}, rc);
 
-        if (ids.empty()) {
-            continue;
-        } 
         for (const point_t& ob : ids) {
             double xo = ob[0] - cx;
             double yo = ob[1] - cy;
@@ -406,7 +400,7 @@ bool is_index_ok(int xind, int yind, const vector<double>& xlist,
 shared_ptr<Node> calc_next_node(
     const shared_ptr<const Node>& n_curr, int c_id,double u, int d, const Para& P)
 {
-    double step = XY_RESO * 2.5;
+    double step = XY_RESO * 2.0;
     int nlist = ceil(step / MOVE_STEP);
     vector<double> xlist = {n_curr->x.back() + d * MOVE_STEP * cos(n_curr->yaw.back())};
     vector<double> ylist = {n_curr->y.back() + d * MOVE_STEP * sin(n_curr->yaw.back())};
@@ -647,7 +641,7 @@ int main(int argc, char** argv)
             plt::title("Hybrid A* with Trailer - Case 1");
         }
         plt::axis("equal");
-        plt::pause(0.01);
+        plt::pause(0.001);
     }
     plt::show();
 
