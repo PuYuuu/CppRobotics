@@ -18,7 +18,7 @@ typedef Eigen::Matrix<double, 5, 1> RobotState;
 namespace plt = matplotlibcpp;
 constexpr bool show_animation = true;
 
-enum RobotType {Circle, Rectangle};
+enum class RobotType {Circle, Rectangle};
 
 class Config
 {
@@ -38,7 +38,7 @@ public:
     double speed_cost_gain = 1.0;
     double obstacle_cost_gain = 1.0;
     double robot_stuck_flag_cons = 0.001;
-    RobotType robot_type = Rectangle;
+    RobotType robot_type = RobotType::Rectangle;
 
     double robot_radius = 1.0;
     double robot_width = 0.5;
@@ -122,7 +122,7 @@ double calc_obstacle_cost(vector<RobotState> trajectory, const vector<vector<dou
             double dy = trajectory[j][1] - oy;
             double r = hypot(dx, dy);
 
-            if (config->robot_type == Rectangle) {
+            if (config->robot_type == RobotType::Rectangle) {
                 double obsx = ox * cos(yaw) - oy * sin(yaw);
                 double obsy = ox * sin(yaw) + oy * cos(yaw);
                 bool upper_check = (obsy <= config->robot_length / 2);
@@ -132,7 +132,7 @@ double calc_obstacle_cost(vector<RobotState> trajectory, const vector<vector<dou
                 if (upper_check && right_check && bottom_check && left_check) {
                     return std::numeric_limits<double>::max() / 2.0;
                 }
-            } else if (config->robot_type == Circle) {
+            } else if (config->robot_type == RobotType::Circle) {
                 if (r <= config->robot_radius) {
                     return std::numeric_limits<double>::max() / 2.0;
                 }
@@ -188,7 +188,7 @@ vector<RobotState> dwa_control(RobotState x, Vector2d& control, Config* config,
 
 void plot_robot(double x, double y, double yaw, Config* config)
 {
-    if (config->robot_type == Rectangle) {
+    if (config->robot_type == RobotType::Rectangle) {
         vector<Vector3d> outline(4);
         outline[0] << -config->robot_length / 2, config->robot_width / 2, 1;
         outline[1] << config->robot_length / 2, config->robot_width / 2, 1;
@@ -204,7 +204,7 @@ void plot_robot(double x, double y, double yaw, Config* config)
         plt::plot({p2[0], p3[0]}, {p2[1], p3[1]}, "k-");
         plt::plot({p3[0], p4[0]}, {p3[1], p4[1]}, "k-");
         plt::plot({p4[0], p1[0]}, {p4[1], p1[1]}, "k-");
-    } else if (config->robot_type == Circle) {
+    } else if (config->robot_type == RobotType::Circle) {
         // todo
         // I'm confused how to draw a circle of specific size in matplotlibcpp
     }

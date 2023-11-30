@@ -22,7 +22,7 @@ constexpr double DT = 0.2;
 constexpr double SIM_TIME = 30.0;
 constexpr bool show_animation = true;
 
-enum Criteria {AREA, CLOSENESS, VARIANCE};
+enum class Criteria {AREA, CLOSENESS, VARIANCE};
 
 class RectangleData
 {
@@ -94,7 +94,7 @@ private:
     double calc_variance_criterion(const vector<double>& c1, const vector<double>& c2);
 public:
     LShapeFitting() {
-        criteria = VARIANCE;
+        criteria = Criteria::VARIANCE;
         min_dist_of_closeness_criteria = 0.01;
         d_theta_deg_for_search = 1.0;
         R0 = 3.0;
@@ -227,11 +227,11 @@ RectangleData LShapeFitting::rectangle_search(const vector<vector<double>>& cxy)
             c2.push_back(le_xy(0, 1));
         }
         double cost = 0.0;
-        if (criteria == AREA) {
+        if (criteria == Criteria::AREA) {
             cost = calc_area_criterion(c1, c2);
-        } else if (criteria == CLOSENESS) {
+        } else if (criteria == Criteria::CLOSENESS) {
             cost = calc_closeness_criterion(c1, c2);
-        } else if (criteria == VARIANCE) {
+        } else if (criteria == Criteria::VARIANCE) {
             cost = calc_variance_criterion(c1, c2);
         }
 

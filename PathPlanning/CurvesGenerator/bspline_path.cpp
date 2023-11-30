@@ -12,7 +12,7 @@ using std::vector;
 using namespace Eigen;
 namespace plt = matplotlibcpp;
 
-enum Type { Uniform, QUniform};
+enum class Type { Uniform, QUniform};
 
 // There are problems in calculating the first and second
 // derivativesin non-equidistant sequences.
@@ -104,13 +104,13 @@ vector<vector<double>> plan_Bspline_path(int k, Type _type, vector<vector<double
     double u_tmp = 0.0;
     u.push_back(u_tmp);
 
-    if (type == Uniform) {
+    if (type == Type::Uniform) {
         double dis_u = 1.0 / (k + n);
         for (size_t i = 1; i < n + k + 1; ++i) {
             u_tmp += dis_u;
             u.push_back(u_tmp);
         }
-    } else if (type == QUniform) {
+    } else if (type == Type::QUniform) {
         int j = 3;
         double dis_u = 1.0 / (k + n - (j - 1) * 2);
         for (size_t i = 1; i < j; ++i) {
@@ -150,7 +150,7 @@ int main(int argc, char** argv)
     vector<vector<double>> way_point = {{0., 3., 6., 2., 1., 4.},
                                         {0., -3., 0., 1., 3., 4.}};
 
-    vector<vector<double>> path = plan_Bspline_path(3, QUniform, way_point);
+    vector<vector<double>> path = plan_Bspline_path(3, Type::QUniform, way_point);
 
     plt::named_plot("Interpolated B-Spline path", path[0], path[1], "-b");
     plt::named_plot("way points", way_point[0], way_point[1], "-og");
