@@ -37,8 +37,8 @@ vector<vector<double>> calc_spline_course(vector<double> x, vector<double> y, do
     return output;
 }
 
-std::pair<size_t, double> calc_target_index(
-    const utils::VehicleState& state, vector<double> cx, vector<double> cy)
+std::pair<size_t, double> calc_target_index(const utils::VehicleState& state,
+    const vector<double>& cx, const vector<double>& cy)
 {
     double fx = state.x + (state.vc.RF) * cos(state.yaw);
     double fy = state.y + (state.vc.RF) * sin(state.yaw);
@@ -63,8 +63,8 @@ std::pair<size_t, double> calc_target_index(
     return std::make_pair(target_idx, error_front_axle);
 }
 
-double stanley_control(const utils::VehicleState& state, vector<double> cx, vector<double> cy,
-    vector<double> cyaw, size_t& last_target_idx)
+double stanley_control(const utils::VehicleState& state, const vector<double>& cx, 
+    const vector<double>& cy, const vector<double>& cyaw, size_t& last_target_idx)
 {
     auto _target = calc_target_index(state, cx, cy);
     size_t current_target_idx = _target.first;
@@ -74,7 +74,8 @@ double stanley_control(const utils::VehicleState& state, vector<double> cx, vect
         current_target_idx = last_target_idx;
     }
 
-    double theta_e = utils::pi_2_pi(cyaw[current_target_idx] - state.yaw);
+    // Sometimes you need to set a scaling factor for theta_e, e.g. 0.8
+    double theta_e = utils::pi_2_pi(cyaw[current_target_idx] - state.yaw) * 0.8;
     double theta_d = atan2(k * error_front_axle, state.v);
     double delta = theta_e + theta_d;
     last_target_idx = current_target_idx;

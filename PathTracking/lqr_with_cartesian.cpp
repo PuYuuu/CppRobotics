@@ -88,14 +88,14 @@ Vector2d LQRController::compute_input(const utils::VehicleState& state, Vector4d
     double v = state.v;
     double th_e = utils::pi_2_pi(state.yaw - target[2]);
     A(1, 2) = v;
-    B(3, 0) = v / (state.vc.RB + state.vc.RF);
+    B(3, 0) = v / state.vc.WB;
     MatrixXd K = dlqr();
     // state vector x = [e, dot_e, th_e, dot_th_e, delta_v]
     Matrix<double, 5, 1> x = Matrix<double, 5, 1>::Zero();
     x << e, (e - pe) / DT, th_e, (th_e - pth_e) / DT, v - tv;
     
     MatrixXd ustar = -K * x;
-    double ff = atan2((state.vc.RB + state.vc.RF) * target[3], 1);
+    double ff = atan2(state.vc.WB * target[3], 1);
     double fb = utils::pi_2_pi(ustar(0, 0));
     double delta = ff + fb;
     double accel = ustar(1, 0);
@@ -195,7 +195,7 @@ int main(int argc, char** argv)
     A(2, 3) = DT;
     A(4, 4) = 1.0;
     Matrix<double, 5, 2> B = Matrix<double, 5, 2>::Zero();
-    B(3, 0) = state.v / (state.vc.RB + state.vc.RF);
+    B(3, 0) = state.v / state.vc.WB;
     B(4, 1) = DT;
     Matrix<double, 5, 5> Q = Matrix<double, 5, 5>::Identity();
     Matrix<double, 2, 2> R = Matrix<double, 2, 2>::Identity();

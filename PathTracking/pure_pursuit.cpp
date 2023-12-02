@@ -100,7 +100,7 @@ tuple<int, double> pure_pursuit_steer_control(utils::VehicleState& state, Target
     }
 
     double alpha = atan2(ty - state.y, tx - state.x) - state.yaw;
-    double delta = atan2(2.0 * (state.vc.RB + state.vc.RF) * sin(alpha) / Lf, 1.0);
+    double delta = atan2(2.0 * state.vc.WB * sin(alpha) / Lf, 1.0);
 
     return std::make_tuple(ind, delta);
 }

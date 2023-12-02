@@ -149,7 +149,7 @@ void VehicleState::update(double acc, double delta, double dt)
 
     x += v * cos(yaw) * dt;
     y += v * sin(yaw) * dt;
-    yaw += v / (vc.RF + vc.RB) * tan(delta) * dt;
+    yaw += v / vc.WB * tan(delta) * dt;
     yaw = pi_2_pi(yaw);
     v += acc * dt;
 }
