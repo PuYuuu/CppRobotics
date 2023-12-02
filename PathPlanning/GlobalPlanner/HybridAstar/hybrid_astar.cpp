@@ -177,9 +177,6 @@ bool is_collision(vector<double>& x, vector<double>& y, vector<double>& yaw, con
         double cy = y[idx] + dl * sin(yaw[idx]);
         vector<point_t> ids = P.kdtree->neighborhood_points({cx, cy}, r);
 
-        if (ids.empty()) {
-            continue;
-        } 
         for (const point_t& ob : ids) {
             double xo = ob[0] - cx;
             double yo = ob[1] - cy;
@@ -522,6 +519,18 @@ int main(int argc, char** argv)
         plt::axis("equal");
         plt::pause(0.01);
     }
+
+    plt::cla();
+    plt::plot(obs[0], obs[1], "sk");
+    utils::draw_vehicle(start, 0.0, VC, "0.4");
+    utils::draw_vehicle(goal, 0.0, VC);
+    plt::title("Hybrid A*");
+    plt::axis("equal");
+    for (size_t idx = 2; idx < path.x.size(); idx += 4) {
+        utils::draw_vehicle({path.x[idx], path.y[idx], path.yaw[idx]}, 0, VC, "-c", false, false);
+        plt::pause(0.001);
+    }
+
     plt::show();
 
     return 0;
