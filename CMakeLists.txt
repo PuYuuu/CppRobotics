@@ -114,6 +114,10 @@ add_executable(lqr_with_cartesian PathTracking/lqr_with_cartesian.cpp
     PathPlanning/CurvesGenerator/cubic_spline.cpp)
 target_link_libraries(lqr_with_cartesian UTILS_LIB fmt::fmt)
 
+add_executable(lqr_with_frenet PathTracking/lqr_with_frenet.cpp 
+    PathPlanning/CurvesGenerator/cubic_spline.cpp)
+target_link_libraries(lqr_with_frenet UTILS_LIB fmt::fmt)
+
 add_executable(ekf_location Perception/extend_kalman_filter_location.cpp)
 target_link_libraries(ekf_location UTILS_LIB fmt::fmt)
 

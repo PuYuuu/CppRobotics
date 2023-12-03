@@ -11,6 +11,8 @@
 
 #include <Eigen/Core>
 
+enum class Gear {GEAR_DRIVE, GEAR_REVERSE};
+
 namespace utils {
 
 template <typename T>
@@ -217,10 +219,12 @@ public:
     double y;
     double yaw;
     double v;
+    Gear gear;
     VehicleConfig vc;
 
     VehicleState(VehicleConfig _vc, double _x = 0., double _y = 0.,
-        double _yaw = 0., double _v = 0.) : vc(_vc), x(_x), y(_y), yaw(_yaw), v(_v) {} 
+        double _yaw = 0., double _v = 0.) : vc(_vc), x(_x), y(_y),
+        yaw(_yaw), v(_v), gear(Gear::GEAR_DRIVE) {} 
     ~VehicleState() {}
     
     void update(double acc, double delta, double dt = 0.1);

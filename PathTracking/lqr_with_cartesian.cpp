@@ -31,19 +31,17 @@ private:
     double pe;
     double pth_e;
 
-    MatrixXd dlqr(void);
-    MatrixXd solve_dare(void);
+    MatrixXd solve_LQR(void);
+    MatrixXd solve_dare(double tolerance = 0.01, size_t max_iter = 150);
 public:
     LQRController(MatrixXd a, MatrixXd b, MatrixXd q, MatrixXd r) :
-        A(a), B(b), Q(q), R(r), pe(0.), pth_e(0.) {
-        
-    }
+        A(a), B(b), Q(q), R(r), pe(0.), pth_e(0.) {}
     ~LQRController() {}
 
     Vector2d compute_input(const utils::VehicleState& state, Vector4d target, double tv);
 };
 
-MatrixXd LQRController::dlqr(void)
+MatrixXd LQRController::solve_LQR(void)
 {
     MatrixXd P = solve_dare();
     // compute the LQR gain
@@ -55,18 +53,16 @@ MatrixXd LQRController::dlqr(void)
 // solve a Discrete-time Algebraic Riccati Equation (DARE)
 // x_{k+1} = A * x_{k} + B * u_{k}
 // J = sum{ x_{k}.T * Q * x_{k} + u_{k}.T * R * u_{k} }
-MatrixXd LQRController::solve_dare(void)
+MatrixXd LQRController::solve_dare(double tolerance, size_t max_iter)
 {
     MatrixXd p = Q;
     MatrixXd p_next = Q;
-    size_t max_iter = 150;
-    double eps = 0.01;
 
     for (size_t i = 0; i < max_iter; ++i) {
         p_next = A.transpose() * p * A - A.transpose() * p * B * 
             (R + B.transpose() * p * B).inverse() * B.transpose() * p * A + Q;
 
-        if ((p_next - p).array().abs().maxCoeff() < eps) {
+        if ((p_next - p).array().abs().maxCoeff() < tolerance) {
             break;
         }
         p = p_next;
@@ -89,15 +85,15 @@ Vector2d LQRController::compute_input(const utils::VehicleState& state, Vector4d
     double th_e = utils::pi_2_pi(state.yaw - target[2]);
     A(1, 2) = v;
     B(3, 0) = v / state.vc.WB;
-    MatrixXd K = dlqr();
+    MatrixXd K = solve_LQR();
     // state vector x = [e, dot_e, th_e, dot_th_e, delta_v]
     Matrix<double, 5, 1> x = Matrix<double, 5, 1>::Zero();
     x << e, (e - pe) / DT, th_e, (th_e - pth_e) / DT, v - tv;
     
     MatrixXd ustar = -K * x;
-    double ff = atan2(state.vc.WB * target[3], 1);
-    double fb = utils::pi_2_pi(ustar(0, 0));
-    double delta = ff + fb;
+    double steer_angle_feedforward = atan2(state.vc.WB * target[3], 1);
+    double steer_angle_feedback = utils::pi_2_pi(ustar(0, 0));
+    double delta = steer_angle_feedforward + steer_angle_feedback;
     double accel = ustar(1, 0);
 
     pe = e;
@@ -228,7 +224,7 @@ int main(int argc, char** argv)
             plt::plot({traj[0][ind]}, {traj[1][ind]}, "xg");
             utils::draw_vehicle({state.x, state.y, state.yaw}, control[1], vc);
             
-            plt::title("LQR with XY-Frame Speed [km/h]: " +
+            plt::title("LQR with cartesian frame Speed [km/h]: " +
                             std::to_string(round(state.v * 3.6)).substr(0, 4));
             plt::axis("equal");
             plt::legend({{"loc", "upper left"}});
