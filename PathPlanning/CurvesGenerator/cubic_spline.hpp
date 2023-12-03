@@ -42,6 +42,9 @@ public:
     Eigen::Vector2d calc_position(double _s);
     double calc_yaw(double _s);
     double calc_curvature(double s);
+
+    static std::vector<std::vector<double>> calc_spline_course(
+            std::vector<double> x, std::vector<double> y, double ds = 0.1);
 };
 
 #endif

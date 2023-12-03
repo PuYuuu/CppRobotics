@@ -11,7 +11,6 @@
 using std::vector;
 using std::tuple;
 namespace plt = matplotlibcpp;
-constexpr double WB = 2.5;
 constexpr double DT = 0.1;
 constexpr double k = 0.1;
 constexpr double Lfc = 2.0;

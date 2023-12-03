@@ -153,3 +153,22 @@ double CubicSpline2D::calc_curvature(double _s)
 
     return k;
 }
+
+vector<vector<double>> CubicSpline2D::calc_spline_course(
+        vector<double> x, vector<double> y, double ds)
+{
+    CubicSpline2D* sp = new CubicSpline2D(x, y);
+    vector<vector<double>> output(4);
+
+    for (double s = sp->s.front(); s < sp->s.back(); s += ds) {
+        Vector2d ixy = sp->calc_position(s);
+        output[0].push_back(ixy[0]);
+        output[1].push_back(ixy[1]);
+        output[2].push_back(sp->calc_yaw(s));
+        output[3].push_back(sp->calc_curvature(s));
+    }
+    delete sp;
+
+    // [x, y, yaw, curvature]
+    return output;
+}

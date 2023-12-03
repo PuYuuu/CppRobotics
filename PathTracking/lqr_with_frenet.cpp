@@ -184,28 +184,12 @@ double LonController::compute_input(double target_speed, const utils::VehicleSta
     return accel;
 }
 
-vector<vector<double>> calc_spline_course(vector<double> x, vector<double> y, double ds = 0.1)
-{
-    CubicSpline2D sp(x, y);
-    vector<vector<double>> output(4);
-
-    for (double s = sp.s.front(); s < sp.s.back(); s += ds) {
-        Vector2d ixy = sp.calc_position(s);
-        output[0].push_back(ixy[0]);
-        output[1].push_back(ixy[1]);
-        output[2].push_back(sp.calc_yaw(s));
-        output[3].push_back(sp.calc_curvature(s));
-    }
-
-    return output;
-}
-
 int main(int argc, char** argv)
 {
     vector<double> ax = {0.0, 10., 16., 20.0, 14., 4, 8};
     vector<double> ay = {0.0, -4., 2., 4.0, 12., 8, 4};
     Vector2d goal(ax.back(), ay.back());
-    vector<vector<double>> traj = calc_spline_course(ax, ay, 0.1);
+    vector<vector<double>> traj = CubicSpline2D::calc_spline_course(ax, ay, 0.1);
     double time = 0.0;
     double target_speed = 12.0 / 3.6;
 
