@@ -50,6 +50,11 @@ target_link_libraries(bspline_path UTILS_LIB fmt::fmt)
 add_executable(dubins_path PathPlanning/CurvesGenerator/dubins_path.cpp)
 target_link_libraries(dubins_path UTILS_LIB fmt::fmt)
 
+add_executable(frenet_optimal_trajectory
+    PathPlanning/CurvesGenerator/frenet_optimal_trajectory.cpp
+    PathPlanning/CurvesGenerator/cubic_spline.cpp)
+target_link_libraries(frenet_optimal_trajectory UTILS_LIB fmt::fmt)
+
 add_executable(reeds_shepp_planner
     PathPlanning/CurvesGenerator/reeds_shepp_planner.cpp)
 target_link_libraries(reeds_shepp_planner UTILS_LIB fmt::fmt RS_Path_LIB)
