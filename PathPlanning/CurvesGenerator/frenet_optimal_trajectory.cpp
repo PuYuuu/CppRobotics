@@ -11,24 +11,25 @@
 #include "utils/matplotlibcpp.h"
 #include "cubic_spline.hpp"
 #include "quintic_polynomial.hpp"
+#include "quartic_polynomial.hpp"
 
 using std::vector;
 using namespace Eigen;
 namespace plt = matplotlibcpp;
 
 // Parameter
-constexpr double MAX_SPEED = 50.0 / 3.6 ;   //maximum speed [m/s]
-constexpr double MAX_ACCEL = 2.0 ;          //maximum acceleration [m/ss]
-constexpr double MAX_CURVATURE = 1.0 ;      //maximum curvature [1/m]
-constexpr double MAX_ROAD_WIDTH = 7.0 ;     //maximum road width [m]
-constexpr double D_ROAD_W = 1.0 ;           //road width sampling length [m]
-constexpr double DT = 0.2 ;                 //time tick [s]
-constexpr double MAX_T = 5.0 ;              //max prediction time [m]
-constexpr double MIN_T = 4.0 ;              //min prediction time [m]
-constexpr double TARGET_SPEED = 30. / 3.6 ; //target speed [m/s]
-constexpr double D_T_S = 5.0 / 3.6 ;        //target speed sampling length [m/s]
-constexpr double N_S_SAMPLE = 1 ;           //sampling number of target speed
-constexpr double ROBOT_RADIUS = 2.0 ;       //robot radius [m]
+constexpr double MAX_SPEED = 50.0 / 3.6;   //maximum speed [m/s]
+constexpr double MAX_ACCEL = 2.0;          //maximum acceleration [m/ss]
+constexpr double MAX_CURVATURE = 1.0;      //maximum curvature [1/m]
+constexpr double MAX_ROAD_WIDTH = 7.0;     //maximum road width [m]
+constexpr double D_ROAD_W = 1.0;           //road width sampling length [m]
+constexpr double DT = 0.2;                 //time tick [s]
+constexpr double MAX_T = 5.0;              //max prediction time [m]
+constexpr double MIN_T = 4.0;              //min prediction time [m]
+constexpr double TARGET_SPEED = 30. / 3.6; //target speed [m/s]
+constexpr double D_T_S = 5.0 / 3.6;        //target speed sampling length [m/s]
+constexpr double N_S_SAMPLE = 1;           //sampling number of target speed
+constexpr double ROBOT_RADIUS = 2.0;       //robot radius [m]
 // cost weights
 constexpr double K_J = 0.1;
 constexpr double K_T = 0.1;
@@ -38,56 +39,6 @@ constexpr double K_LON = 1.0;
 
 constexpr size_t SIM_LOOP = 500;
 constexpr bool show_animation = true;
-
-class QuarticPolynomial
-{
-private:
-    double a0;
-    double a1;
-    double a2;
-    double a3;
-    double a4;
-public:
-    QuarticPolynomial(double xs, double vxs, double axs, double vxe, double axe, double time) {
-        a0 = xs;
-        a1 = vxs;
-        a2 = axs / 2.0;
-        
-        Matrix2d A;
-        A << 3 * pow(time, 2), 4 * pow(time, 3), 6 * time, 12 * pow(time, 2);
-        Vector2d b;
-        b << vxe - a1 - 2 * a2 * time, axe - 2 * a2;
-
-        Eigen::Vector2d x = A.colPivHouseholderQr().solve(b);
-        a3 = x[0];
-        a4 = x[1];
-    }
-    ~QuarticPolynomial() {}
-
-    double calc_point(double t) {
-        double xt = a0 + a1 * t + a2 * pow(t, 2) + a3 * pow(t, 3) + a4 * pow(t, 4);
-
-        return xt;
-    }
-
-    double calc_first_derivative(double t) {
-        double xt = a1 + 2 * a2 * t + 3 * a3 * pow(t, 2) + 4 * a4 * pow(t, 3);
-
-        return xt;
-    }
-
-    double calc_second_derivative(double t) {
-        double xt = 2 * a2 + 6 * a3 * t + 12 * a4 * pow(t, 2);
-
-        return xt;
-    }
-
-    double calc_third_derivative(double t) {
-        double xt = 6 * a3 + 24 * a4 * t;
-
-        return xt;
-    }
-};
 
 class FrenetPath
 {
@@ -110,6 +61,10 @@ public:
     vector<double> yaw;
     vector<double> ds;
     vector<double> c;
+
+    double max_speed = 0.0;
+    double max_accel = 0.0;
+    double max_curvature = 0.0;
 
     FrenetPath() {}
     ~FrenetPath() {}
@@ -143,6 +98,12 @@ vector<FrenetPath> calc_frenet_paths(
                     tfp.s_d.push_back(lon_qp.calc_first_derivative(t));
                     tfp.s_dd.push_back(lon_qp.calc_second_derivative(t));
                     tfp.s_ddd.push_back(lon_qp.calc_third_derivative(t));
+                    if (tfp.s_d.back() > tfp.max_speed) {
+                        tfp.max_speed = tfp.s_d.back();
+                    }
+                    if (tfp.s_dd.back() > tfp.max_accel) {
+                        tfp.max_accel = tfp.s_dd.back();
+                    }
                 }
                 std::transform(tfp.d_ddd.begin(), tfp.d_ddd.end(),
                     tfp.d_ddd.begin(), [](int x) { return x * x; });
@@ -181,17 +142,22 @@ void calc_global_paths(vector<FrenetPath>& fplist, CubicSpline2D& csp)
             fp.y.emplace_back(fy);
         }
 
-        for (size_t idx = 0; idx < fp.x.size() - 1; ++idx) {
+        for (size_t idx = 0; idx + 1 < fp.x.size(); ++idx) {
             double dx = fp.x[idx + 1] - fp.x[idx];
             double dy = fp.y[idx + 1] - fp.y[idx];
             fp.yaw.emplace_back(atan2(dy, dx));
             fp.ds.emplace_back(hypot(dx, dy));
         }
-        fp.yaw.push_back(fp.yaw.back());
-        fp.ds.push_back(fp.ds.back());
-        
-        for (size_t idx = 0; idx < fp.yaw.size() - 1; ++idx) {
-            fp.c.emplace_back((fp.yaw[idx + 1] - fp.yaw[idx]) / fp.ds[idx]);
+        if (!fp.yaw.empty()) {
+            fp.yaw.push_back(fp.yaw.back());
+            fp.ds.push_back(fp.ds.back());
+            
+            for (size_t idx = 0; idx < fp.yaw.size() - 1; ++idx) {
+                fp.c.emplace_back((fp.yaw[idx + 1] - fp.yaw[idx]) / fp.ds[idx]);
+                if (fp.c.back() > fp.max_curvature) {
+                    fp.max_curvature = fp.c.back();
+                }
+            }
         }
     }
 }
@@ -215,27 +181,17 @@ vector<FrenetPath> check_paths(vector<FrenetPath>& fplist, const vector<vector<d
     vector<FrenetPath> final_fp;
 
     for (size_t idx = 0; idx < fplist.size(); ++idx) {
-        if (std::any_of(fplist[idx].s_d.begin(), fplist[idx].s_d.end(),
-            [](double v) {return v > MAX_SPEED;})) {
-            continue;
-        } else if (std::any_of(fplist[idx].s_dd.begin(), fplist[idx].s_dd.end(),
-            [](double a) {return abs(a) > MAX_ACCEL;})) {
-            continue;
-        } else if (std::any_of(fplist[idx].c.begin(), fplist[idx].c.end(),
-            [](double element) {return abs(element) > MAX_CURVATURE;})) {
-            continue;  
-        } else if (!check_collision(fplist[idx], obs)) {
-            continue;
+        if (fplist[idx].max_speed < MAX_SPEED && fplist[idx].max_accel < MAX_ACCEL &&
+            fplist[idx].max_curvature < MAX_CURVATURE && check_collision(fplist[idx], obs)) {
+            final_fp.push_back(fplist[idx]);
         }
-
-        final_fp.push_back(fplist[idx]);
     }
 
     return final_fp;
 }
 
 FrenetPath frenet_optimal_planning(
-    CubicSpline2D& csp,double s0, double c_speed, double c_accel,
+    CubicSpline2D& csp, double s0, double c_speed, double c_accel,
     double c_d, double c_d_d, double c_d_dd, const vector<vector<double>>& obs)
 {
     vector<FrenetPath> fplist = calc_frenet_paths(c_speed, c_accel, c_d, c_d_d, c_d_dd, s0);
@@ -251,16 +207,6 @@ FrenetPath frenet_optimal_planning(
         }
     }
 
-    // for (size_t i = 0; i < obs.size(); ++i) {
-    //     fmt::print("\nobs num: {}, x: {}, y: {}\n", i,obs[0][i], obs[1][i]);
-    //     for (size_t j = 0; j < best_path.x.size(); ++j) {
-    //         double dist = hypot(best_path.x[j] - obs[0][i], best_path.y[j] - obs[1][i]);
-    //         fmt::print("traj num: {}, x: {}, y: {}\n", j, best_path.x[j], best_path.y[j]);
-    //         fmt::print("dist: {}\n", dist);
-    //     }
-    // }
-    // fmt::print("-------------------------------------------\n\n");
-
     return best_path;
 }
 
@@ -270,7 +216,7 @@ int main(int argc, char** argv)
     vector<double> wy = {0.0, -6.0, 5.0, 6.5, 0.0};
     vector<vector<double>> obs = {{20., 30., 30., 35., 50.},
                                   {10., 6., 8., 8., 3.}};
-    vector<vector<double>> traj = CubicSpline2D::calc_spline_course(wx, wy, 0.1);
+    vector<vector<double>> spline = CubicSpline2D::calc_spline_course(wx, wy, 0.1);
     CubicSpline2D csp = CubicSpline2D(wx, wy);
 
     double c_speed = 10.0 / 3.6;
@@ -280,7 +226,7 @@ int main(int argc, char** argv)
     double c_d_dd = 0.0;
     double s0 = 0.0;
     double area = 20.0;
-    
+    utils::VehicleConfig vc(0.9);
     size_t iter = 0;
     while (iter++ < SIM_LOOP) {
         FrenetPath path =
@@ -293,19 +239,24 @@ int main(int argc, char** argv)
         c_speed = path.s_d[1];
         c_accel = path.s_dd[1];
 
-        if (hypot(path.x[1] - traj[0].back(), path.y[1] - traj[1].back()) <= 1.) {
+        if (hypot(path.x[1] - spline[0].back(), path.y[1] - spline[1].back()) <= 1.) {
             break;
         }
         if (show_animation) {
             plt::cla();
-            plt::plot(traj[0], traj[1]);
+            plt::named_plot("The planned spline path", spline[0], spline[1]);
             plt::plot(obs[0], obs[1], "xk");
-            plt::plot(path.x, path.y, "-or");
-            plt::plot({path.x[0]}, {path.y[0]}, "vc");
+            plt::named_plot("The optimal trajectory", path.x, path.y, "-r");
+            // The steer here is not strictly calculated by vehicle kinematics,
+            // but is only visualized based on curvature scaling.
+            utils::draw_vehicle(
+                {path.x[0], path.y[0], path.yaw[0]}, utils::pi_2_pi(5 * path.c[0]), vc);
+
             plt::xlim(path.x[1] - area, path.x[1] + area);
             plt::ylim(path.y[1] - area, path.y[1] + area);
             plt::title("Frenet Optimal Trajectory V[km/h]:" +
                         std::to_string(c_speed * 3.6).substr(0,4));
+            plt::legend({{"loc", "upper left"}});
             plt::grid(true);
             plt::pause(0.0001);
         }
@@ -313,7 +264,6 @@ int main(int argc, char** argv)
     
     if (show_animation) {
         plt::grid(true);
-        plt::pause(0.0001);
         plt::show();
     }
 

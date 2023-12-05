@@ -117,6 +117,7 @@ Find all the executable files in **$workspace/bin**.
 <table>
   <tr>
     <td><img src="./assets/images/reeds_shepp.gif" width="400"/></a></td>
+    <td><img src="./assets/images/frenet_optimal_traj.gif" width="400"/></a></td>
   </tr>
 </table>
 </div>
