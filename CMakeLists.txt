@@ -126,5 +126,8 @@ target_link_libraries(lqr_with_frenet UTILS_LIB fmt::fmt)
 add_executable(ekf_location Perception/extend_kalman_filter_location.cpp)
 target_link_libraries(ekf_location UTILS_LIB fmt::fmt)
 
-add_executable(rectangle_fitting Perception/rectangle_fitting)
+add_executable(rectangle_fitting Perception/rectangle_fitting.cpp)
 target_link_libraries(rectangle_fitting UTILS_LIB fmt::fmt)
+
+add_executable(ipopt_solve_test utils/ipopt_solve_test.cpp)
+target_link_libraries(ipopt_solve_test ipopt)
