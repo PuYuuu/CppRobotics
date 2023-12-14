@@ -183,6 +183,8 @@ public:
     double TR;  // [m] Tyre radius
     double TW;  // [m] Tyre width
     double MAX_STEER;
+    double MAX_SPEED = 55.0 / 3.6;
+    double MIN_SPEED = -20.0 / 3.6;
     // Trailer
     double RTR; // [m] rear to trailer wheel
     double RTF; // [m] distance from rear to vehicle front end of trailer

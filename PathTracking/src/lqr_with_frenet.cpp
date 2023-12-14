@@ -224,8 +224,8 @@ int main(int argc, char** argv)
 
         if (show_animation) {
             plt::cla();
-            plt::named_plot("course", traj[0], traj[1], "-k");
-            plt::named_plot("trajectory", x, y, "-r");
+            plt::named_plot("course", traj[0], traj[1], "-r");
+            plt::named_plot("trajectory", x, y, "-b");
             utils::draw_vehicle({state.x, state.y, state.yaw}, steer, vc);
             
             plt::title("LQR with frenet frame Speed [km/h]: " +

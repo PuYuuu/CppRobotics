@@ -203,8 +203,8 @@ int main(int argc, char** argv)
 
         if (show_animation) {
             plt::cla();
-            plt::named_plot("course", traj[0], traj[1], "-k");
-            plt::named_plot("trajectory", x, y, "-r");
+            plt::named_plot("course", traj[0], traj[1], "-r");
+            plt::named_plot("trajectory", x, y, "-b");
             plt::plot({traj[0][ind]}, {traj[1][ind]}, "xg");
             utils::draw_vehicle({state.x, state.y, state.yaw}, control[1], vc);
             

@@ -150,8 +150,13 @@ void VehicleState::update(double acc, double delta, double dt)
     x += v * cos(yaw) * dt;
     y += v * sin(yaw) * dt;
     yaw += v / vc.WB * tan(delta) * dt;
-    yaw = pi_2_pi(yaw);
     v += acc * dt;
+
+    if (v > vc.MAX_SPEED) {
+        v = 55.0 / 3.6;
+    } else if (v < -20.0 / 3.6) {
+        v = -20.0 / 3.6;
+    }
 }
 
 double VehicleState::calc_distance(double point_x, double point_y)

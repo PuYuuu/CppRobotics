@@ -22,3 +22,8 @@ add_executable(lqr_with_frenet
     ${PROJECT_SOURCE_DIR}/src/lqr_with_frenet.cpp)
 add_dependencies(lqr_with_frenet utils cubic_spline)
 target_link_libraries(lqr_with_frenet utils fmt::fmt cubic_spline)
+
+add_executable(model_predictive_control
+    ${PROJECT_SOURCE_DIR}/src/model_predictive_control.cpp)
+add_dependencies(model_predictive_control utils cubic_spline)
+target_link_libraries(model_predictive_control utils fmt::fmt cubic_spline ipopt)

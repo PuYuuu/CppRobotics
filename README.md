@@ -145,6 +145,7 @@ Find all the executable files in **$workspace/bin**.
 <table>
   <tr>
     <td><img src="./assets/images/lqr-xy.gif" width="400"/></a></td>
+    <td><img src="./assets/images/mpc.gif" width="400"/></a></td>
   </tr>
 </table>
 </div>
