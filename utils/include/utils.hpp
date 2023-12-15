@@ -154,15 +154,15 @@ double variance(const std::vector<T>& data)
 class TicToc
 {
 public:
-    TicToc() {
+    TicToc(void) {
         tic();
     }
 
-    void tic() {
+    void tic(void) {
         start = std::chrono::system_clock::now();
     }
 
-    double toc() {
+    double toc(void) {
         end = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsed_seconds = end - start;
         return elapsed_seconds.count() * 1000;
@@ -190,7 +190,6 @@ public:
     double RTF; // [m] distance from rear to vehicle front end of trailer
     double RTB; // [m] distance from rear to vehicle back end of trailer
 
-    // Default parameters
     VehicleConfig(double scale = 1.0) :
         RF(3.3), RB(0.8), W(2.4), WB(2.5), TR(0.44), TW(0.7), 
         MAX_STEER(0.6), RTR(8.0), RTF(1.0), RTB(9.0) {
@@ -211,6 +210,42 @@ public:
         MAX_STEER(max_steer), RTR(rtr), RTF(rtf), RTB(rtb) {
         WD = 0.7 * W;
     }
+
+    VehicleConfig(const VehicleConfig& other) {
+        RF = other.RF;  
+        RB = other.RB;
+        W = other.W;
+        WD = other.WD;
+        WB = other.WB;
+        TR = other.TR;
+        TW = other.TW;
+        MAX_STEER = other.MAX_SPEED;
+        MAX_SPEED = other.MAX_SPEED;
+        MIN_SPEED = other.MIN_SPEED; 
+        RTR = other.RTB;
+        RTF = other.RTF;
+        RTB = other.RTB;
+    }
+
+    VehicleConfig& operator=(const VehicleConfig& other) {
+        if (this != &other) {
+            RF = other.RF;  
+            RB = other.RB;
+            W = other.W;
+            WD = other.WD;
+            WB = other.WB;
+            TR = other.TR;
+            TW = other.TW;
+            MAX_STEER = other.MAX_SPEED;
+            MAX_SPEED = other.MAX_SPEED;
+            MIN_SPEED = other.MIN_SPEED; 
+            RTR = other.RTB;
+            RTF = other.RTF;
+            RTB = other.RTB;
+        }
+        return *this;
+    }
+
     ~VehicleConfig() {}
 };
 
@@ -224,9 +259,32 @@ public:
     Gear gear;
     VehicleConfig vc;
 
+    VehicleState() = delete;
+
     VehicleState(VehicleConfig _vc, double _x = 0., double _y = 0.,
         double _yaw = 0., double _v = 0.) : vc(_vc), x(_x), y(_y),
-        yaw(_yaw), v(_v), gear(Gear::GEAR_DRIVE) {} 
+        yaw(_yaw), v(_v), gear(Gear::GEAR_DRIVE) {}
+    
+    VehicleState(const VehicleState& other) {
+        x = other.x;  
+        y = other.y;
+        yaw  = other.yaw;
+        v    = other.v;
+        gear = other.gear;
+        vc   = other.vc;
+    }
+    VehicleState& operator=(const VehicleState& other) {
+        if (this != &other) {
+            x = other.x;  
+            y = other.y;
+            yaw  = other.yaw;
+            v    = other.v;
+            gear = other.gear;
+            vc   = other.vc;
+        }
+        return *this;
+    }
+
     ~VehicleState() {}
     
     void update(double acc, double delta, double dt = 0.1);
