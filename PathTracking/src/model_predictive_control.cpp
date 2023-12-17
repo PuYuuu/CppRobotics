@@ -44,7 +44,6 @@ constexpr size_t a_start = delta_start + T - 1;
 constexpr double WB = 2.5;
 constexpr double show_animation = true;
 
-
 vector<double> calc_speed_profile(
     const vector<double>& cx, const vector<double>& cy,
     const vector<double>& cyaw, double target_speed)
@@ -217,16 +216,41 @@ public:
     }
 };
 
-vector<double> mpc_solve(utils::VehicleState& x0, MatrixXd traj_ref)
+class MPCController
 {
-    typedef CPPAD_TESTVECTOR(double) Dvector;
+private:
+    size_t horizon_length;
+    size_t n_vars;
+    size_t n_constraints;
+    std::string optimize_options;
+public:
+    using Dvector = CPPAD_TESTVECTOR(double);
+
+    MPCController() = delete;
+    MPCController(size_t h_len) : horizon_length(h_len) {
+        n_vars = horizon_length * 4 + (horizon_length - 1) * 2;
+        n_constraints = horizon_length * 4;
+
+        optimize_options = "";
+        optimize_options += "Integer print_level     0\n";
+        // optimize_options += "Sparse  true         forward\n";
+        optimize_options += "Sparse  true            reverse\n";
+        optimize_options += "Integer max_iter        50\n";
+        // optimize_options += "Numeric tol          1e-6\n";
+        optimize_options += "Numeric max_cpu_time    0.05\n";
+    }
+    ~MPCController() {}
+
+    vector<double> mpc_solve(utils::VehicleState& x0, MatrixXd traj_ref);
+    Vector2d compute_input(utils::VehicleState& x0, MatrixXd traj_ref);
+};
+
+vector<double> MPCController::mpc_solve(utils::VehicleState& x0, MatrixXd traj_ref)
+{
     double x = x0.x;
     double y = x0.y;
     double yaw = x0.yaw;
     double v = x0.v;
-
-    size_t n_vars = T * 4 + (T - 1) * 2;
-    size_t n_constraints = T * 4;
 
     Dvector vars(n_vars);
     for (size_t idx = 0; idx < n_vars; ++idx){
@@ -273,23 +297,13 @@ vector<double> mpc_solve(utils::VehicleState& x0, MatrixXd traj_ref)
     constraints_upperbound[v_start] = v;
 
     FG_EVAL fg_eval(traj_ref);
-
-    // options
-    std::string options;
-    options += "Integer print_level     0\n";
-    // options += "Sparse  true         forward\n";
-    options += "Sparse  true            reverse\n";
-    options += "Integer max_iter        50\n";
-    // options += "Numeric tol          1e-6\n";
-    options += "Numeric max_cpu_time    0.05\n";
-
     // place to return solution
     CppAD::ipopt::solve_result<Dvector> solution;
 
     // solve the problem
     CppAD::ipopt::solve<Dvector, FG_EVAL>(
-      options, vars, vars_lowerbound, vars_upperbound, constraints_lowerbound,
-      constraints_upperbound, fg_eval, solution);
+      optimize_options, vars, vars_lowerbound, vars_upperbound,
+      constraints_lowerbound, constraints_upperbound, fg_eval, solution);
 
     bool ok = true;
     ok &= solution.status == CppAD::ipopt::solve_result<Dvector>::success;
@@ -300,6 +314,14 @@ vector<double> mpc_solve(utils::VehicleState& x0, MatrixXd traj_ref)
     }
 
     return result;
+}
+
+Vector2d MPCController::compute_input(utils::VehicleState& x0, MatrixXd traj_ref)
+{
+    vector<double> output = mpc_solve(x0, traj_ref);
+    Vector2d input(output[a_start], output[delta_start]);
+
+    return input;
 }
 
 int main(int argc, char** argv)
@@ -314,8 +336,9 @@ int main(int argc, char** argv)
 
     utils::VehicleConfig vc;
     vc.MAX_STEER = MAX_STEER;
-    vc.WB = 2.5;
+    vc.WB = WB;
     utils::VehicleState state(vc, traj[0][0], traj[1][0], traj[2][0], sp[0]);
+    MPCController mpc(T);
 
     if ((state.yaw - traj[2][0]) >= M_PI) {
          state.yaw -= M_PI * 2.0; 
@@ -343,7 +366,7 @@ int main(int argc, char** argv)
     while (MAX_SIM_TIME >= time) {
         MatrixXd xref =
             calc_ref_trajectory(state, traj[0], traj[1], traj[2], sp, target_ind);
-        vector<double> output = mpc_solve(state, xref);
+        vector<double> output = mpc.mpc_solve(state, xref);
         vector<vector<double>> ooxy(2);
         for (size_t idx = 1; idx < T; ++idx) {
             ooxy[0].push_back(output[x_start + idx]);
