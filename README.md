@@ -103,6 +103,14 @@ Find all the executable files in **$workspace/bin**.
 </table>
 </div>
 
+<div align=center>
+<table>
+  <tr>
+    <td><img src="./assets/images/lattice_planner.gif" width="400"/></a></td>
+  </tr>
+</table>
+</div>
+
 #### CurvesGenerator
 
 <div align=center>

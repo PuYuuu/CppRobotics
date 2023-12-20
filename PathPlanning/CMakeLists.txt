@@ -94,3 +94,8 @@ add_executable(potential_field_planning
     ${PROJECT_SOURCE_DIR}/src/LocalPlanner/potential_field_planning.cpp)
 add_dependencies(potential_field_planning utils)
 target_link_libraries(potential_field_planning utils fmt::fmt)
+
+add_executable(lattice_planner
+    ${PROJECT_SOURCE_DIR}/src/LocalPlanner/lattice_planner.cpp)
+add_dependencies(lattice_planner utils cubic_spline)
+target_link_libraries(lattice_planner utils fmt::fmt cubic_spline)
