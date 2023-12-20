@@ -24,6 +24,10 @@ class Config
 {
 private:
     static Config instance;
+
+    Config() {}
+    Config(const Config&) = delete;
+    Config& operator=(const Config&) = delete;
 public:
     double max_speed = 1.0;
     double min_speed = -0.5;
@@ -44,9 +48,6 @@ public:
     double robot_width = 0.5;
     double robot_length = 1.2;
 
-    Config() {}
-    Config(const Config&) = delete;
-    Config& operator=(const Config&) = delete;
     ~Config() {}
 
     static Config* getInstance() {		
