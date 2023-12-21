@@ -29,10 +29,10 @@ private:
     Config(const Config&) = delete;
     Config& operator=(const Config&) = delete;
 public:
-    double max_speed = 1.0;
-    double min_speed = -0.5;
+    double max_speed = 1.5;
+    double min_speed = -1.0;
     double max_yaw_rate = 40.0 * M_PI / 180.0;
-    double max_accel = 0.2;
+    double max_accel = 0.3;
     double max_delta_yaw_rate = 40.0 * M_PI / 180.0;
     double v_resolution = 0.05;
     double yaw_rate_resolution = 0.5 * M_PI / 180.0;
@@ -45,8 +45,8 @@ public:
     RobotType robot_type = RobotType::Rectangle;
 
     double robot_radius = 1.0;
-    double robot_width = 0.5;
-    double robot_length = 1.2;
+    double robot_width = 1.2;
+    double robot_length = 2;
 
     ~Config() {}
 
@@ -187,41 +187,19 @@ vector<RobotState> dwa_control(RobotState x, Vector2d& control, Config* config,
     return traj;
 }
 
-void plot_robot(double x, double y, double yaw, Config* config)
-{
-    if (config->robot_type == RobotType::Rectangle) {
-        vector<Vector3d> outline(4);
-        outline[0] << -config->robot_length / 2, config->robot_width / 2, 1;
-        outline[1] << config->robot_length / 2, config->robot_width / 2, 1;
-        outline[2] << config->robot_length / 2, -config->robot_width / 2, 1;
-        outline[3] << -config->robot_length / 2, -config->robot_width / 2, 1;
-
-        Matrix3d T = utils::transformation_matrix2d(x, y, yaw);
-        Vector3d p1 = T * outline[0];
-        Vector3d p2 = T * outline[1];
-        Vector3d p3 = T * outline[2];
-        Vector3d p4 = T * outline[3];
-        plt::plot({p1[0], p2[0]}, {p1[1], p2[1]}, "k-");
-        plt::plot({p2[0], p3[0]}, {p2[1], p3[1]}, "k-");
-        plt::plot({p3[0], p4[0]}, {p3[1], p4[1]}, "k-");
-        plt::plot({p4[0], p1[0]}, {p4[1], p1[1]}, "k-");
-    } else if (config->robot_type == RobotType::Circle) {
-        // todo
-        // I'm confused how to draw a circle of specific size in matplotlibcpp
-    }
-}
-
 int main (int argc, char** argv)
 {
     RobotState x;
     x << 0., 0., 0., M_PI_4 / 2, 0., 0.;
     Vector2d goal(10, 10);
     Config* config = Config::getInstance();
-    vector<vector<double>> obs = {{-1, -1}, {0, 2}, {4.0, 2.0}, {5.0, 4.0},
-                            {5.0, 5.0}, {5.0, 6.0}, {5.0, 8.0}, {5.0, 9.0}, 
-                            {8.0, 9.0}, {7.0, 9.0}, {8.0, 10.0}, {9.0, 11.0}, 
-                            {12.0, 13.0}, {12.0, 12.0}, {15.0, 15.0}, {13.0, 13.0}};
+    vector<vector<double>> obs = {{-1, -1}, {0, 2}, {4.0, 2.0}, {5.0, 0.0},
+                            {5.0, 4.0}, {5.0, 5.0}, {5.0, 6.0}, {5.0, 8.0},
+                            {5.0, 9.0}, {8.0, 9.0}, {7.0, 9.0}, {8.0, 10.0},
+                            {9.0, 11.0}, {12.0, 13.0}, {12.0, 12.0},
+                            {15.0, 15.0}, {13.0, 13.0}};
     vector<RobotState> trajectory = {x};
+    utils::VehicleConfig vc(0.5);
 
     while (true) {
         Vector2d u;
@@ -237,17 +215,17 @@ int main (int argc, char** argv)
                 trajx.emplace_back(traj[0]);
                 trajy.emplace_back(traj[1]);
             }
-            plt::plot(trajx, trajy, "-g");
+            plt::named_plot("Planning trajectory", trajx, trajy, "-r");
 
-            plt::plot({x[0]}, {x[1]}, "xr");
-            plt::plot({goal[0]}, {goal[1]}, "xb");
+            plt::named_plot("Goal", vector<double>{goal[0]}, vector<double>{goal[1]}, "xg");
             for (vector<double> ob : obs) {
                 plt::plot({ob[0]}, {ob[1]}, "ok");
             }
-            plot_robot(x[0], x[1], x[2], config);
+            utils::draw_vehicle({x[0], x[1], x[2]}, u[1], vc);
             plt::axis("equal");
             plt::grid(true);
             plt::title("Dynamic Window Approach");
+            plt::legend();
             plt::pause(0.0001);
         }
         double dist_to_goal = hypot(x[0] - goal[0], x[1] - goal[1]);
@@ -264,7 +242,7 @@ int main (int argc, char** argv)
             trajx.emplace_back(traj[0]);
             trajy.emplace_back(traj[1]);
         }
-        plt::plot(trajx, trajy, "-r");
+        plt::plot(trajx, trajy, "-b");
         plt::show();
     }
 

@@ -238,11 +238,11 @@ Path extract_optimal_path(vector<Path>& paths)
     for (Path& p : paths) {
         if (verify_path(p)) {
             path = p;
-            return path;
+            break;;
         }
     }
 
-    return paths.back();
+    return path;
 }
 
 Path lattice_planner(
@@ -282,7 +282,9 @@ int main()
     double s0_a = 0.0;
 
     while (true) {
-        Path path = lattice_planner(l0, l0_v, l0_a, s0, s0_v, s0_a, spline, vc, obs);
+        // Path path = lattice_planner(l0, l0_v, l0_a, s0, s0_v, s0_a, spline, vc, obs);
+        vector<Path> paths = sampling_paths(l0, l0_v, l0_a, s0, s0_v, s0_a, spline, vc, obs);
+        Path path = extract_optimal_path(paths);
 
         if (path.x.empty()) {
             fmt::print("No feasible path found!!\n");
@@ -303,16 +305,22 @@ int main()
 
         double dy = (path.yaw[2] - path.yaw[1]) / path.ds[1];
         double steer = utils::pi_2_pi(atan(1.2 * vc.WB * dy));
+
         plt::cla();
+        plt::named_plot("Candidate trajectories", paths[0].x, paths[0].y, "-c");
+        for (size_t i = 1; i < paths.size(); i += (paths.size() / 10)) {
+            plt::plot(paths[i].x, paths[i].y, "-c");
+        }
         plt::plot(wxy[0], wxy[1], {{"linestyle", "--"}, {"color", "gray"}});
         plt::plot(inxy[0], inxy[1], {{"linewidth", "2"}, {"color", "k"}});
         plt::plot(outxy[0], outxy[1], {{"linewidth", "2"}, {"color", "k"}});
-        plt::plot(path.x, path.y, "-r");
+        plt::named_plot("Optimal trajectory", path.x, path.y, "-r");
         plt::plot(obs[0], obs[1], "ok");
         utils::draw_vehicle({path.x[1], path.y[1], path.yaw[1]}, steer, vc);
         plt::title("Lattice Planner in Cruising Scene V[km/h]:" +
                         std::to_string(s0_v * 3.6).substr(0,4));
         plt::axis("equal");
+        plt::legend();
         plt::pause(0.0001);
     }
     plt::show();
