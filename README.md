@@ -27,7 +27,7 @@ cmake ..
 make -j6
 ```
 
-Find all the executable files in **$workspace/bin**.
+Find all the executable files in **$workspace/bin**. By the way, all code development and debugging of this project are completed under WSL2. Currently, WSL2 natively supports GUI on Win10/Win11 without any configuration. For details, refer to [gui-apps](https://learn.microsoft.com/en-us/windows/wsl/tutorials/gui-apps) .
 
 ## 🎈Animations
 
