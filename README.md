@@ -107,6 +107,7 @@ Find all the executable files in **$workspace/bin**. By the way, all code develo
 <table>
   <tr>
     <td><img src="./assets/images/lattice_planner.gif" width="400"/></a></td>
+    <td><img src="./assets/images/lattice_planner_stopping.gif" width="400"/></a></td>
   </tr>
 </table>
 </div>

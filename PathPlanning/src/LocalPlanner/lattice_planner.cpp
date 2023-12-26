@@ -7,7 +7,7 @@
 #include <Eigen/Core>
 
 #include "utils.hpp"
-#include "cruise_line.hpp"
+#include "road_line.hpp"
 #include "cubic_spline.hpp"
 #include "matplotlibcpp.h"
 #include "quintic_polynomial.hpp"
@@ -188,7 +188,7 @@ vector<Path> sampling_paths(
                 path_pre.s_a.push_back(path_lon.calc_second_derivative(t));
                 path_pre.s_jerk.push_back(path_lon.calc_third_derivative(t));
             }
-            
+
             for (double l1 = -ROAD_WIDTH; l1 < ROAD_WIDTH; l1 += ROAD_SAMPLE_STEP) {
                 Path path = path_pre;
                 QuinticPolynomial path_lat(l0, l0_v, l0_a, l1, 0.0, 0.0, t1);
@@ -227,6 +227,66 @@ vector<Path> sampling_paths(
     return paths;
 }
 
+vector<Path> sampling_paths_for_stopping(
+    double l0, double l0_v, double l0_a, double s0, double s0_v, double s0_a,
+    CubicSpline2D& ref_path)
+{
+    vector<Path> paths;
+    vector<double> s1_v_vec = {-2.0, -1.0, 0.0, 1.0, 2.0};
+
+    for (double s1_v : s1_v_vec) {
+        for (double t1 = 0.0; t1 < 16.0; t1 += 1.0) {
+            Path path_pre;
+            QuinticPolynomial path_lon(s0, s0_v, s0_a, 55.0, s1_v, 0.0, t1);
+            
+            for (double t = 0.0; t < t1; t += T_STEP) {
+                path_pre.t.push_back(t);
+                path_pre.s.push_back(path_lon.calc_point(t));
+                path_pre.s_v.push_back(path_lon.calc_first_derivative(t));
+                path_pre.s_a.push_back(path_lon.calc_second_derivative(t));
+                path_pre.s_jerk.push_back(path_lon.calc_third_derivative(t));
+            }
+
+            for (double l1 = 0.0; l1 <= 0.1; l1 += ROAD_SAMPLE_STEP) {
+                Path path = path_pre;
+                QuinticPolynomial path_lat(l0, l0_v, l0_a, l1, 0.0, 0.0, t1);
+
+                for (double t : path_pre.t) {
+                    path.l.push_back(path_lat.calc_point(t));
+                    path.l_v.push_back(path_lat.calc_first_derivative(t));
+                    path.l_a.push_back(path_lat.calc_second_derivative(t));
+                    path.l_jerk.push_back(path_lat.calc_third_derivative(t));
+                }
+
+                path.SL_2_XY(ref_path);
+                path.calc_yaw_curv();
+                if (path.yaw.empty()) {
+                    continue;
+                }
+
+                double l_jerk_sum = 0.0;
+                double s_jerk_sum = 0.0;
+                double s_v_sum = 0.0;
+                double v_diff = pow(path.s_v.back(), 2);
+                for (size_t i = 0; i < path.l_jerk.size(); ++i) {
+                    l_jerk_sum += abs(path.l_jerk[i]);
+                    s_jerk_sum += abs(path.s_jerk[i]);
+                    s_v_sum += abs(path.s_v[i]);
+                }
+
+                path.cost = K_JERK * (l_jerk_sum + s_jerk_sum) +
+                        K_V_DIFF * v_diff + K_TIME * t1 * 2 +
+                        K_OFFSET * abs(path.l.back()) +
+                        5.0 * s_v_sum;
+
+                paths.emplace_back(path);
+            }
+        }
+    }
+
+    return paths;
+}
+
 Path extract_optimal_path(vector<Path>& paths)
 {
     Path path;
@@ -255,24 +315,25 @@ Path lattice_planner(
     return path;
 }
 
-int main()
+Path lattice_planner_for_stopping(
+    double l0, double l0_v, double l0_a, double s0, double s0_v, double s0_a,
+    CubicSpline2D& ref_path)
 {
-    CruiseLine cruise_line;
+    vector<Path> paths = sampling_paths_for_stopping(l0, l0_v, l0_a, s0, s0_v, s0_a, ref_path);
+    Path path = extract_optimal_path(paths);
+
+    return path;
+}
+
+void cruise_case(const utils::VehicleConfig& vc)
+{
+    CruiseRoadLine cruise_line;
     vector<vector<double>> wxy = cruise_line.design_reference_line();
-    vector<vector<double>> inxy = cruise_line.design_boundary_in();
-    vector<vector<double>> outxy = cruise_line.design_boundary_out();
+    vector<vector<double>> inxy = cruise_line.design_boundary_left();
+    vector<vector<double>> outxy = cruise_line.design_boundary_right();
     vector<vector<double>> obs = {{50, 96, 70, 40, 25},{10, 25, 40, 50, 75}};
     CubicSpline2D spline;
     vector<vector<double>> traj = get_reference_line(wxy[0], wxy[1], spline);
-
-    utils::VehicleConfig vc;
-    vc.RF = 6.75;
-    vc.RB = 1.5;
-    vc.W = 4.5;
-    vc.WD = 0.7 * vc.W;
-    vc.WB = 5.25;
-    vc.TR = 0.75;
-    vc.TW = 1.5;
 
     double l0 = 0.0;    // current lateral position [m]
     double l0_v = 0.0;  // current lateral speed [m/s]
@@ -318,12 +379,83 @@ int main()
         plt::plot(obs[0], obs[1], "ok");
         utils::draw_vehicle({path.x[1], path.y[1], path.yaw[1]}, steer, vc);
         plt::title("Lattice Planner in Cruising Scene V[km/h]:" +
-                        std::to_string(s0_v * 3.6).substr(0,4));
+                        std::to_string(s0_v * 3.6).substr(0, 4));
         plt::axis("equal");
         plt::legend();
         plt::pause(0.0001);
     }
     plt::show();
+}
+
+void stop_case(const utils::VehicleConfig& vc)
+{
+    StopRoadLine stop_line;
+    vector<vector<double>> wxy = stop_line.design_reference_line();
+    vector<vector<double>> upxy = stop_line.design_boundary_left();
+    vector<vector<double>> downxy = stop_line.design_boundary_right();
+    CubicSpline2D spline;
+    vector<vector<double>> traj = get_reference_line(wxy[0], wxy[1], spline);
+
+    double l0 = 0.0;    // current lateral position [m]
+    double l0_v = 0.0;  // current lateral speed [m/s]
+    double l0_a = 0.0;  // current lateral acceleration [m/s]
+    double s0 = 0.0;    // current course position
+    double s0_v = 30.0 / 3.6;   // current speed [m/s]
+    double s0_a = 0.0;
+
+    while (true) {
+        Path path = lattice_planner_for_stopping(l0, l0_v, l0_a, s0, s0_v, s0_a, spline);
+
+        if (path.x.empty()) {
+            fmt::print("No feasible path found!!\n");
+            break;
+        }
+
+        l0 = path.l[1];
+        l0_v = path.l_v[1];
+        l0_a = path.l_a[1];
+        s0 = path.s[1];
+        s0_v = path.s_v[1];
+        s0_a = path.s_a[1];
+        if (hypot(path.x[1] - 56.0, path.y[1] - 0.0) <= 2.0) {
+            fmt::print("Goal\n");
+            break;
+        }
+
+        double dy = (path.yaw[2] - path.yaw[1]) / path.ds[1];
+        double steer = utils::pi_2_pi(atan(1.2 * vc.WB * dy));
+
+        plt::cla();
+        plt::plot(wxy[0], wxy[1], {{"linestyle", "--"}, {"color", "gray"}});
+        plt::plot(upxy[0], upxy[1], {{"linewidth", "2"}, {"color", "k"}});
+        plt::plot(downxy[0], downxy[1], {{"linewidth", "2"}, {"color", "k"}});
+        plt::named_plot("Optimal trajectory", path.x, path.y, "-r");
+        utils::draw_vehicle({path.x[1], path.y[1], path.yaw[1]}, steer, vc);
+        plt::title("Lattice Planner in Stopping Scene V[km/h]:" +
+                        std::to_string(s0_v * 3.6).substr(0, 4));
+        plt::axis("equal");
+        plt::legend();
+        plt::pause(0.0001);
+    }
+    plt::show();
+}
+
+int main(int argc, char** argv)
+{
+    utils::VehicleConfig vc;
+    vc.RF = 6.75;
+    vc.RB = 1.5;
+    vc.W = 4.5;
+    vc.WD = 0.7 * vc.W;
+    vc.WB = 5.25;
+    vc.TR = 0.75;
+    vc.TW = 1.5;
+
+    if (argc > 1) {
+        stop_case(vc);
+    } else {
+        cruise_case(vc);
+    }
 
     return 0;
 }
