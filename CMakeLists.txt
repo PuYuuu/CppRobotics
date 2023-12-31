@@ -22,6 +22,7 @@ else()
 endif()
 
 find_package(fmt REQUIRED)
+find_package(OsqpEigen REQUIRED)
 include_directories( "/usr/include/eigen3")
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
