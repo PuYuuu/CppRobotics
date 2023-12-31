@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/local/include",
+                "/usr/local/include/osqp",
+                "/usr/include/eigen3",
+                "/usr/include/python3.8",
+                "${workspaceFolder}/utils/include",
+                "${workspaceFolder}/Control/include",
+                "${workspaceFolder}/PathPlanning/include",
+                "${workspaceFolder}/PathTracking/include",
+                "${workspaceFolder}/Perception/include",
+                "/usr/local/lib/python3.8/dist-packages/numpy/core/include"
+            ],
+            "defines": ["OSQP_EIGEN_OSQP_IS_V1"],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}
