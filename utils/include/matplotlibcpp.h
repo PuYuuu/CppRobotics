@@ -439,6 +439,30 @@ PyObject* get_listlist(const std::vector<std::vector<Numeric>>& ll)
 
 } // namespace detail
 
+PyObject* init_3d_axis(PyObject *fig)
+{
+    PyObject *asp_kwargs = PyDict_New();
+    PyDict_SetItemString(asp_kwargs, "projection", PyString_FromString("3d"));
+
+    PyObject *asp = PyObject_GetAttrString(fig, "add_subplot");
+    Py_INCREF(asp);
+    PyObject *tmpax = PyObject_Call(asp, detail::_interpreter::get().s_python_empty_tuple, asp_kwargs);
+    Py_INCREF(tmpax);
+
+    PyObject *gca = PyObject_GetAttrString(fig, "gca");
+    if (!gca) throw std::runtime_error("No gca");
+    Py_INCREF(gca);
+    PyObject *axis = PyObject_Call(gca, detail::_interpreter::get().s_python_empty_tuple, detail::_interpreter::get().s_python_empty_tuple);
+
+    if (!axis) throw std::runtime_error("No axis");
+    Py_INCREF(axis);
+
+    Py_DECREF(gca);
+    Py_DECREF(tmpax);
+    Py_DECREF(asp);
+    return axis;
+}
+
 /// Plot a line through the given x and y data points..
 ///
 /// See: https://matplotlib.org/3.2.1/api/_as_gen/matplotlib.pyplot.plot.html
@@ -559,20 +583,22 @@ void plot_surface(const std::vector<::std::vector<Numeric>> &x,
   Py_DECREF(fig_exists);
   if (!fig) throw std::runtime_error("Call to figure() failed.");
 
-  PyObject *gca_kwargs = PyDict_New();
-  PyDict_SetItemString(gca_kwargs, "projection", PyString_FromString("3d"));
+//   PyObject *gca_kwargs = PyDict_New();
+//   PyDict_SetItemString(gca_kwargs, "projection", PyString_FromString("3d"));
 
-  PyObject *gca = PyObject_GetAttrString(fig, "gca");
-  if (!gca) throw std::runtime_error("No gca");
-  Py_INCREF(gca);
-  PyObject *axis = PyObject_Call(
-      gca, detail::_interpreter::get().s_python_empty_tuple, gca_kwargs);
+//   PyObject *gca = PyObject_GetAttrString(fig, "gca");
+//   if (!gca) throw std::runtime_error("No gca");
+//   Py_INCREF(gca);
+//   PyObject *axis = PyObject_Call(
+//       gca, detail::_interpreter::get().s_python_empty_tuple, gca_kwargs);
 
-  if (!axis) throw std::runtime_error("No axis");
-  Py_INCREF(axis);
+//   if (!axis) throw std::runtime_error("No axis");
+//   Py_INCREF(axis);
 
-  Py_DECREF(gca);
-  Py_DECREF(gca_kwargs);
+//   Py_DECREF(gca);
+//   Py_DECREF(gca_kwargs);
+
+  PyObject *axis = init_3d_axis(fig);
 
   PyObject *plot_surface = PyObject_GetAttrString(axis, "plot_surface");
   if (!plot_surface) throw std::runtime_error("No surface");
@@ -727,20 +753,22 @@ void plot3(const std::vector<Numeric> &x,
   }
   if (!fig) throw std::runtime_error("Call to figure() failed.");
 
-  PyObject *gca_kwargs = PyDict_New();
-  PyDict_SetItemString(gca_kwargs, "projection", PyString_FromString("3d"));
+//   PyObject *gca_kwargs = PyDict_New();
+//   PyDict_SetItemString(gca_kwargs, "projection", PyString_FromString("3d"));
 
-  PyObject *gca = PyObject_GetAttrString(fig, "gca");
-  if (!gca) throw std::runtime_error("No gca");
-  Py_INCREF(gca);
-  PyObject *axis = PyObject_Call(
-      gca, detail::_interpreter::get().s_python_empty_tuple, gca_kwargs);
+//   PyObject *gca = PyObject_GetAttrString(fig, "gca");
+//   if (!gca) throw std::runtime_error("No gca");
+//   Py_INCREF(gca);
+//   PyObject *axis = PyObject_Call(
+//       gca, detail::_interpreter::get().s_python_empty_tuple, gca_kwargs);
 
-  if (!axis) throw std::runtime_error("No axis");
-  Py_INCREF(axis);
+//   if (!axis) throw std::runtime_error("No axis");
+//   Py_INCREF(axis);
 
-  Py_DECREF(gca);
-  Py_DECREF(gca_kwargs);
+//   Py_DECREF(gca);
+//   Py_DECREF(gca_kwargs);
+
+  PyObject *axis = init_3d_axis(fig);
 
   PyObject *plot3 = PyObject_GetAttrString(axis, "plot");
   if (!plot3) throw std::runtime_error("No 3D line plot");
@@ -1497,27 +1525,29 @@ bool quiver(const std::vector<NumericX>& x, const std::vector<NumericY>& y, cons
   {
       PyDict_SetItemString(kwargs, it->first.c_str(), PyUnicode_FromString(it->second.c_str()));
   }
-    
+
   //get figure gca to enable 3d projection
   PyObject *fig =
       PyObject_CallObject(detail::_interpreter::get().s_python_function_figure,
                           detail::_interpreter::get().s_python_empty_tuple);
   if (!fig) throw std::runtime_error("Call to figure() failed.");
 
-  PyObject *gca_kwargs = PyDict_New();
-  PyDict_SetItemString(gca_kwargs, "projection", PyString_FromString("3d"));
+//   PyObject *gca_kwargs = PyDict_New();
+//   PyDict_SetItemString(gca_kwargs, "projection", PyString_FromString("3d"));
 
-  PyObject *gca = PyObject_GetAttrString(fig, "gca");
-  if (!gca) throw std::runtime_error("No gca");
-  Py_INCREF(gca);
-  PyObject *axis = PyObject_Call(
-      gca, detail::_interpreter::get().s_python_empty_tuple, gca_kwargs);
+//   PyObject *gca = PyObject_GetAttrString(fig, "gca");
+//   if (!gca) throw std::runtime_error("No gca");
+//   Py_INCREF(gca);
+//   PyObject *axis = PyObject_Call(
+//       gca, detail::_interpreter::get().s_python_empty_tuple, gca_kwargs);
 
-  if (!axis) throw std::runtime_error("No axis");
-  Py_INCREF(axis);
-  Py_DECREF(gca);
-  Py_DECREF(gca_kwargs);
-  
+//   if (!axis) throw std::runtime_error("No axis");
+//   Py_INCREF(axis);
+//   Py_DECREF(gca);
+//   Py_DECREF(gca_kwargs);
+
+  PyObject *axis = init_3d_axis(fig);
+
   //plot our boys bravely, plot them strongly, plot them with a wink and clap
   PyObject *plot3 = PyObject_GetAttrString(axis, "quiver");
   if (!plot3) throw std::runtime_error("No 3D line plot");
