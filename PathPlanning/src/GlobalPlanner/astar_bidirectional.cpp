@@ -28,7 +28,7 @@ public:
     BidirectionalAStarPlanner() {}
     BidirectionalAStarPlanner(vector<double> ox, vector<double> oy, double reso, double radius) :
         GraphSearchPlanner(ox, oy, reso, radius) {}
-    ~BidirectionalAStarPlanner() {}
+    ~BidirectionalAStarPlanner() override {}
 
     vector<vector<double>> planning(double sx, double sy, double gx, double gy) override;
 };

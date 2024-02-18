@@ -23,7 +23,7 @@ public:
     Dijkstra() {}
     Dijkstra(vector<double> ox, vector<double> oy, double reso, double radius) :
         GraphSearchPlanner(ox, oy, reso, radius) {}
-    ~Dijkstra() {}
+    ~Dijkstra() override {}
 
     vector<vector<double>> planning(double sx, double sy, double gx, double gy) override;
 };

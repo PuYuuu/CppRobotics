@@ -54,7 +54,7 @@ public:
         calc_obstacle_map(ox, oy);
         motion = get_motion_model();
     }
-    ~GraphSearchPlanner() {}
+    virtual ~GraphSearchPlanner() {}
     void calc_obstacle_map(const std::vector<double>& ox, const std::vector<double>& oy);
     std::vector<std::vector<double>> get_motion_model(void);
     double calc_grid_position(int index, double minp);
