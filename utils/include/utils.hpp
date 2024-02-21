@@ -219,10 +219,10 @@ public:
         WB = other.WB;
         TR = other.TR;
         TW = other.TW;
-        MAX_STEER = other.MAX_SPEED;
+        MAX_STEER = other.MAX_STEER;
         MAX_SPEED = other.MAX_SPEED;
         MIN_SPEED = other.MIN_SPEED; 
-        RTR = other.RTB;
+        RTR = other.RTR;
         RTF = other.RTF;
         RTB = other.RTB;
     }
@@ -236,10 +236,10 @@ public:
             WB = other.WB;
             TR = other.TR;
             TW = other.TW;
-            MAX_STEER = other.MAX_SPEED;
+            MAX_STEER = other.MAX_STEER;
             MAX_SPEED = other.MAX_SPEED;
             MIN_SPEED = other.MIN_SPEED; 
-            RTR = other.RTB;
+            RTR = other.RTR;
             RTF = other.RTF;
             RTB = other.RTB;
         }
