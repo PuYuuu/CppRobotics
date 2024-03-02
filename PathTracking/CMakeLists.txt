@@ -27,3 +27,8 @@ add_executable(model_predictive_control
     ${PROJECT_SOURCE_DIR}/src/model_predictive_control.cpp)
 add_dependencies(model_predictive_control utils cubic_spline)
 target_link_libraries(model_predictive_control utils fmt::fmt cubic_spline ipopt)
+
+add_executable(mpc_with_osqp
+    ${PROJECT_SOURCE_DIR}/src/mpc_with_osqp.cpp)
+add_dependencies(mpc_with_osqp utils cubic_spline)
+target_link_libraries(mpc_with_osqp utils fmt::fmt cubic_spline OsqpEigen::OsqpEigen)

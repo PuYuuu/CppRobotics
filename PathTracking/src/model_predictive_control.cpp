@@ -347,13 +347,13 @@ int main(int argc, char** argv)
     }
 
     double time = 0.0;
-    vector<double> x{state.x};
-    vector<double> y{state.y};
-    vector<double> yaw{state.yaw};
-    vector<double> v{state.v};
-    vector<double> t{0.0};
-    vector<double> d{0.0};
-    vector<double> a{0.0};
+    // vector<double> x{state.x};
+    // vector<double> y{state.y};
+    // vector<double> yaw{state.yaw};
+    // vector<double> v{state.v};
+    // vector<double> t{0.0};
+    // vector<double> d{0.0};
+    // vector<double> a{0.0};
 
     int target_ind = calc_nearest_index(state, traj[0], traj[1], traj[2], 0);
     smooth_yaw(traj[2]);

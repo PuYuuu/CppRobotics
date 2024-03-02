@@ -62,7 +62,7 @@ VectorXd CubicSpline::calc_B(void)
     return B;
 }
 
-double CubicSpline::calc_position(double _x)
+double CubicSpline::calc_position(double _x) const
 {
     if (_x < x[0] || _x > x.back()) {
         throw std::invalid_argument("received value out of the pre-defined range"); 
@@ -76,7 +76,7 @@ double CubicSpline::calc_position(double _x)
     return position;
 }
 
-double CubicSpline::calc_first_derivative(double _x)
+double CubicSpline::calc_first_derivative(double _x) const
 {
     if (_x < x[0] || _x > x.back()) {
         throw std::invalid_argument("received value out of the pre-defined range"); 
@@ -90,7 +90,7 @@ double CubicSpline::calc_first_derivative(double _x)
     return dy;
 }
 
-double CubicSpline::calc_second_derivative(double _x)
+double CubicSpline::calc_second_derivative(double _x) const
 {
     if (_x < x[0] || _x > x.back()) {
         throw std::invalid_argument("received value out of the pre-defined range"); 
@@ -102,6 +102,24 @@ double CubicSpline::calc_second_derivative(double _x)
     double ddy = 2.0 * c[idx] + 6.0 * d[idx] * dx;
 
     return ddy;
+}
+
+double CubicSpline::operator()(double _x, int dd) const
+{
+    double value = 0.0;
+    if (dd < 0 || dd > 2) {
+        throw std::invalid_argument("received value out of the pre-defined range"); 
+    }
+
+    if (dd == 0) {
+        value = calc_position(_x);
+    } else if (dd == 1) {
+        value = calc_first_derivative(_x);
+    } else if (dd == 2) {
+        value = calc_second_derivative(_x);
+    }
+
+    return value;
 }
 
 CubicSpline2D::CubicSpline2D(vector<double> _x, vector<double> _y)
@@ -126,7 +144,7 @@ vector<double> CubicSpline2D::calc_s(vector<double> _x, vector<double> _y)
     return s;
 }
 
-Vector2d CubicSpline2D::calc_position(double _s)
+Vector2d CubicSpline2D::calc_position(double _s) const
 {
     double _x = sx.calc_position(_s);
     double _y = sy.calc_position(_s);
@@ -134,7 +152,7 @@ Vector2d CubicSpline2D::calc_position(double _s)
     return {_x, _y};
 }
 
-double CubicSpline2D::calc_yaw(double _s)
+double CubicSpline2D::calc_yaw(double _s) const
 {
     double dx = sx.calc_first_derivative(_s);
     double dy = sy.calc_first_derivative(_s);
@@ -143,7 +161,7 @@ double CubicSpline2D::calc_yaw(double _s)
     return yaw;
 }
 
-double CubicSpline2D::calc_curvature(double _s)
+double CubicSpline2D::calc_curvature(double _s) const
 {
     double dx = sx.calc_first_derivative(_s);
     double ddx = sx.calc_second_derivative(_s);
@@ -152,6 +170,13 @@ double CubicSpline2D::calc_curvature(double _s)
     double k = (ddy * dx - ddx * dy) / pow(dx * dx + dy * dy, 1.50);
 
     return k;
+}
+
+Vector2d CubicSpline2D::operator()(double _s, int n) const
+{
+    Vector2d p(sx(_s, n), sy(_s, n));
+
+    return p;
 }
 
 vector<vector<double>> CubicSpline2D::calc_spline_course(
