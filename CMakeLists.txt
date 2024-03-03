@@ -22,17 +22,9 @@ else()
 endif()
 
 find_package(fmt REQUIRED)
-find_package(OsqpEigen)
+find_package(OsqpEigen REQUIRED)
 include_directories( "/usr/include/eigen3")
 include_directories(${CMAKE_CURRENT_LIST_DIR})
-
-if(OsqpEigen_FOUND)
-    message(STATUS "OsqpEigen found")
-    set(COMPILE_OSQP TRUE)
-else()
-    message(STATUS "OsqpEigen not found")
-    set(COMPILE_OSQP FALSE)
-endif()
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/utils/include
