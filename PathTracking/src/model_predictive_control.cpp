@@ -18,9 +18,9 @@ namespace plt = matplotlibcpp;
 
 constexpr size_t NX = 4;  // x = [x, y, v, yaw]
 constexpr size_t NU = 2;  // a = [accel, steer]
-constexpr size_t T  = 6;  // horizon length
+constexpr size_t TT = 20; // horizon length
 
-constexpr double GOAL_DIS = 1.5;            // goal distance
+constexpr double GOAL_DIS = 1.0;            // goal distance
 constexpr double MAX_SIM_TIME = 500.0;      // max simulation time
 constexpr double MAX_STEER = M_PI_4;        // maximum steering angle [rad]
 constexpr double MAX_DSTEER = M_PI_2 / 3;   // maximum steering speed [rad/s]
@@ -29,132 +29,84 @@ constexpr double MIN_SPEED = -20.0 / 3.6;   // minimum speed [m/s]
 constexpr double MAX_ACCEL = 1.0;           // maximum accel [m/ss]
 
 constexpr double TARGET_SPEED = 10.0 / 3.6; // [m/s] target speed
-constexpr double N_IND_SEARCH = 10;         // Search index number
 
 constexpr double DT = 0.2;      // [s] time tick
 
 constexpr size_t x_start = 0;
-constexpr size_t y_start = x_start + T;
-constexpr size_t yaw_start = y_start + T;
-constexpr size_t v_start = yaw_start + T;
+constexpr size_t y_start = x_start + TT;
+constexpr size_t yaw_start = y_start + TT;
+constexpr size_t v_start = yaw_start + TT;
 
-constexpr size_t delta_start = v_start + T;
-constexpr size_t a_start = delta_start + T - 1;
+constexpr size_t delta_start = v_start + TT;
+constexpr size_t a_start = delta_start + TT - 1;
 
 constexpr double WB = 2.5;
 constexpr double show_animation = true;
 
-vector<double> calc_speed_profile(
-    const vector<double>& cx, const vector<double>& cy,
-    const vector<double>& cyaw, double target_speed)
+double find_nearest_s(Vector2d p, const CubicSpline2D& sp) 
 {
-    vector<double> speed_profile(cx.size(), target_speed);
+    static double last_min_s = sp.s.front();
+    double min_dist = (sp.calc_position(sp.s.front()) - p).norm();
+    double min_s = last_min_s;
 
-    int direction = 1.0;
-    for (size_t idx = 0; idx + 1 < cx.size(); ++idx) {
-        double dx = cx[idx + 1] - cx[idx];
-        double dy = cy[idx + 1] - cy[idx];
-        double move_direction = atan2(dy, dx);
-
-        if (dx != 0. && dy != 0.) {
-            double dangle = abs(utils::pi_2_pi(move_direction - cyaw[idx]));
-            if (dangle > M_PI_4) {
-                direction = -1;
-            } else {
-                direction = 1;
-            }
+    for (double s = last_min_s; s < sp.s.back() && s < last_min_s + 5; s += 0.01) {
+        double dist = (sp.calc_position(s) - p).norm();
+        if (dist < min_dist) {
+            min_s = s;
+            min_dist = dist;
         }
-        if (direction != 1) {
-            speed_profile[idx] = -target_speed;
+    }
+    last_min_s = min_s;
+
+    return min_s;
+}
+
+void cal_ref_point(double s0, Vector4d& state, const CubicSpline2D& sp) 
+{
+    Vector2d xy = sp(s0, 0);
+    Vector2d dxy = sp(s0, 1);
+    Vector2d ddxy = sp(s0, 2);
+    double dx = dxy.x();
+    double dy = dxy.y();
+    double ddx = ddxy.x();
+    double ddy = ddxy.y();
+    double dphi = (ddy * dx - dy * ddx) / (dx * dx + dy * dy);
+    state[0] = xy.x();
+    state[1] = xy.y();
+    state[2] = atan2(dy, dx);
+    state[3] = atan2(WB * dphi, 1.0);
+}
+
+MatrixXd calc_ref_trajectory(const utils::VehicleState& state, const CubicSpline2D& sp)
+{
+    MatrixXd ref_traj = Matrix<double, 5, TT>::Zero();
+    double s0 = find_nearest_s({state.x, state.y}, sp);
+
+    for (int i = 0; i < TT; ++i) {
+        Vector4d ref_state;
+        cal_ref_point(s0, ref_state, sp);
+        ref_traj(0, i) = ref_state[0];
+        ref_traj(1, i) = ref_state[1];
+        ref_traj(2, i) = ref_state[2];
+        ref_traj(3, i) = ref_state[3];
+        if (sp.s.back() - s0 < TT * TARGET_SPEED * DT) {
+            ref_traj(4, i) = 0;
         } else {
-            speed_profile[idx] = target_speed;
+            ref_traj(4, i) = TARGET_SPEED;
         }
-        // speed_profile[idx] = target_speed;
-    }
-    speed_profile[cx.size() - 1] = 0.0;
 
-    return speed_profile;
-}
-
-int calc_nearest_index(const utils::VehicleState& state, const vector<double>& cx,
-    const vector<double>& cy, const vector<double>& cyaw, int pind)
-{
-    double min_d = 0;
-    int min_ind = -1;
-    for (size_t idx = pind; idx < pind + N_IND_SEARCH; ++idx) {
-        double dx = state.x - cx[idx];
-        double dy = state.y - cy[idx];
-        double d = hypot(dx, dy);
-
-        if (min_ind == -1 || d < min_d) {
-            min_ind = idx;
-            min_d = d;
-        }
+        s0 += TARGET_SPEED * DT;
+        s0 = s0 < sp.s.back() ? s0 : sp.s.back();
     }
 
-    return min_ind;
-}
-
-void smooth_yaw(vector<double>& yaw)
-{
-    for (size_t idx = 0; idx + 1 < yaw.size(); ++idx) {
-        double dyaw = yaw[idx + 1] - yaw[idx];
-
-        while (dyaw >= M_PI_2) {
-            yaw[idx + 1] -= (2 * M_PI);
-            dyaw = yaw[idx + 1] - yaw[idx];
-        }
-        while (dyaw <= -M_PI_2) {
-            yaw[idx + 1] += (2 * M_PI);
-            dyaw = yaw[idx + 1] - yaw[idx];
-        }
-    }
-}
-
-MatrixXd calc_ref_trajectory(const utils::VehicleState& state, const vector<double>& cx,
-    const vector<double>& cy, const vector<double>& cyaw, const vector<double>& sp, int& pind)
-{
-    MatrixXd xref = Matrix<double, NX, T>::Zero();
-    size_t ncourse = cx.size();
-
-    int ind = calc_nearest_index(state, cx, cy, cyaw, pind);
-    if (pind >= ind) {
-        ind = pind;
-    }
-
-    xref(0, 0) = cx[ind];
-    xref(1, 0) = cy[ind];
-    xref(2, 0) = sp[ind];
-    xref(3, 0) = cyaw[ind];
-
-    double travel = 0.0;
-
-    for (size_t idx = 0; idx < T; ++idx) {
-        travel += (abs(state.v) * DT);
-        int dind = static_cast<int>(std::round(travel));
-
-        if ((ind + dind) < ncourse) {
-            xref(0, idx) = cx[ind + dind];
-            xref(1, idx) = cy[ind + dind];
-            xref(2, idx) = cyaw[ind + dind];
-            xref(3, idx) = sp[ind + dind];
-        } else {
-            xref(0, idx) = cx[ncourse - 1];
-            xref(1, idx) = cy[ncourse - 1];
-            xref(2, idx) = cyaw[ncourse - 1];
-            xref(3, idx) = sp[ncourse - 1];
-        }
-    }
-    pind = ind;
-
-    return xref;
+    return ref_traj;
 }
 
 class FG_EVAL{
 public:
-    Matrix<double, NX, T> traj_ref;
+    Matrix<double, 5, TT> traj_ref;
 
-    FG_EVAL(Matrix<double, NX, T> traj_ref){
+    FG_EVAL(Matrix<double, 5, TT> traj_ref){
         this->traj_ref = traj_ref;
     }
 
@@ -163,12 +115,12 @@ public:
     void operator()(ADvector& fg, const ADvector& vars) {
         fg[0] = 0;
 
-        for(size_t idx = 0; idx < T - 1; ++idx) {
-            fg[0] +=  0.01 * CppAD::pow(vars[a_start + idx], 2);
+        for(size_t idx = 0; idx < TT - 1; ++idx) {
+            fg[0] += 0.01 * CppAD::pow(vars[a_start + idx], 2);
             fg[0] += 0.01 * CppAD::pow(vars[delta_start + idx], 2);
         }
 
-        for(size_t idx = 0; idx < T - 2; ++idx){
+        for(size_t idx = 0; idx < TT - 2; ++idx){
             fg[0] += 0.01 * CppAD::pow(vars[a_start + idx + 1] - vars[a_start + idx], 2);
             fg[0] += 1 * CppAD::pow(vars[delta_start + idx + 1] - vars[delta_start + idx], 2);
         }
@@ -181,11 +133,11 @@ public:
 
         fg[0] += CppAD::pow(traj_ref(0, 0) - vars[x_start], 2);
         fg[0] += CppAD::pow(traj_ref(1, 0) - vars[y_start], 2);
-        fg[0] += 0.5 * CppAD::pow(traj_ref(2, 0) - vars[yaw_start], 2);
-        fg[0] += 0.5 * CppAD::pow(traj_ref(3, 0) - vars[v_start], 2);
+        // fg[0] += 0.5 * CppAD::pow(traj_ref(2, 0) - vars[yaw_start], 2);
+        fg[0] += CppAD::pow(traj_ref(4, 0) - vars[v_start], 2);
 
         // The rest of the constraints
-        for (size_t idx = 0; idx < T - 1; ++idx) {
+        for (size_t idx = 0; idx < TT - 1; ++idx) {
             // The state at time t+1 .
             AD<double> x1 = vars[x_start + idx + 1];
             AD<double> y1 = vars[y_start + idx + 1];
@@ -210,8 +162,8 @@ public:
             // cost with the ref traj
             fg[0] += CppAD::pow(traj_ref(0, idx + 1) - (x0 + v0 * CppAD::cos(yaw0) * DT), 2);
             fg[0] += CppAD::pow(traj_ref(1, idx + 1) - (y0 + v0 * CppAD::sin(yaw0) * DT), 2);
-            fg[0] += 0.5 * CppAD::pow(traj_ref(2, idx + 1) - (yaw0 + v0 * CppAD::tan(delta0) / WB * DT), 2);
-            fg[0] += 0.5 * CppAD::pow(traj_ref(3, idx + 1) - (v0 + a0 * DT), 2);
+            // fg[0] += 0.5 * CppAD::pow(traj_ref(2, idx + 1) - (yaw0 + v0 * CppAD::tan(delta0) / WB * DT), 2);
+            fg[0] += CppAD::pow(traj_ref(4, 0) - (v0 + a0 * DT), 2);
         }
     }
 };
@@ -235,9 +187,9 @@ public:
         optimize_options += "Integer print_level     0\n";
         // optimize_options += "Sparse  true         forward\n";
         optimize_options += "Sparse  true            reverse\n";
-        optimize_options += "Integer max_iter        50\n";
-        // optimize_options += "Numeric tol          1e-6\n";
-        optimize_options += "Numeric max_cpu_time    0.05\n";
+        optimize_options += "Integer max_iter        600\n";
+        optimize_options += "Numeric tol             1e-8\n";
+        optimize_options += "Numeric max_cpu_time    1.0\n";
     }
     ~MPCController() {}
 
@@ -267,15 +219,15 @@ vector<double> MPCController::mpc_solve(utils::VehicleState& x0, MatrixXd traj_r
         vars_lowerbound[idx] = -1e7;
         vars_upperbound[idx] = 1e7;
     }
-    for (size_t idx = delta_start; idx < delta_start + T - 1; ++idx) {
+    for (size_t idx = delta_start; idx < delta_start + TT - 1; ++idx) {
         vars_lowerbound[idx] = -MAX_STEER;
         vars_upperbound[idx] = MAX_STEER;
     }
-    for (size_t idx = a_start; idx < a_start + T - 1; ++idx) {
+    for (size_t idx = a_start; idx < a_start + TT - 1; ++idx) {
         vars_lowerbound[idx] = -MAX_ACCEL;
         vars_upperbound[idx] = MAX_ACCEL;
     }
-    for (size_t idx = v_start; idx < v_start + T; ++idx) {
+    for (size_t idx = v_start; idx < v_start + TT; ++idx) {
         vars_lowerbound[idx] = MIN_SPEED;
         vars_upperbound[idx] = MAX_SPEED;
     }
@@ -331,32 +283,22 @@ int main(int argc, char** argv)
     vector<double> ax = {0.0, 30.0, 6.0, 20.0, 35.0, 10.0, -1.0};
     vector<double> ay = {0.0, 0.0, 20.0, 35.0, 20.0, 30.0, -2.0};
     Vector2d goal(ax.back(), ay.back());
-    vector<vector<double>> traj = CubicSpline2D::calc_spline_course(ax, ay, 1.0);
-    vector<double> sp = calc_speed_profile(traj[0], traj[1], traj[2], TARGET_SPEED);
+    CubicSpline2D sp(ax, ay);
+
+    std::vector<std::vector<double>> course(2);
+    for (double i = sp.s.front(); i < sp.s.back(); i += 0.05) {
+        Eigen::Vector2d tmp = sp(i, 0);
+        course[0].emplace_back(tmp.x());
+        course[1].emplace_back(tmp.y());
+    }
 
     utils::VehicleConfig vc;
     vc.MAX_STEER = MAX_STEER;
     vc.WB = WB;
-    utils::VehicleState state(vc, traj[0][0], traj[1][0], traj[2][0], sp[0]);
-    MPCController mpc(T);
-
-    if ((state.yaw - traj[2][0]) >= M_PI) {
-         state.yaw -= M_PI * 2.0; 
-    } else if ((state.yaw - traj[2][0]) <= -1.0 * M_PI) {
-        state.yaw += M_PI * 2.0;
-    }
+    utils::VehicleState state(vc, 0, 0, 0, 0);
+    MPCController mpc(TT);
 
     double time = 0.0;
-    // vector<double> x{state.x};
-    // vector<double> y{state.y};
-    // vector<double> yaw{state.yaw};
-    // vector<double> v{state.v};
-    // vector<double> t{0.0};
-    // vector<double> d{0.0};
-    // vector<double> a{0.0};
-
-    int target_ind = calc_nearest_index(state, traj[0], traj[1], traj[2], 0);
-    smooth_yaw(traj[2]);
 
     vector<double> x_h;
     vector<double> y_h;
@@ -364,11 +306,11 @@ int main(int argc, char** argv)
     vector<double> t_h;
 
     while (MAX_SIM_TIME >= time) {
-        MatrixXd xref =
-            calc_ref_trajectory(state, traj[0], traj[1], traj[2], sp, target_ind);
-        vector<double> output = mpc.mpc_solve(state, xref);
+        MatrixXd ref_traj = calc_ref_trajectory(state, sp);
+
+        vector<double> output = mpc.mpc_solve(state, ref_traj);
         vector<vector<double>> ooxy(2);
-        for (size_t idx = 1; idx < T; ++idx) {
+        for (size_t idx = 1; idx < TT; ++idx) {
             ooxy[0].push_back(output[x_start + idx]);
             ooxy[1].push_back(output[y_start + idx]);
         }
@@ -391,8 +333,8 @@ int main(int argc, char** argv)
 
         if (show_animation) {
             plt::cla();
-            
-            plt::named_plot("course", traj[0], traj[1], "-r");
+
+            plt::named_plot("course", course[0], course[1], "-r");
             plt::named_plot("trajectory", x_h, y_h, "-b");
             plt::named_plot("prediction", ooxy[0], ooxy[1], "xg");
 

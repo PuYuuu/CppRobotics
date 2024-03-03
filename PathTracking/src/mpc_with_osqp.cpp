@@ -17,7 +17,7 @@ using namespace Eigen;
 namespace plt = matplotlibcpp;
 
 constexpr size_t TT = 20;                   // horizon length
-constexpr double GOAL_DIS = 1.5;            // goal distance
+constexpr double GOAL_DIS = 1.0;            // goal distance
 constexpr double MAX_SIM_TIME = 500.0;      // max simulation time
 constexpr double MAX_STEER = M_PI_4;        // maximum steering angle [rad]
 constexpr double MAX_DSTEER = M_PI_2 / 3;   // maximum steering speed [rad/s]
@@ -26,17 +26,16 @@ constexpr double MIN_SPEED = -20.0 / 3.6;   // minimum speed [m/s]
 constexpr double MAX_ACCEL = 2.0;           // maximum accel [m/ss]
 
 constexpr double TARGET_SPEED = 10.0 / 3.6; // [m/s] target speed
-constexpr double N_IND_SEARCH = 10;         // Search index number
 
 constexpr double DT = 0.2;      // [s] time tick
 
 constexpr double WB = 2.5;
 constexpr double show_animation = true;
 
-static constexpr int n = 4;  // state x y phi v
-static constexpr int m = 2;  // input a delta
-typedef Eigen::Matrix<double, n, n> MatrixA;
-typedef Eigen::Matrix<double, n, m> MatrixB;
+static constexpr int NX = 4;  // state x y phi v
+static constexpr int NU = 2;  // input a delta
+typedef Eigen::Matrix<double, NX, NX> MatrixA;
+typedef Eigen::Matrix<double, NX, NU> MatrixB;
 typedef Eigen::Vector4d VectorG;
 typedef Eigen::Vector4d VectorX;
 typedef Eigen::Vector2d VectorU;
@@ -53,7 +52,6 @@ private:
     double rhoN_;
 
     double v_max_, a_max_, delta_max_, ddelta_max_;
-    double desired_v_;
 
     vector<VectorX> predictState_;
     vector<VectorU> predictInput_;
@@ -82,7 +80,6 @@ public:
 
 MPCController::MPCController(void)
 {
-    desired_v_ = TARGET_SPEED;
     ll_ = WB;
     dt_ = DT;
     rho_ = 1.0;
@@ -98,37 +95,37 @@ MPCController::MPCController(void)
     Bd_(3, 0) = dt_;
     gd_.setZero();
     // set size of sparse matrices
-    P_.resize(m * N_, m * N_);
-    q_.resize(m * N_, 1);
-    Qx_.resize(n * N_, n * N_);
+    P_.resize(NU * N_, NU * N_);
+    q_.resize(NU * N_, 1);
+    Qx_.resize(NX * N_, NX * N_);
     // stage cost
     Qx_.setIdentity();
     for (int i = 1; i < N_; ++i) {
-        Qx_.coeffRef(i * n - 2, i * n - 2) = rho_;
-        Qx_.coeffRef(i * n - 1, i * n - 1) = 0;
+        Qx_.coeffRef(i * NX - 2, i * NX - 2) = rho_;
+        Qx_.coeffRef(i * NX - 1, i * NX - 1) = 0;
     }
-    Qx_.coeffRef(N_ * n - 4, N_ * n - 4) = rhoN_;
-    Qx_.coeffRef(N_ * n - 3, N_ * n - 3) = rhoN_;
-    Qx_.coeffRef(N_ * n - 2, N_ * n - 2) = rhoN_ * rho_;
+    Qx_.coeffRef(N_ * NX - 4, N_ * NX - 4) = rhoN_;
+    Qx_.coeffRef(N_ * NX - 3, N_ * NX - 3) = rhoN_;
+    Qx_.coeffRef(N_ * NX - 2, N_ * NX - 2) = rhoN_ * rho_;
     int n_cons = 4;  // v a delta ddelta
-    A_.resize(n_cons * N_, m * N_);
+    A_.resize(n_cons * N_, NU * N_);
     l_.resize(n_cons * N_, 1);
     u_.resize(n_cons * N_, 1);
     // v constrains
-    Cx_.resize(1 * N_, n * N_);
+    Cx_.resize(1 * N_, NX * N_);
     lx_.resize(1 * N_, 1);
     ux_.resize(1 * N_, 1);
     // a delta constrains
-    Cu_.resize(3 * N_, m * N_);
+    Cu_.resize(3 * N_, NU * N_);
     lu_.resize(3 * N_, 1);
     uu_.resize(3 * N_, 1);
     // set lower and upper boundaries
     for (int i = 0; i < N_; ++i) {
         // set stage constraints of inputs (a, delta, ddelta)
         // -a_max <= a <= a_max for instance:
-        Cu_.coeffRef(i * 3 + 0, i * m + 0) = 1;
-        Cu_.coeffRef(i * 3 + 1, i * m + 1) = 1;
-        Cu_.coeffRef(i * 3 + 2, i * m + 1) = 1;
+        Cu_.coeffRef(i * 3 + 0, i * NU + 0) = 1;
+        Cu_.coeffRef(i * 3 + 1, i * NU + 1) = 1;
+        Cu_.coeffRef(i * 3 + 2, i * NU + 1) = 1;
         lu_.coeffRef(i * 3 + 0, 0) = -a_max_;
         uu_.coeffRef(i * 3 + 0, 0) = a_max_;
         lu_.coeffRef(i * 3 + 1, 0) = -delta_max_;
@@ -136,12 +133,12 @@ MPCController::MPCController(void)
         lu_.coeffRef(i * 3 + 2, 0) = -ddelta_max_ * dt_;
         uu_.coeffRef(i * 3 + 2, 0) = ddelta_max_ * dt_;
         if (i > 0) {
-            Cu_.coeffRef(i * 3 + 2, (i - 1) * m + 1) = -1;
+            Cu_.coeffRef(i * 3 + 2, (i - 1) * NU + 1) = -1;
         }
 
         // set stage constraints of states (v)
         // -v_max <= v <= v_max
-        Cx_.coeffRef(i, i * n + 3) = 1;
+        Cx_.coeffRef(i, i * NX + 3) = 1;
         lx_.coeffRef(i, 0) = -0.1;
         ux_.coeffRef(i, 0) = v_max_;
     }
@@ -174,18 +171,18 @@ int MPCController::mpc_solve(utils::VehicleState& x0_, MatrixXd traj_ref)
     VectorX x0 = {x0_.x, x0_.y, x0_.yaw, x0_.v};
 
     MatrixXd BB, AA, gg;
-    BB.setZero(n * N_, m * N_);
-    AA.setZero(n * N_, n);
-    gg.setZero(n * N_, 1);
+    BB.setZero(NX * N_, NU * N_);
+    AA.setZero(NX * N_, NX);
+    gg.setZero(NX * N_, 1);
     double phi, v, delta;
     double last_phi = x0(2);
     Eigen::SparseMatrix<double> qx;
-    qx.resize(n * N_, 1);
+    qx.resize(NX * N_, 1);
 
     for (int i = 0; i < N_; ++i) {
         phi = traj_ref(2, i);
         delta = traj_ref(3, i);
-        v = desired_v_;
+        v = traj_ref(4, i);
         if (phi - last_phi > M_PI) {
             phi -= 2 * M_PI;
         } else if (phi - last_phi < -M_PI) {
@@ -217,24 +214,24 @@ int MPCController::mpc_solve(utils::VehicleState& x0_, MatrixXd traj_ref)
         *     X = BB * U + AA * x0 + gg
         * */
         if (i == 0) {
-            BB.block(0, 0, n, m) = Bd_;
-            AA.block(0, 0, n, n) = Ad_;
-            gg.block(0, 0, n, 1) = gd_;
+            BB.block(0, 0, NX, NU) = Bd_;
+            AA.block(0, 0, NX, NX) = Ad_;
+            gg.block(0, 0, NX, 1) = gd_;
         } else {
             // set BB AA gg
-            BB.block(n * i, 0, n, m * N_) = Ad_ * BB.block(n * (i - 1), 0, n, m * N_);
-            BB.block(n * i, m * i, n, m) = Bd_;
-            AA.block(n * i, 0, n, n) = Ad_ * AA.block(n * (i - 1), 0, n, n);
-            gg.block(n * i, 0, n, 1) = Ad_ * gg.block(n * (i - 1), 0, n, 1) + gd_;
+            BB.block(NX * i, 0, NX, NU * N_) = Ad_ * BB.block(NX * (i - 1), 0, NX, NU * N_);
+            BB.block(NX * i, NU * i, NX, NU) = Bd_;
+            AA.block(NX * i, 0, NX, NX) = Ad_ * AA.block(NX * (i - 1), 0, NX, NX);
+            gg.block(NX * i, 0, NX, 1) = Ad_ * gg.block(NX * (i - 1), 0, NX, 1) + gd_;
         }
         // set qx
-        qx.coeffRef(i * n + 0, 0) = -traj_ref(0, i);
-        qx.coeffRef(i * n + 1, 0) = -traj_ref(1, i);
-        qx.coeffRef(i * n + 2, 0) = -rho_ * phi;
+        qx.coeffRef(i * NX + 0, 0) = -traj_ref(0, i);
+        qx.coeffRef(i * NX + 1, 0) = -traj_ref(1, i);
+        qx.coeffRef(i * NX + 2, 0) = -rho_ * phi;
         if (i == N_ - 1) {
-            qx.coeffRef(i * n + 0, 0) *= rhoN_;
-            qx.coeffRef(i * n + 1, 0) *= rhoN_;
-            qx.coeffRef(i * n + 2, 0) *= rhoN_;
+            qx.coeffRef(i * NX + 0, 0) *= rhoN_;
+            qx.coeffRef(i * NX + 1, 0) *= rhoN_;
+            qx.coeffRef(i * NX + 2, 0) *= rhoN_;
         }
     }
 
@@ -287,10 +284,10 @@ int MPCController::mpc_solve(utils::VehicleState& x0_, MatrixXd traj_ref)
     }
 
     VectorXd sol = solver.getSolution();
-    MatrixXd solMat = Eigen::Map<const MatrixXd>(sol.data(), m, N_);
+    MatrixXd solMat = Eigen::Map<const MatrixXd>(sol.data(), NU, N_);
 
     VectorXd solState = BB * sol + AA * x0 + gg;
-    MatrixXd predictMat = Eigen::Map<const MatrixXd>(solState.data(), n, N_);
+    MatrixXd predictMat = Eigen::Map<const MatrixXd>(solState.data(), NX, N_);
 
     for (int i = 0; i < N_; ++i) {
         predictInput_[i] = solMat.col(i);
@@ -307,7 +304,7 @@ double find_nearest_s(Vector2d p, const CubicSpline2D& sp)
     double min_dist = (sp.calc_position(sp.s.front()) - p).norm();
     double min_s = last_min_s;
 
-    for (double s = last_min_s; s < sp.s.back(); s += 0.01) {
+    for (double s = last_min_s; s < sp.s.back() && s < last_min_s + 5; s += 0.01) {
         double dist = (sp.calc_position(s) - p).norm();
         if (dist < min_dist) {
             min_s = s;
@@ -337,7 +334,7 @@ void cal_ref_point(double s0, Vector4d& state, const CubicSpline2D& sp)
 
 MatrixXd calc_ref_trajectory(const utils::VehicleState& state, const CubicSpline2D& sp)
 {
-    MatrixXd ref_traj = Matrix<double, 4, TT>::Zero();
+    MatrixXd ref_traj = Matrix<double, 5, TT>::Zero();
     double s0 = find_nearest_s({state.x, state.y}, sp);
 
     for (int i = 0; i < TT; ++i) {
@@ -347,6 +344,11 @@ MatrixXd calc_ref_trajectory(const utils::VehicleState& state, const CubicSpline
         ref_traj(1, i) = ref_state[1];
         ref_traj(2, i) = ref_state[2];
         ref_traj(3, i) = ref_state[3];
+        if (sp.s.back() - s0 < TT * TARGET_SPEED * DT) {
+            ref_traj(4, i) = 0;
+        } else {
+            ref_traj(4, i) = TARGET_SPEED;
+        }
 
         s0 += TARGET_SPEED * DT;
         s0 = s0 < sp.s.back() ? s0 : sp.s.back();
