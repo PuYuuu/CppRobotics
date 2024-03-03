@@ -8,7 +8,10 @@ Cpp implementation of robotics algorithms including localization, path planning,
 - CMake
 - Eigen3
 - [fmt](https://github.com/fmtlib/fmt)
-- CppAD & IPOPT ( *for MPC convex optimization* )
+- for MPC convex optimization （*alternative*）
+    - CppAD & IPOPT
+    - osqp & osqp-eigen
+
 
 Because this project uses  [matplotlib-cpp](https://github.com/lava/matplotlib-cpp)  for visualization, you also need to ensure that you have Python3.x, and contain the following packages:
 

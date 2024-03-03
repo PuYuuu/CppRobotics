@@ -48,3 +48,31 @@ To avoid strange compilation errors after installation, we need to make appropri
 #undef HAVE_CSTDDEF 	// add code
 ```
 
+
+
+## 5. osqp
+
+```bash
+git clone --recursive https://github.com/osqp/osqp
+cd osqp
+mkdir build
+cd build
+cmake .. -DBUILD_SHARED_LIBS=ON
+make
+sudo make install
+```
+
+
+
+## 6. osqp-eigen
+
+```bash
+git clone https://github.com/robotology/osqp-eigen.git
+cd osqp-eigen
+mkdir build 
+cd build
+cmake ..
+make
+sudo make install
+```
+
