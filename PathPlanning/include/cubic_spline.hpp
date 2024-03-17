@@ -2,11 +2,10 @@
 #ifndef __CUBIC_SPLINE_HPP
 #define __CUBIC_SPLINE_HPP
 
-#include <vector>
 #include <Eigen/Eigen>
+#include <vector>
 
-class CubicSpline
-{
+class CubicSpline {
 private:
     std::vector<double> x;
     std::vector<double> y;
@@ -16,6 +15,7 @@ private:
     std::vector<double> d;
     std::vector<double> h;
     int nx;
+
 public:
     CubicSpline() {}
     CubicSpline(std::vector<double> _x, std::vector<double> _y);
@@ -28,11 +28,11 @@ public:
     double operator()(double _x, int dd = 0) const;
 };
 
-class CubicSpline2D
-{
+class CubicSpline2D {
 private:
     CubicSpline sx;
     CubicSpline sy;
+
 public:
     std::vector<double> s;
 
@@ -45,8 +45,9 @@ public:
     double calc_curvature(double _s) const;
     Eigen::Vector2d operator()(double _s, int n = 0) const;
 
-    static std::vector<std::vector<double>> calc_spline_course(
-            std::vector<double> x, std::vector<double> y, double ds = 0.1);
+    static std::vector<std::vector<double>> calc_spline_course(std::vector<double> x,
+                                                               std::vector<double> y,
+                                                               double ds = 0.1);
 };
 
 #endif

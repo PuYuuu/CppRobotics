@@ -1,10 +1,9 @@
-#include <iostream>
-
-#include <Eigen/Dense>
 #include <OsqpEigen/OsqpEigen.h>
 
-int main(int argc, char** argv)
-{
+#include <Eigen/Dense>
+#include <iostream>
+
+int main(int argc, char** argv) {
     // Problem description
     // min  0.5 * X^T * H * X + Q * X
     // s.t. L <= A * X <= U
@@ -14,35 +13,35 @@ int main(int argc, char** argv)
     Eigen::VectorXd lowerBound;
     Eigen::VectorXd upperBound;
 
-    hessian.resize(3,3);
-    hessian.insert(0,0) = 1;
-    hessian.insert(1,0) = -1;
-    hessian.insert(2,0) = 1;
-    hessian.insert(0,1) = -1;
-    hessian.insert(1,1) = 2;
-    hessian.insert(2,1) = -2;
-    hessian.insert(0,2) = 1;
-    hessian.insert(1,2) = -2;
-    hessian.insert(2,2) = 4;
+    hessian.resize(3, 3);
+    hessian.insert(0, 0) = 1;
+    hessian.insert(1, 0) = -1;
+    hessian.insert(2, 0) = 1;
+    hessian.insert(0, 1) = -1;
+    hessian.insert(1, 1) = 2;
+    hessian.insert(2, 1) = -2;
+    hessian.insert(0, 2) = 1;
+    hessian.insert(1, 2) = -2;
+    hessian.insert(2, 2) = 4;
     std::cout << "hessian:" << std::endl << hessian << std::endl;
 
     gradient.resize(3);
     gradient << 2, -3, 1;
     std::cout << "gradient:" << std::endl << gradient << std::endl;
 
-    linearMatrix.resize(4,3);
-    linearMatrix.insert(0,0) = 1;
-    linearMatrix.insert(1,0) = 0;
-    linearMatrix.insert(2,0) = 0;
-    linearMatrix.insert(3,0) = 1;
-    linearMatrix.insert(0,1) = 0;
-    linearMatrix.insert(1,1) = 1;
-    linearMatrix.insert(2,1) = 0;
-    linearMatrix.insert(3,1) = 1;
-    linearMatrix.insert(0,2) = 0;
-    linearMatrix.insert(1,2) = 0;
-    linearMatrix.insert(2,2) = 1;
-    linearMatrix.insert(3,2) = 1;
+    linearMatrix.resize(4, 3);
+    linearMatrix.insert(0, 0) = 1;
+    linearMatrix.insert(1, 0) = 0;
+    linearMatrix.insert(2, 0) = 0;
+    linearMatrix.insert(3, 0) = 1;
+    linearMatrix.insert(0, 1) = 0;
+    linearMatrix.insert(1, 1) = 1;
+    linearMatrix.insert(2, 1) = 0;
+    linearMatrix.insert(3, 1) = 1;
+    linearMatrix.insert(0, 2) = 0;
+    linearMatrix.insert(1, 2) = 0;
+    linearMatrix.insert(2, 2) = 1;
+    linearMatrix.insert(3, 2) = 1;
     std::cout << "linearMatrix:" << std::endl << linearMatrix << std::endl;
 
     lowerBound.resize(4);

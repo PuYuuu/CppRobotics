@@ -1,42 +1,41 @@
-#include <cmath>
-#include <vector>
-#include <queue>
-#include <algorithm>
-#include <memory>
-#include <unordered_map>
-
 #include <fmt/core.h>
 
-#include "utils.hpp"
+#include <algorithm>
+#include <cmath>
+#include <memory>
+#include <queue>
+#include <unordered_map>
+#include <vector>
+
 #include "KDTree.hpp"
-#include "matplotlibcpp.h"
 #include "PathPlanning/include/reeds_shepp_path.hpp"
 #include "dynamic_programming_heuristic.hpp"
+#include "matplotlibcpp.h"
+#include "utils.hpp"
 
-using std::vector;
+using std::make_pair;
+using std::make_shared;
 using std::pair;
 using std::shared_ptr;
 using std::unordered_map;
-using std::make_pair;
-using std::make_shared;
+using std::vector;
 using namespace Eigen;
 namespace plt = matplotlibcpp;
 
 constexpr bool show_animation = true;
-constexpr int N_STEER = 3;                      // steer command number
-constexpr double XY_RESO = 2.0;                 // [m]
-constexpr double YAW_RESO = 15 * M_PI / 180;    // [rad]
-constexpr double MOVE_STEP = 0.4;               // [m] path interporate resolution
-constexpr double COLLISION_CHECK_STEP = 5;      // skip number for collision check
-constexpr double EXTEND_BOUND = 1;              // collision check range extended
-constexpr double GEAR_COST = 100.0;             // switch back penalty cost
-constexpr double BACKWARD_COST = 5.0;           // backward penalty cost
-constexpr double STEER_CHANGE_COST = 5.0;       // steer angle change penalty cost
-constexpr double STEER_ANGLE_COST = 1.0;        // steer angle penalty cost
-constexpr double H_COST = 15.0;                 // Heuristic cost penalty cost
+constexpr int N_STEER = 3;                    // steer command number
+constexpr double XY_RESO = 2.0;               // [m]
+constexpr double YAW_RESO = 15 * M_PI / 180;  // [rad]
+constexpr double MOVE_STEP = 0.4;             // [m] path interporate resolution
+constexpr double COLLISION_CHECK_STEP = 5;    // skip number for collision check
+constexpr double EXTEND_BOUND = 1;            // collision check range extended
+constexpr double GEAR_COST = 100.0;           // switch back penalty cost
+constexpr double BACKWARD_COST = 5.0;         // backward penalty cost
+constexpr double STEER_CHANGE_COST = 5.0;     // steer angle change penalty cost
+constexpr double STEER_ANGLE_COST = 1.0;      // steer angle penalty cost
+constexpr double H_COST = 15.0;               // Heuristic cost penalty cost
 
-class Para
-{
+class Para {
 public:
     int minx;
     int miny;
@@ -53,26 +52,31 @@ public:
     KDTree* kdtree;
     utils::VehicleConfig vc;
 
-    Para(int _minx, int _miny, int _minyaw, int _maxx, int _maxy,
-        int _maxyaw, int _xw, int _yw, int _yaww, double _xyreso,
-        double _yawreso, vector<vector<double>> _obs, KDTree* _kdtree,
-        utils::VehicleConfig _vc) :
-        minx(_minx), miny(_miny), minyaw(_minyaw), maxx(_maxx), maxy(_maxy),
-        maxyaw(_maxyaw), xw(_xw), yw(_yw), yaww(_yaww), xyreso(_xyreso),
-        yawreso(_yawreso), obs(_obs), kdtree(_kdtree), vc(_vc) {
-
-    }
-    ~Para () {}
+    Para(int _minx, int _miny, int _minyaw, int _maxx, int _maxy, int _maxyaw, int _xw, int _yw,
+         int _yaww, double _xyreso, double _yawreso, vector<vector<double>> _obs, KDTree* _kdtree,
+         utils::VehicleConfig _vc)
+        : minx(_minx),
+          miny(_miny),
+          minyaw(_minyaw),
+          maxx(_maxx),
+          maxy(_maxy),
+          maxyaw(_maxyaw),
+          xw(_xw),
+          yw(_yw),
+          yaww(_yaww),
+          xyreso(_xyreso),
+          yawreso(_yawreso),
+          obs(_obs),
+          kdtree(_kdtree),
+          vc(_vc) {}
+    ~Para() {}
 };
 
-struct cmp{
-    bool operator() ( pair<int, double> a, pair<int, double> b ) {
-        return a.second > b.second;
-    }
+struct cmp {
+    bool operator()(pair<int, double> a, pair<int, double> b) { return a.second > b.second; }
 };
 
-pair<vector<double>, vector<int>> calc_motion_set(const utils::VehicleConfig& C)
-{
+pair<vector<double>, vector<int>> calc_motion_set(const utils::VehicleConfig& C) {
     double step = C.MAX_STEER / N_STEER;
     vector<double> steer;
     vector<int> direc;
@@ -93,8 +97,7 @@ pair<vector<double>, vector<int>> calc_motion_set(const utils::VehicleConfig& C)
     return make_pair(steer, direc);
 }
 
-vector<vector<double>> generate_obstacle(double x, double y)
-{
+vector<vector<double>> generate_obstacle(double x, double y) {
     vector<vector<double>> obs(2);
 
     for (size_t idx = 0; idx < x; ++idx) {
@@ -129,13 +132,12 @@ vector<vector<double>> generate_obstacle(double x, double y)
         obs[0].push_back(40);
         obs[1].push_back(idx);
     }
-    
+
     return obs;
 }
 
-Para calc_parameters(vector<vector<double>> obs,
-    double xyreso, double yawreso, KDTree* kdtree, utils::VehicleConfig vc)
-{
+Para calc_parameters(vector<vector<double>> obs, double xyreso, double yawreso, KDTree* kdtree,
+                     utils::VehicleConfig vc) {
     int minx = round(utils::min(obs[0]) / xyreso);
     int miny = round(utils::min(obs[1]) / xyreso);
     int maxx = round(utils::max(obs[0]) / xyreso);
@@ -147,28 +149,25 @@ Para calc_parameters(vector<vector<double>> obs,
     int maxyaw = round(M_PI / yawreso);
     int yaww = maxyaw - minyaw;
 
-    return Para(minx, miny, minyaw, maxx, maxy, maxyaw, xw,
-                yw, yaww, xyreso, yawreso, obs, kdtree, vc);
+    return Para(minx, miny, minyaw, maxx, maxy, maxyaw, xw, yw, yaww, xyreso, yawreso, obs, kdtree,
+                vc);
 }
 
-int calc_index(const shared_ptr<const Node>& node, Para P)
-{
-    int ind = (node->yawind - P.minyaw) * P.xw * P.yw +
-              (node->yind - P.miny) * P.xw + (node->xind - P.minx);
+int calc_index(const shared_ptr<const Node>& node, Para P) {
+    int ind = (node->yawind - P.minyaw) * P.xw * P.yw + (node->yind - P.miny) * P.xw +
+              (node->xind - P.minx);
 
     return ind;
 }
 
-double calc_hybrid_cost(
-    const shared_ptr<const Node>& node, const vector<vector<double>>& hmap, const Para& P)
-{
+double calc_hybrid_cost(const shared_ptr<const Node>& node, const vector<vector<double>>& hmap,
+                        const Para& P) {
     double cost = node->cost + H_COST * hmap[node->xind - P.minx][node->yind - P.miny];
 
     return cost;
 }
 
-bool is_collision(vector<double>& x, vector<double>& y, vector<double>& yaw, const Para& P)
-{
+bool is_collision(vector<double>& x, vector<double>& y, vector<double>& yaw, const Para& P) {
     for (size_t idx = 0; idx < x.size(); ++idx) {
         int d = 1;
         double dl = (P.vc.RF - P.vc.RB) / 2.0;
@@ -192,8 +191,7 @@ bool is_collision(vector<double>& x, vector<double>& y, vector<double>& yaw, con
     return false;
 }
 
-double calc_rs_path_cost(const Path& rspath, const Para& P)
-{
+double calc_rs_path_cost(const Path& rspath, const Para& P) {
     double cost = 0.0;
 
     for (double lr : rspath.lengths) {
@@ -229,14 +227,13 @@ double calc_rs_path_cost(const Path& rspath, const Para& P)
     return cost;
 }
 
-Path analystic_expantion(
-    const shared_ptr<const Node>& node, const shared_ptr<const Node>& ngoal, const Para& P)
-{
+Path analystic_expantion(const shared_ptr<const Node>& node, const shared_ptr<const Node>& ngoal,
+                         const Para& P) {
     Vector3d start(node->x.back(), node->y.back(), node->yaw.back());
     Vector3d goal(ngoal->x.back(), ngoal->y.back(), ngoal->yaw.back());
     double maxc = tan(P.vc.MAX_STEER) / P.vc.WB;
     vector<Path> paths = calc_rs_paths(start, goal, maxc, MOVE_STEP);
-    
+
     if (paths.empty()) {
         return Path();
     }
@@ -261,9 +258,8 @@ Path analystic_expantion(
     return Path();
 }
 
-bool update_node_with_analystic_expantion(
-    shared_ptr<Node> n_curr, shared_ptr<Node> ngoal, shared_ptr<Node>& fpath, const Para& P)
-{
+bool update_node_with_analystic_expantion(shared_ptr<Node> n_curr, shared_ptr<Node> ngoal,
+                                          shared_ptr<Node>& fpath, const Para& P) {
     Path path = analystic_expantion(n_curr, ngoal, P);
 
     if (path.x.empty() || path.y.empty() || path.yaw.empty()) {
@@ -277,15 +273,14 @@ bool update_node_with_analystic_expantion(
     double fcost = n_curr->cost + calc_rs_path_cost(path, P);
     int fpind = calc_index(n_curr, P);
     double fsteer = 0.0;
-    fpath = make_shared<Node>(n_curr->xind, n_curr->yind, n_curr->yawind,
-        n_curr->direction, fx, fy, fyaw, fd, fsteer, fcost, fpind);
+    fpath = make_shared<Node>(n_curr->xind, n_curr->yind, n_curr->yawind, n_curr->direction, fx, fy,
+                              fyaw, fd, fsteer, fcost, fpind);
 
     return true;
 }
 
-bool is_index_ok(int xind, int yind, const vector<double>& xlist, 
-    const vector<double>& ylist, const vector<double>& yawlist, const Para& P)
-{
+bool is_index_ok(int xind, int yind, const vector<double>& xlist, const vector<double>& ylist,
+                 const vector<double>& yawlist, const Para& P) {
     if (xind <= P.minx || xind >= P.maxx || yind <= P.miny || yind >= P.maxy) {
         return false;
     }
@@ -306,14 +301,14 @@ bool is_index_ok(int xind, int yind, const vector<double>& xlist,
     return true;
 }
 
-shared_ptr<Node> calc_next_node(
-    const shared_ptr<const Node>& n_curr, int c_id, double u, int d, const Para& P)
-{
+shared_ptr<Node> calc_next_node(const shared_ptr<const Node>& n_curr, int c_id, double u, int d,
+                                const Para& P) {
     double step = XY_RESO * 2.5;
     int nlist = ceil(step / MOVE_STEP);
     vector<double> xlist = {n_curr->x.back() + d * MOVE_STEP * cos(n_curr->yaw.back())};
     vector<double> ylist = {n_curr->y.back() + d * MOVE_STEP * sin(n_curr->yaw.back())};
-    vector<double> yawlist = {utils::pi_2_pi(n_curr->yaw.back() + d * MOVE_STEP / P.vc.WB * tan(u))};
+    vector<double> yawlist = {
+        utils::pi_2_pi(n_curr->yaw.back() + d * MOVE_STEP / P.vc.WB * tan(u))};
     shared_ptr<Node> node;
 
     for (size_t idx = 0; idx < nlist - 1; ++idx) {
@@ -345,24 +340,23 @@ shared_ptr<Node> calc_next_node(
     cost += STEER_CHANGE_COST * abs(n_curr->steer - u);
     cost = n_curr->cost + cost;
     vector<int> directions(xlist.size(), direction);
-    node = make_shared<Node>(xind, yind, yawind, direction, xlist,
-            ylist, yawlist, directions, u, cost, c_id);
+    node = make_shared<Node>(xind, yind, yawind, direction, xlist, ylist, yawlist, directions, u,
+                             cost, c_id);
 
     return node;
 }
 
-bool is_same_grid(const shared_ptr<const Node>& node1, const shared_ptr<const Node>& node2)
-{
-    if (node1->xind != node2->xind || node1->yind != node2->yind || node1->yawind != node2->yawind) {
+bool is_same_grid(const shared_ptr<const Node>& node1, const shared_ptr<const Node>& node2) {
+    if (node1->xind != node2->xind || node1->yind != node2->yind ||
+        node1->yawind != node2->yawind) {
         return false;
     }
 
     return true;
 }
 
-Path extract_path(unordered_map<int, shared_ptr<Node>>& closed,
-                shared_ptr<Node> ngoal, shared_ptr<Node> nstart)
-{
+Path extract_path(unordered_map<int, shared_ptr<Node>>& closed, shared_ptr<Node> ngoal,
+                  shared_ptr<Node> nstart) {
     vector<double> rx;
     vector<double> ry;
     vector<double> ryaw;
@@ -395,9 +389,8 @@ Path extract_path(unordered_map<int, shared_ptr<Node>>& closed,
     return path;
 }
 
-Path hybrid_astar_planning(Vector3d start, Vector3d goal,
-    const vector<vector<double>>& obs, utils::VehicleConfig VC, double xyreso, double yawreso)
-{
+Path hybrid_astar_planning(Vector3d start, Vector3d goal, const vector<vector<double>>& obs,
+                           utils::VehicleConfig VC, double xyreso, double yawreso) {
     int sxr = round(start[0] / xyreso);
     int syr = round(start[1] / xyreso);
     int syawr = round(utils::pi_2_pi(start[2]) / yawreso);
@@ -405,16 +398,16 @@ Path hybrid_astar_planning(Vector3d start, Vector3d goal,
     int gyr = round(goal[1] / xyreso);
     int gyawr = round(utils::pi_2_pi(goal[2]) / yawreso);
 
-    shared_ptr<Node> nstart(new Node(
-        sxr, syr, syawr, 1, {start[0]}, {start[1]}, {start[2]}, {1}, 0.0, 0.0, -1));
-    shared_ptr<Node> ngoal(new Node(
-        gxr, gyr, gyawr, 1, {goal[0]}, {goal[1]}, {goal[2]}, {1}, 0.0, 0.0, -1));
+    shared_ptr<Node> nstart(
+        new Node(sxr, syr, syawr, 1, {start[0]}, {start[1]}, {start[2]}, {1}, 0.0, 0.0, -1));
+    shared_ptr<Node> ngoal(
+        new Node(gxr, gyr, gyawr, 1, {goal[0]}, {goal[1]}, {goal[2]}, {1}, 0.0, 0.0, -1));
     pointVec points;
     for (size_t idx = 0; idx < obs[0].size(); ++idx) {
         points.push_back({obs[0][idx], obs[1][idx]});
     }
     KDTree kdtree(points);
-    
+
     Para P = calc_parameters(obs, xyreso, yawreso, &kdtree, VC);
 
     vector<vector<double>> hmap =
@@ -446,7 +439,7 @@ Path hybrid_astar_planning(Vector3d start, Vector3d goal,
 
         for (size_t idx = 0; idx < steer_set.size(); ++idx) {
             shared_ptr<Node> node = calc_next_node(n_curr, ind, steer_set[idx], direc_set[idx], P);
-            
+
             if (node == nullptr) {
                 continue;
             }
@@ -472,12 +465,11 @@ Path hybrid_astar_planning(Vector3d start, Vector3d goal,
         }
     }
     fmt::print("final expand node: {}\n", open_set.size() + closed_set.size());
-    
+
     return extract_path(closed_set, fnode, nstart);
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     Vector3d start(10.0, 7.0, 120 * M_PI / 180);
     Vector3d goal(45.0, 20.0, M_PI_2);
     vector<vector<double>> obs = generate_obstacle(51, 31);

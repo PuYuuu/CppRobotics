@@ -1,42 +1,40 @@
-#include <cmath>
-#include <stack>
-#include <vector>
-#include <algorithm>
-#include <memory>
-#include <unordered_map>
-
 #include <fmt/core.h>
 
-#include "utils.hpp"
-#include "matplotlibcpp.h"
-#include "GraphSearchPlanner.hpp"
+#include <algorithm>
+#include <cmath>
+#include <memory>
+#include <stack>
+#include <unordered_map>
+#include <vector>
 
-using std::stack;
-using std::vector;
+#include "GraphSearchPlanner.hpp"
+#include "matplotlibcpp.h"
+#include "utils.hpp"
+
 using std::shared_ptr;
+using std::stack;
 using std::unordered_map;
+using std::vector;
 namespace plt = matplotlibcpp;
 constexpr bool show_animation = true;
 
-class DepthFirstSearchPlanner : public GraphSearchPlanner
-{
+class DepthFirstSearchPlanner : public GraphSearchPlanner {
 public:
     DepthFirstSearchPlanner() {}
-    DepthFirstSearchPlanner(vector<double> ox, vector<double> oy, double reso, double radius) :
-        GraphSearchPlanner(ox, oy, reso, radius) {}
+    DepthFirstSearchPlanner(vector<double> ox, vector<double> oy, double reso, double radius)
+        : GraphSearchPlanner(ox, oy, reso, radius) {}
     ~DepthFirstSearchPlanner() override {}
 
     vector<vector<double>> planning(double sx, double sy, double gx, double gy) override;
 };
 
-
-vector<vector<double>> DepthFirstSearchPlanner::planning(double sx, double sy, double gx, double gy)
-{
-    shared_ptr<Node> nstart = std::make_shared<Node>(calc_xyindex(sx, get_minx()),
-                                calc_xyindex(sy, get_miny()), 0.0, -1, nullptr);
+vector<vector<double>> DepthFirstSearchPlanner::planning(double sx, double sy, double gx,
+                                                         double gy) {
+    shared_ptr<Node> nstart = std::make_shared<Node>(
+        calc_xyindex(sx, get_minx()), calc_xyindex(sy, get_miny()), 0.0, -1, nullptr);
     shared_ptr<Node> ngoal = std::make_shared<Node>(calc_xyindex(gx, get_minx()),
-                                calc_xyindex(gy, get_miny()), 0.0, -1, nullptr);
-    
+                                                    calc_xyindex(gy, get_miny()), 0.0, -1, nullptr);
+
     unordered_map<double, shared_ptr<Node>> open_set;
     unordered_map<double, shared_ptr<Node>> closed_set;
     open_set[calc_grid_index(nstart)] = nstart;
@@ -56,7 +54,7 @@ vector<vector<double>> DepthFirstSearchPlanner::planning(double sx, double sy, d
 
         if (show_animation) {
             plt::plot({calc_grid_position(current->x, get_minx())},
-                    {calc_grid_position(current->y, get_miny())}, "xc");
+                      {calc_grid_position(current->y, get_miny())}, "xc");
             plt::pause(0.01);
         }
         if (current->x == ngoal->x && current->y == ngoal->y) {
@@ -68,7 +66,7 @@ vector<vector<double>> DepthFirstSearchPlanner::planning(double sx, double sy, d
 
         for (const vector<double>& m : get_motion()) {
             shared_ptr<Node> node = std::make_shared<Node>(current->x + m[0], current->y + m[1],
-                                                    current->cost + m[2], c_id, current);
+                                                           current->cost + m[2], c_id, current);
             double n_id = calc_grid_index(node);
             if (!verify_node(node)) {
                 continue;
@@ -87,9 +85,7 @@ vector<vector<double>> DepthFirstSearchPlanner::planning(double sx, double sy, d
     return path;
 }
 
-
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     double start_x = 10.0;
     double start_y = 10.0;
     double goal_x = 50.0;

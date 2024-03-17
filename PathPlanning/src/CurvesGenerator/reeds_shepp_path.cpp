@@ -1,25 +1,24 @@
+#include "reeds_shepp_path.hpp"
+
 #include <cmath>
 
 #include "utils.hpp"
-#include "reeds_shepp_path.hpp"
 
 using std::vector;
 using namespace Eigen;
 
-Vector2d polar(double x, double y)
-{
+Vector2d polar(double x, double y) {
     double r = hypot(x, y);
     double theta = atan2(y, x);
 
     return {r, theta};
 }
 
-Vector3d straight_left_straight(double x, double y, double phi, bool& flag)
-{
+Vector3d straight_left_straight(double x, double y, double phi, bool& flag) {
     flag = false;
     phi = utils::pi_2_pi(phi);
     if (M_PI * 0.01 < phi && phi < M_PI * 0.99 && y != 0) {
-        double xd = - y / tan(phi) + x;
+        double xd = -y / tan(phi) + x;
         double t = xd - tan(phi / 2.0);
         double u = phi;
         double v = utils::sign(y) * hypot(x - xd, y) - tan(phi / 2.0);
@@ -30,8 +29,7 @@ Vector3d straight_left_straight(double x, double y, double phi, bool& flag)
     return {0.0, 0.0, 0.0};
 }
 
-Vector3d left_straight_left(double x, double y, double phi, bool& flag)
-{
+Vector3d left_straight_left(double x, double y, double phi, bool& flag) {
     flag = false;
     Vector2d ut = polar(x - sin(phi), y - 1.0 + cos(phi));
     if (ut[1] >= 0.0) {
@@ -45,8 +43,7 @@ Vector3d left_straight_left(double x, double y, double phi, bool& flag)
     return {0.0, 0.0, 0.0};
 }
 
-Vector3d left_straight_right(double x, double y, double phi, bool& flag)
-{
+Vector3d left_straight_right(double x, double y, double phi, bool& flag) {
     flag = false;
     Vector2d ut1 = polar(x + sin(phi), y - 1.0 - cos(phi));
     double u1 = ut1[0] * ut1[0];
@@ -65,8 +62,7 @@ Vector3d left_straight_right(double x, double y, double phi, bool& flag)
     return {0.0, 0.0, 0.0};
 }
 
-Vector3d left_right_left(double x, double y, double phi, bool& flag)
-{
+Vector3d left_right_left(double x, double y, double phi, bool& flag) {
     flag = false;
     Vector2d ut1 = polar(x - sin(phi), y - 1.0 + cos(phi));
 
@@ -84,8 +80,7 @@ Vector3d left_right_left(double x, double y, double phi, bool& flag)
     return {0.0, 0.0, 0.0};
 }
 
-void set_path(vector<Path>& paths, Vector3d lengths, vector<char> ctypes, double step_size)
-{
+void set_path(vector<Path>& paths, Vector3d lengths, vector<char> ctypes, double step_size) {
     Path path;
     path.ctypes = ctypes;
     path.lengths = {lengths[0], lengths[1], lengths[2]};
@@ -95,19 +90,19 @@ void set_path(vector<Path>& paths, Vector3d lengths, vector<char> ctypes, double
         bool type_is_same = (i_path.ctypes == path.ctypes);
         bool length_is_close = ((i_path.L - path.L) <= step_size);
         if (type_is_same && length_is_close) {
-            return ;
+            return;
         }
     }
 
     if (path.L <= step_size) {
-        return ;
+        return;
     }
 
     paths.push_back(path);
 }
 
-void straight_curve_straight(double x, double y, double phi, vector<Path>& paths, double step_size)
-{
+void straight_curve_straight(double x, double y, double phi, vector<Path>& paths,
+                             double step_size) {
     bool flag = false;
     Vector3d tuv = straight_left_straight(x, y, phi, flag);
     if (flag) {
@@ -120,8 +115,7 @@ void straight_curve_straight(double x, double y, double phi, vector<Path>& paths
     }
 }
 
-void curve_straight_curve(double x, double y, double phi, vector<Path>& paths, double step_size)
-{
+void curve_straight_curve(double x, double y, double phi, vector<Path>& paths, double step_size) {
     bool flag = false;
     Vector3d tuv = left_straight_left(x, y, phi, flag);
     if (flag) {
@@ -163,8 +157,7 @@ void curve_straight_curve(double x, double y, double phi, vector<Path>& paths, d
     }
 }
 
-void curve_curve_curve(double x, double y, double phi, vector<Path>& paths, double step_size)
-{
+void curve_curve_curve(double x, double y, double phi, vector<Path>& paths, double step_size) {
     bool flag = false;
     Vector3d tuv = left_right_left(x, y, phi, flag);
     if (flag) {
@@ -210,8 +203,7 @@ void curve_curve_curve(double x, double y, double phi, vector<Path>& paths, doub
     }
 }
 
-vector<Path> generate_path(Vector3d q0, Vector3d q1, double max_curvature, double step_size)
-{
+vector<Path> generate_path(Vector3d q0, Vector3d q1, double max_curvature, double step_size) {
     double dx = q1[0] - q0[0];
     double dy = q1[1] - q0[1];
     double dth = q1[2] - q0[2];
@@ -228,8 +220,7 @@ vector<Path> generate_path(Vector3d q0, Vector3d q1, double max_curvature, doubl
     return paths;
 }
 
-vector<vector<double>> calc_interpolate_dists_list(vector<double> lengths, double step_size)
-{
+vector<vector<double>> calc_interpolate_dists_list(vector<double> lengths, double step_size) {
     vector<vector<double>> interpolate_dists_list;
     int idx = 0;
     for (double length : lengths) {
@@ -245,8 +236,7 @@ vector<vector<double>> calc_interpolate_dists_list(vector<double> lengths, doubl
     return interpolate_dists_list;
 }
 
-Vector4d interpolate(double dist, double length, char mode, double max_curvature, Vector3d origin)
-{
+Vector4d interpolate(double dist, double length, char mode, double max_curvature, Vector3d origin) {
     Vector4d inter(0, 0, 0, 0);
     if (mode == 'S') {
         inter[0] = origin[0] + dist / max_curvature * cos(origin[2]);
@@ -268,27 +258,23 @@ Vector4d interpolate(double dist, double length, char mode, double max_curvature
         inter[1] = origin[1] + gdy;
     }
     inter[3] = length > 0.0 ? 1 : -1;
-    
+
     return inter;
 }
 
-vector<vector<double>> generate_local_course(
-    vector<double> lengths, vector<char> modes, double max_curvature, double step_size)
-{
-    
-    vector<vector<double>> interpolate_dists_list = 
-                            calc_interpolate_dists_list(lengths, step_size);
+vector<vector<double>> generate_local_course(vector<double> lengths, vector<char> modes,
+                                             double max_curvature, double step_size) {
+    vector<vector<double>> interpolate_dists_list = calc_interpolate_dists_list(lengths, step_size);
 
     Vector3d origin(0, 0, 0);
     vector<double> xs;
     vector<double> ys;
     vector<double> yaws;
     vector<double> directions;
-    
+
     for (size_t idx = 0; idx < lengths.size(); ++idx) {
         for (double dist : interpolate_dists_list[idx]) {
-            Vector4d state = interpolate(dist, lengths[idx], modes[idx],
-                                        max_curvature, origin);
+            Vector4d state = interpolate(dist, lengths[idx], modes[idx], max_curvature, origin);
             xs.push_back(state[0]);
             ys.push_back(state[1]);
             yaws.push_back(state[2]);
@@ -302,14 +288,12 @@ vector<vector<double>> generate_local_course(
     return {xs, ys, yaws, directions};
 }
 
-vector<Path> calc_rs_paths(Vector3d s, Vector3d g, double maxc, double step_size)
-{
+vector<Path> calc_rs_paths(Vector3d s, Vector3d g, double maxc, double step_size) {
     vector<Path> paths = generate_path(s, g, maxc, step_size);
 
     for (Path& path : paths) {
-        vector<vector<double>> states = generate_local_course(path.lengths,
-                                                         path.ctypes, maxc,
-                                                         step_size * maxc);
+        vector<vector<double>> states =
+            generate_local_course(path.lengths, path.ctypes, maxc, step_size * maxc);
         for (size_t idx = 0; idx < states[0].size(); ++idx) {
             double ix = states[0][idx];
             double iy = states[1][idx];
@@ -320,7 +304,7 @@ vector<Path> calc_rs_paths(Vector3d s, Vector3d g, double maxc, double step_size
             path.yaw.emplace_back(utils::pi_2_pi(yaw + s[2]));
             path.directions.emplace_back(direction);
         }
-    
+
         for (size_t idx = 0; idx < path.lengths.size(); ++idx) {
             path.lengths[idx] /= maxc;
         }
@@ -330,14 +314,12 @@ vector<Path> calc_rs_paths(Vector3d s, Vector3d g, double maxc, double step_size
     return paths;
 }
 
-Path reeds_shepp_path(Vector3d s, Vector3d g, double maxc, double step_size)
-{
+Path reeds_shepp_path(Vector3d s, Vector3d g, double maxc, double step_size) {
     vector<Path> paths = calc_rs_paths(s, g, maxc, step_size);
     int best_path_index = -1;
 
     for (size_t idx = 0; idx < paths.size(); ++idx) {
-        if (best_path_index == -1 ||
-            abs(paths[best_path_index].L) > abs(paths[idx].L)) {
+        if (best_path_index == -1 || abs(paths[best_path_index].L) > abs(paths[idx].L)) {
             best_path_index = idx;
         }
     }

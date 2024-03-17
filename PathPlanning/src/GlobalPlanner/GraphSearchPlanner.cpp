@@ -1,11 +1,10 @@
 #include "GraphSearchPlanner.hpp"
 
-using std::vector;
-using std::unordered_map;
 using std::shared_ptr;
+using std::unordered_map;
+using std::vector;
 
-void GraphSearchPlanner::calc_obstacle_map(const vector<double>& ox, const vector<double>& oy)
-{
+void GraphSearchPlanner::calc_obstacle_map(const vector<double>& ox, const vector<double>& oy) {
     minx = round(utils::min(ox));
     miny = round(utils::min(oy));
     maxx = round(utils::max(ox));
@@ -37,30 +36,26 @@ void GraphSearchPlanner::calc_obstacle_map(const vector<double>& ox, const vecto
     }
 }
 
-vector<vector<double>> GraphSearchPlanner::get_motion_model(void)
-{
-    vector<vector<double>> motion = {{1, 0, 1}, {0, 1, 1}, {-1, 0, 1}, {0, -1, 1},
-                {-1, -1, sqrt(2)}, {-1, 1, sqrt(2)}, {1, -1, sqrt(2)}, {1, 1, sqrt(2)}};
+vector<vector<double>> GraphSearchPlanner::get_motion_model(void) {
+    vector<vector<double>> motion = {{1, 0, 1},        {0, 1, 1},         {-1, 0, 1},
+                                     {0, -1, 1},       {-1, -1, sqrt(2)}, {-1, 1, sqrt(2)},
+                                     {1, -1, sqrt(2)}, {1, 1, sqrt(2)}};
     return motion;
 }
 
-double GraphSearchPlanner::calc_grid_position(int index, double minp)
-{
+double GraphSearchPlanner::calc_grid_position(int index, double minp) {
     return index * map_resolution + minp;
 }
 
-double GraphSearchPlanner::calc_xyindex(double position, double min_pos)
-{
+double GraphSearchPlanner::calc_xyindex(double position, double min_pos) {
     return round((position - min_pos) / map_resolution);
 }
 
-double GraphSearchPlanner::calc_grid_index(shared_ptr<Node> node)
-{
+double GraphSearchPlanner::calc_grid_index(shared_ptr<Node> node) {
     return (node->y - miny) * xwidth + (node->x - minx);
 }
 
-bool GraphSearchPlanner::verify_node(shared_ptr<Node> node)
-{
+bool GraphSearchPlanner::verify_node(shared_ptr<Node> node) {
     double px = calc_grid_position(node->x, minx);
     double py = calc_grid_position(node->y, miny);
     if (px < minx || py < miny || px >= maxx || py >= maxy || obstacle_map[node->x][node->y]) {
@@ -70,11 +65,10 @@ bool GraphSearchPlanner::verify_node(shared_ptr<Node> node)
     return true;
 }
 
-vector<vector<double>> GraphSearchPlanner::calc_final_path(shared_ptr<Node> ngoal, 
-        unordered_map<double, shared_ptr<Node>>& closed_set)
-{
-    vector<vector<double>> path = {{calc_grid_position(ngoal->x, minx)}, 
-                                {calc_grid_position(ngoal->y, miny)}};
+vector<vector<double>> GraphSearchPlanner::calc_final_path(
+    shared_ptr<Node> ngoal, unordered_map<double, shared_ptr<Node>>& closed_set) {
+    vector<vector<double>> path = {{calc_grid_position(ngoal->x, minx)},
+                                   {calc_grid_position(ngoal->y, miny)}};
     shared_ptr<Node> node = closed_set[ngoal->parent_index];
     while (node != nullptr) {
         path[0].emplace_back(calc_grid_position(node->x, minx));

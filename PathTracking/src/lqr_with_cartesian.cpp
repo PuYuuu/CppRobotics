@@ -1,13 +1,13 @@
-#include <cmath>
-#include <vector>
-#include <string>
-
-#include <Eigen/Core>
 #include <fmt/core.h>
 
-#include "utils.hpp"
-#include "matplotlibcpp.h"
+#include <Eigen/Core>
+#include <cmath>
+#include <string>
+#include <vector>
+
 #include "PathPlanning/include/cubic_spline.hpp"
+#include "matplotlibcpp.h"
+#include "utils.hpp"
 
 using std::vector;
 using namespace Eigen;
@@ -21,8 +21,7 @@ constexpr bool show_animation = true;
 
 // How to design a universal customizable state vector
 // LQR controller is a difficult problem for me.
-class LQRController
-{
+class LQRController {
 private:
     MatrixXd A;
     MatrixXd B;
@@ -33,19 +32,19 @@ private:
 
     MatrixXd solve_LQR(void);
     MatrixXd solve_dare(double tolerance = 0.01, size_t max_iter = 150);
+
 public:
-    LQRController(MatrixXd a, MatrixXd b, MatrixXd q, MatrixXd r) :
-        A(a), B(b), Q(q), R(r), pe(0.), pth_e(0.) {}
+    LQRController(MatrixXd a, MatrixXd b, MatrixXd q, MatrixXd r)
+        : A(a), B(b), Q(q), R(r), pe(0.), pth_e(0.) {}
     ~LQRController() {}
 
     Vector2d compute_input(const utils::VehicleState& state, Vector4d target, double tv);
 };
 
-MatrixXd LQRController::solve_LQR(void)
-{
+MatrixXd LQRController::solve_LQR(void) {
     MatrixXd P = solve_dare();
     // compute the LQR gain
-    MatrixXd K = ((B.transpose() * P * B + R)).inverse() * (B.transpose() * P * A); 
+    MatrixXd K = ((B.transpose() * P * B + R)).inverse() * (B.transpose() * P * A);
 
     return K;
 }
@@ -53,14 +52,15 @@ MatrixXd LQRController::solve_LQR(void)
 // solve a Discrete-time Algebraic Riccati Equation (DARE)
 // x_{k+1} = A * x_{k} + B * u_{k}
 // J = sum{ x_{k}.T * Q * x_{k} + u_{k}.T * R * u_{k} }
-MatrixXd LQRController::solve_dare(double tolerance, size_t max_iter)
-{
+MatrixXd LQRController::solve_dare(double tolerance, size_t max_iter) {
     MatrixXd p = Q;
     MatrixXd p_next = Q;
 
     for (size_t i = 0; i < max_iter; ++i) {
-        p_next = A.transpose() * p * A - A.transpose() * p * B * 
-            (R + B.transpose() * p * B).inverse() * B.transpose() * p * A + Q;
+        p_next =
+            A.transpose() * p * A -
+            A.transpose() * p * B * (R + B.transpose() * p * B).inverse() * B.transpose() * p * A +
+            Q;
 
         if ((p_next - p).array().abs().maxCoeff() < tolerance) {
             break;
@@ -71,8 +71,8 @@ MatrixXd LQRController::solve_dare(double tolerance, size_t max_iter)
     return p_next;
 }
 
-Vector2d LQRController::compute_input(const utils::VehicleState& state, Vector4d target, double tv)
-{
+Vector2d LQRController::compute_input(const utils::VehicleState& state, Vector4d target,
+                                      double tv) {
     double dxl = target[0] - state.x;
     double dyl = target[1] - state.y;
     double e = hypot(dxl, dyl);
@@ -89,7 +89,7 @@ Vector2d LQRController::compute_input(const utils::VehicleState& state, Vector4d
     // state vector x = [e, dot_e, th_e, dot_th_e, delta_v]
     Matrix<double, 5, 1> x = Matrix<double, 5, 1>::Zero();
     x << e, (e - pe) / DT, th_e, (th_e - pth_e) / DT, v - tv;
-    
+
     MatrixXd ustar = -K * x;
     double steer_angle_feedforward = atan2(state.vc.WB * target[3], 1);
     double steer_angle_feedback = utils::pi_2_pi(ustar(0, 0));
@@ -102,8 +102,7 @@ Vector2d LQRController::compute_input(const utils::VehicleState& state, Vector4d
     return {accel, delta};
 }
 
-vector<double> calc_speed_profile(const vector<double>& cyaw, double target_speed)
-{
+vector<double> calc_speed_profile(const vector<double>& cyaw, double target_speed) {
     int len = cyaw.size();
     vector<double> speed_profile(len, target_speed);
     int direction = 1;
@@ -135,9 +134,8 @@ vector<double> calc_speed_profile(const vector<double>& cyaw, double target_spee
     return speed_profile;
 }
 
-size_t calc_nearest_index(const utils::VehicleState& state,
-    const vector<double>& cx, const vector<double>& cy)
-{
+size_t calc_nearest_index(const utils::VehicleState& state, const vector<double>& cx,
+                          const vector<double>& cy) {
     size_t nearest_index = -1;
     double min_d = 1e6;
     for (size_t idx = 0; idx < cx.size(); ++idx) {
@@ -149,12 +147,11 @@ size_t calc_nearest_index(const utils::VehicleState& state,
             min_d = d;
         }
     }
-    
+
     return nearest_index;
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     vector<double> ax = {0.0, 10., 16., 20.0, 14., 4, 8};
     vector<double> ay = {0.0, -4., 2., 4.0, 12., 8, 4};
     Vector2d goal(ax.back(), ay.back());
@@ -207,9 +204,9 @@ int main(int argc, char** argv)
             plt::named_plot("trajectory", x, y, "-b");
             plt::plot({traj[0][ind]}, {traj[1][ind]}, "xg");
             utils::draw_vehicle({state.x, state.y, state.yaw}, control[1], vc);
-            
+
             plt::title("LQR with cartesian frame Speed [km/h]: " +
-                            std::to_string(round(state.v * 3.6)).substr(0, 4));
+                       std::to_string(round(state.v * 3.6)).substr(0, 4));
             plt::axis("equal");
             plt::legend({{"loc", "upper left"}});
             plt::grid(true);

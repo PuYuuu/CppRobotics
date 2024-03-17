@@ -1,15 +1,15 @@
-#include <cmath>
-#include <vector>
+#include <fmt/core.h>
+
+#include <Eigen/Core>
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <queue>
 #include <set>
+#include <vector>
 
-#include <fmt/core.h>
-#include <Eigen/Core>
-
-#include "utils.hpp"
 #include "matplotlibcpp.h"
+#include "utils.hpp"
 
 using std::vector;
 using namespace Eigen;
@@ -20,13 +20,11 @@ constexpr double ETA = 100.0;
 constexpr double AREA_WIDTH = 30.0;
 constexpr double OSCILLATIONS_DETECTION_LENGTH = 3;
 
-double calc_attractive_potential(Vector2d xy, Vector2d g)
-{
+double calc_attractive_potential(Vector2d xy, Vector2d g) {
     return 0.5 * KP * hypot(xy[0] - g[0], xy[1] - g[1]);
 }
 
-double calc_repulsive_potential(Vector2d xy, const vector<vector<double>>& obs, double rr)
-{
+double calc_repulsive_potential(Vector2d xy, const vector<vector<double>>& obs, double rr) {
     if (obs[0].size() < 1) {
         return 0.0;
     }
@@ -45,15 +43,14 @@ double calc_repulsive_potential(Vector2d xy, const vector<vector<double>>& obs, 
         if (dq <= 0.1) {
             dq = 0.1;
         }
-        return 0.5 * ETA * pow(1.0 / dq - 1.0 / rr, 2); 
+        return 0.5 * ETA * pow(1.0 / dq - 1.0 / rr, 2);
     }
-        
+
     return 0.0;
 }
 
-Vector2d calc_potential_field(Vector2d s, Vector2d g, const vector<vector<double>>& obs, 
-    double reso, double rr, vector<vector<double>>& pmap)
-{
+Vector2d calc_potential_field(Vector2d s, Vector2d g, const vector<vector<double>>& obs,
+                              double reso, double rr, vector<vector<double>>& pmap) {
     double minx = std::min(utils::min(obs[0]), std::min(s[0], g[0])) - AREA_WIDTH / 2.0;
     double miny = std::min(utils::min(obs[1]), std::min(s[1], g[1])) - AREA_WIDTH / 2.0;
     double maxx = std::max(utils::max(obs[0]), std::max(s[0], g[0])) + AREA_WIDTH / 2.0;
@@ -63,7 +60,7 @@ Vector2d calc_potential_field(Vector2d s, Vector2d g, const vector<vector<double
     vector<vector<double>> pmap_tmp(xw, vector<double>(yw, 0));
 
     for (int ix = 0; ix < xw; ++ix) {
-        double x = ix * reso + minx; 
+        double x = ix * reso + minx;
         for (int iy = 0; iy < yw; ++iy) {
             double y = iy * reso + miny;
             double ug = calc_attractive_potential({x, y}, g);
@@ -77,15 +74,13 @@ Vector2d calc_potential_field(Vector2d s, Vector2d g, const vector<vector<double
     return {minx, miny};
 }
 
-vector<vector<int>> get_motion_model(void)
-{
-    vector<vector<int>> motion = {{1, 0}, {0, 1}, {-1, 0}, {0, -1},
-                                {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+vector<vector<int>> get_motion_model(void) {
+    vector<vector<int>> motion = {{1, 0},   {0, 1},  {-1, 0}, {0, -1},
+                                  {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
     return motion;
 }
 
-bool oscillations_detection(std::queue<Vector2i> previous_ids, Vector2i ixy)
-{
+bool oscillations_detection(std::queue<Vector2i> previous_ids, Vector2i ixy) {
     previous_ids.emplace(ixy);
     int ids_size = previous_ids.size();
 
@@ -105,13 +100,13 @@ bool oscillations_detection(std::queue<Vector2i> previous_ids, Vector2i ixy)
         }
         previous_ids.emplace(tmp);
     }
-    
+
     return false;
 }
 
 vector<vector<double>> potential_field_planning(Vector2d start, Vector2d goal,
-                    const vector<vector<double>>& obs, double reso, double rr)
-{
+                                                const vector<vector<double>>& obs, double reso,
+                                                double rr) {
     vector<vector<double>> pmap;
     Vector2d minxy = calc_potential_field(start, goal, obs, reso, rr, pmap);
     double d = hypot(start[0] - goal[0], start[1] - goal[1]);
@@ -179,7 +174,7 @@ vector<vector<double>> potential_field_planning(Vector2d start, Vector2d goal,
         path[1].push_back(yp);
 
         if (oscillations_detection(previous_ids, {ix, iy})) {
-            fmt::print("Oscillation detected at ({},{})!\n",ix, iy);
+            fmt::print("Oscillation detected at ({},{})!\n", ix, iy);
             break;
         }
 
@@ -193,14 +188,12 @@ vector<vector<double>> potential_field_planning(Vector2d start, Vector2d goal,
     return path;
 }
 
-int main (int argc, char** argv)
-{
+int main(int argc, char** argv) {
     Vector2d start(0, 10);
     Vector2d goal(30, 30);
     double grid_size = 0.5;
     double robot_radius = 5.0;
-    vector<vector<double>> obstacles = {{15.0, 5.0, 20.0, 25.0}, 
-                                        {25.0, 15.0, 26.0, 25.0}};
+    vector<vector<double>> obstacles = {{15.0, 5.0, 20.0, 25.0}, {25.0, 15.0, 26.0, 25.0}};
 
     utils::TicToc t_m;
     potential_field_planning(start, goal, obstacles, grid_size, robot_radius);

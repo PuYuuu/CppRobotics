@@ -2,13 +2,11 @@
 #ifndef __QUINTIC_POLYNOMIAL_HPP
 #define __QUINTIC_POLYNOMIAL_HPP
 
+#include <Eigen/Core>
+#include <Eigen/Eigen>
 #include <cmath>
 
-#include <Eigen/Eigen>
-#include <Eigen/Core>
-
-class QuinticPolynomial
-{
+class QuinticPolynomial {
 private:
     double a0;
     double a1;
@@ -16,16 +14,17 @@ private:
     double a3;
     double a4;
     double a5;
+
 public:
-    QuinticPolynomial(double xs, double vxs, double axs, double xe, double vxe, double axe, double time) {
+    QuinticPolynomial(double xs, double vxs, double axs, double xe, double vxe, double axe,
+                      double time) {
         a0 = xs;
         a1 = vxs;
         a2 = axs / 2.0;
 
         Eigen::Matrix3d A;
-        A << pow(time, 3), pow(time, 4), pow(time, 5),
-            3 * pow(time, 2), 4 * pow(time, 3), 5 * pow(time, 4),
-            6 * time, 12 * pow(time, 2), 20 * pow(time, 3);
+        A << pow(time, 3), pow(time, 4), pow(time, 5), 3 * pow(time, 2), 4 * pow(time, 3),
+            5 * pow(time, 4), 6 * time, 12 * pow(time, 2), 20 * pow(time, 3);
         Eigen::Vector3d b;
         b << xe - a0 - a1 * time - a2 * pow(time, 2), vxe - a1 - 2 * a2 * time, axe - 2 * a2;
 

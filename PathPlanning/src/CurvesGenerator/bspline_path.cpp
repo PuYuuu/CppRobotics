@@ -1,24 +1,23 @@
-#include <cmath>
-#include <vector>
-#include <string>
-
-#include <Eigen/Core>
 #include <fmt/core.h>
 
-#include "utils.hpp"
+#include <Eigen/Core>
+#include <cmath>
+#include <string>
+#include <vector>
+
 #include "matplotlibcpp.h"
+#include "utils.hpp"
 
 using std::vector;
 using namespace Eigen;
 namespace plt = matplotlibcpp;
 
-enum class Type { Uniform, QUniform};
+enum class Type { Uniform, QUniform };
 
 // There are problems in calculating the first and second
 // derivativesin non-equidistant sequences.
-void plot_curvature(const vector<vector<double>>& path,
-    std::string style = "-c", std::string label = "Curvature")
-{
+void plot_curvature(const vector<vector<double>>& path, std::string style = "-c",
+                    std::string label = "Curvature") {
     size_t size = path[0].size();
     vector<double> first_order;
     // vector<double> second_order;
@@ -26,8 +25,7 @@ void plot_curvature(const vector<vector<double>>& path,
     vector<double> curvature;
 
     for (size_t idx = 0; idx < size - 1; ++idx) {
-        double dydx = (path[1][idx + 1] - path[1][idx]) /
-                        (path[0][idx + 1] - path[0][idx]);
+        double dydx = (path[1][idx + 1] - path[1][idx]) / (path[0][idx + 1] - path[0][idx]);
         first_order.emplace_back(dydx);
         yaw.emplace_back(atan(dydx));
     }
@@ -36,7 +34,7 @@ void plot_curvature(const vector<vector<double>>& path,
 
     for (size_t idx = 1; idx < size - 1; ++idx) {
         double ddyddx = (path[1][idx + 1] - 2 * path[1][idx] + path[1][idx - 1]) /
-            ((path[0][idx + 1] - path[0][idx]) * (path[0][idx + 1] - path[0][idx]));
+                        ((path[0][idx + 1] - path[0][idx]) * (path[0][idx + 1] - path[0][idx]));
         // second_order.emplace_back(ddyddx);
         curvature.emplace_back(abs(ddyddx) / pow((1 + pow(first_order[idx], 2)), 1.5));
     }
@@ -55,8 +53,7 @@ void plot_curvature(const vector<vector<double>>& path,
     }
 }
 
-double bspline_bfunc(int i, int k, double uu, const vector<double>& u)
-{
+double bspline_bfunc(int i, int k, double uu, const vector<double>& u) {
     double bfunc = 0.0;
     if (k == 1) {
         if (u[i] <= uu && uu < u[i + 1]) {
@@ -80,15 +77,13 @@ double bspline_bfunc(int i, int k, double uu, const vector<double>& u)
             B = (u[i + k] - uu) / (u[i + k] - u[i + 1]);
         }
 
-        bfunc = A * bspline_bfunc(i, k - 1, uu, u) +
-                B * bspline_bfunc(i + 1, k - 1, uu, u);
+        bfunc = A * bspline_bfunc(i, k - 1, uu, u) + B * bspline_bfunc(i + 1, k - 1, uu, u);
     }
 
     return bfunc;
 }
 
-vector<vector<double>> plan_Bspline_path(int k, Type _type, vector<vector<double>> p)
-{
+vector<vector<double>> plan_Bspline_path(int k, Type _type, vector<vector<double>> p) {
     double delta_u = 0.01;
     int order = k;
     int n = p[0].size() - 1;
@@ -145,10 +140,8 @@ vector<vector<double>> plan_Bspline_path(int k, Type _type, vector<vector<double
     return path;
 }
 
-int main(int argc, char** argv)
-{
-    vector<vector<double>> way_point = {{0., 3., 6., 2., 1., 4.},
-                                        {0., -3., 0., 1., 3., 4.}};
+int main(int argc, char** argv) {
+    vector<vector<double>> way_point = {{0., 3., 6., 2., 1., 4.}, {0., -3., 0., 1., 3., 4.}};
 
     vector<vector<double>> path = plan_Bspline_path(3, Type::QUniform, way_point);
 

@@ -2,25 +2,24 @@
 #ifndef __QUARTIC_POLYNOMIAL_HPP
 #define __QUARTIC_POLYNOMIAL_HPP
 
+#include <Eigen/Core>
+#include <Eigen/Eigen>
 #include <cmath>
 
-#include <Eigen/Eigen>
-#include <Eigen/Core>
-
-class QuarticPolynomial
-{
+class QuarticPolynomial {
 private:
     double a0;
     double a1;
     double a2;
     double a3;
     double a4;
+
 public:
     QuarticPolynomial(double xs, double vxs, double axs, double vxe, double axe, double time) {
         a0 = xs;
         a1 = vxs;
         a2 = axs / 2.0;
-        
+
         Eigen::Matrix2d A;
         A << 3 * pow(time, 2), 4 * pow(time, 3), 6 * time, 12 * pow(time, 2);
         Eigen::Vector2d b;

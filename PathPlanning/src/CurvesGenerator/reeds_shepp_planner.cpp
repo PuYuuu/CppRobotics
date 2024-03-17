@@ -1,19 +1,19 @@
+#include <fmt/core.h>
+
+#include <Eigen/Core>
 #include <cmath>
 #include <string>
-#include <fmt/core.h>
-#include <Eigen/Core>
 
-#include "utils.hpp"
 #include "matplotlibcpp.h"
 #include "reeds_shepp_path.hpp"
+#include "utils.hpp"
 
 using std::string;
 using namespace Eigen;
 namespace plt = matplotlibcpp;
 constexpr bool show_animation = true;
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     Vector3d start(-10.0, -10.0, M_PI_4);
     Vector3d goal(0., 0., -M_PI_2);
     double curvature = 0.1;

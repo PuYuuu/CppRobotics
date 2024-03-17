@@ -1,14 +1,14 @@
-#include <cmath>
-#include <vector>
-#include <string>
-#include <algorithm>
-
 #include <fmt/core.h>
-#include <Eigen/Eigen>
 
-#include "utils.hpp"
-#include "matplotlibcpp.h"
+#include <Eigen/Eigen>
+#include <algorithm>
+#include <cmath>
+#include <string>
+#include <vector>
+
 #include "PathPlanning/include/cubic_spline.hpp"
+#include "matplotlibcpp.h"
+#include "utils.hpp"
 
 using std::vector;
 using namespace Eigen;
@@ -18,12 +18,11 @@ constexpr double DT = 0.1;
 constexpr double MAX_SIM_TIME = 100.0;
 constexpr bool show_animation = true;
 
-double k = 0.5;     // control gain
-double Kp = 1.0;    // speed proportional gain
+double k = 0.5;   // control gain
+double Kp = 1.0;  // speed proportional gain
 
 std::pair<size_t, double> calc_target_index(const utils::VehicleState& state,
-    const vector<double>& cx, const vector<double>& cy)
-{
+                                            const vector<double>& cx, const vector<double>& cy) {
     double fx = state.x + (state.vc.RF) * cos(state.yaw);
     double fy = state.y + (state.vc.RF) * sin(state.yaw);
     double min_d = std::numeric_limits<double>::max();
@@ -47,9 +46,9 @@ std::pair<size_t, double> calc_target_index(const utils::VehicleState& state,
     return std::make_pair(target_idx, error_front_axle);
 }
 
-double stanley_control(const utils::VehicleState& state, const vector<double>& cx, 
-    const vector<double>& cy, const vector<double>& cyaw, size_t& last_target_idx)
-{
+double stanley_control(const utils::VehicleState& state, const vector<double>& cx,
+                       const vector<double>& cy, const vector<double>& cyaw,
+                       size_t& last_target_idx) {
     auto _target = calc_target_index(state, cx, cy);
     size_t current_target_idx = _target.first;
     double error_front_axle = _target.second;
@@ -67,8 +66,7 @@ double stanley_control(const utils::VehicleState& state, const vector<double>& c
     return delta;
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     vector<double> ax = {0.0, 50.0, 50.0, 25.0, 30.0};
     vector<double> ay = {0.0, 0.0, -15.0, -10.0, 0.0};
     vector<vector<double>> c = CubicSpline2D::calc_spline_course(ax, ay, 0.1);
@@ -111,7 +109,8 @@ int main(int argc, char** argv)
             plt::legend();
             plt::axis("equal");
             plt::grid(true);
-            plt::title("Stanley Controller Speed [km/h]:" + std::to_string(state.v * 3.6).substr(0, 5));
+            plt::title("Stanley Controller Speed [km/h]:" +
+                       std::to_string(state.v * 3.6).substr(0, 5));
             plt::pause(0.001);
         }
     }

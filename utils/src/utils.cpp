@@ -1,14 +1,14 @@
 #include "utils.hpp"
-#include "matplotlibcpp.h"
 
 #include <fmt/core.h>
+
+#include "matplotlibcpp.h"
 
 using std::string;
 using namespace Eigen;
 namespace plt = matplotlibcpp;
 
-static void plot(VectorXd vec_x, VectorXd vec_y, std::string style)
-{
+static void plot(VectorXd vec_x, VectorXd vec_y, std::string style) {
     std::vector<double> x;
     std::vector<double> y;
     double* x_pointer = vec_x.data();
@@ -21,8 +21,7 @@ static void plot(VectorXd vec_x, VectorXd vec_y, std::string style)
 
 namespace utils {
 
-void draw_arrow(double x, double y, double theta, double L, std::string color)
-{
+void draw_arrow(double x, double y, double theta, double L, std::string color) {
     double angle = M_PI / 6;
     double d = 0.3 * L;
 
@@ -47,15 +46,12 @@ void draw_arrow(double x, double y, double theta, double L, std::string color)
     plt::plot({x_hat_start, x_hat_end_R}, {y_hat_start, y_hat_end_R}, color);
 }
 
-void draw_vehicle(Vector3d state, double steer,
-    VehicleConfig c, string color, bool show_wheel, bool show_arrow)
-{
+void draw_vehicle(Vector3d state, double steer, VehicleConfig c, string color, bool show_wheel,
+                  bool show_arrow) {
     Matrix<double, 2, 5> vehicle;
     Matrix<double, 2, 5> wheel;
-    vehicle << -c.RB, -c.RB, c.RF, c.RF, -c.RB,
-                c.W / 2, -c.W / 2, -c.W / 2, c.W / 2, c.W / 2;
-    wheel << -c.TR, -c.TR, c.TR, c.TR, -c.TR,
-            c.TW / 4, -c.TW / 4, -c.TW / 4, c.TW / 4, c.TW / 4;
+    vehicle << -c.RB, -c.RB, c.RF, c.RF, -c.RB, c.W / 2, -c.W / 2, -c.W / 2, c.W / 2, c.W / 2;
+    wheel << -c.TR, -c.TR, c.TR, c.TR, -c.TR, c.TW / 4, -c.TW / 4, -c.TW / 4, c.TW / 4, c.TW / 4;
 
     Matrix<double, 2, 5> rlWheel = wheel;
     Matrix<double, 2, 5> rrWheel = wheel;
@@ -78,23 +74,23 @@ void draw_vehicle(Vector3d state, double steer,
     if (show_wheel) {
         frWheel = rot2 * frWheel;
         flWheel = rot2 * flWheel;
-    
+
         frWheel += Vector2d(c.WB, -c.WD / 2).replicate(1, 5);
         flWheel += Vector2d(c.WB, c.WD / 2).replicate(1, 5);
-    
+
         rrWheel.row(1) -= VectorXd::Constant(5, c.WD / 2);
         rlWheel.row(1) += VectorXd::Constant(5, c.WD / 2);
-    
+
         frWheel = rot1 * frWheel;
         flWheel = rot1 * flWheel;
         rrWheel = rot1 * rrWheel;
         rlWheel = rot1 * rlWheel;
-        
+
         frWheel += Vector2d(state[0], state[1]).replicate(1, 5);
         flWheel += Vector2d(state[0], state[1]).replicate(1, 5);
         rrWheel += Vector2d(state[0], state[1]).replicate(1, 5);
         rlWheel += Vector2d(state[0], state[1]).replicate(1, 5);
-        
+
         plot(frWheel.row(0), frWheel.row(1), color);
         plot(flWheel.row(0), flWheel.row(1), color);
         plot(rrWheel.row(0), rrWheel.row(1), color);
@@ -105,17 +101,14 @@ void draw_vehicle(Vector3d state, double steer,
     }
 }
 
-void draw_trailer(Vector4d state, double steer,
-    VehicleConfig c, string color, bool show_wheel, bool show_arrow)
-{
+void draw_trailer(Vector4d state, double steer, VehicleConfig c, string color, bool show_wheel,
+                  bool show_arrow) {
     draw_vehicle(state.head<3>(), steer, c, color, show_wheel, show_arrow);
 
     Matrix<double, 2, 5> trail;
     Matrix<double, 2, 5> wheel;
-    trail << -c.RTB, -c.RTB, c.RTF, c.RTF, -c.RTB,
-             c.W / 2, -c.W / 2, -c.W / 2, c.W / 2, c.W / 2;
-    wheel << -c.TR, -c.TR, c.TR, c.TR, -c.TR,
-            c.TW / 4, -c.TW / 4, -c.TW / 4, c.TW / 4, c.TW / 4;
+    trail << -c.RTB, -c.RTB, c.RTF, c.RTF, -c.RTB, c.W / 2, -c.W / 2, -c.W / 2, c.W / 2, c.W / 2;
+    wheel << -c.TR, -c.TR, c.TR, c.TR, -c.TR, c.TW / 4, -c.TW / 4, -c.TW / 4, c.TW / 4, c.TW / 4;
     Matrix<double, 2, 5> rltWheel = wheel;
     Matrix<double, 2, 5> rrtWheel = wheel;
 
@@ -138,8 +131,7 @@ void draw_trailer(Vector4d state, double steer,
     }
 }
 
-void VehicleState::update(double acc, double delta, double dt)
-{
+void VehicleState::update(double acc, double delta, double dt) {
     if (delta > vc.MAX_STEER) {
         delta = vc.MAX_STEER;
     }
@@ -159,12 +151,11 @@ void VehicleState::update(double acc, double delta, double dt)
     }
 }
 
-double VehicleState::calc_distance(double point_x, double point_y)
-{
+double VehicleState::calc_distance(double point_x, double point_y) {
     double dx = x - point_x;
     double dy = y - point_y;
-    
-    return hypot(dx, dy);
-} 
 
+    return hypot(dx, dy);
 }
+
+}  // namespace utils

@@ -1,14 +1,14 @@
-#include <cmath>
-#include <limits>
-#include <vector>
-#include <string>
-
-#include <Eigen/Core>
 #include <fmt/core.h>
 
-#include "utils.hpp"
-#include "matplotlibcpp.h"
+#include <Eigen/Core>
+#include <cmath>
+#include <limits>
+#include <string>
+#include <vector>
+
 #include "PathPlanning/include/cubic_spline.hpp"
+#include "matplotlibcpp.h"
+#include "utils.hpp"
 
 using std::vector;
 using namespace Eigen;
@@ -19,8 +19,7 @@ constexpr double GOAL_DIS = 0.3;
 constexpr double DT = 0.1;
 constexpr bool show_animation = true;
 
-class TrajectoryAnalyzer
-{
+class TrajectoryAnalyzer {
 private:
     vector<double> x;
     vector<double> y;
@@ -28,6 +27,7 @@ private:
     vector<double> k;
     size_t ind_old;
     size_t ind_end;
+
 public:
     TrajectoryAnalyzer() {}
     TrajectoryAnalyzer(vector<double> _x, vector<double> _y, vector<double> _yaw, vector<double> _k)
@@ -37,8 +37,7 @@ public:
     Vector4d to_trajectory_frame(const utils::VehicleState& state);
 };
 
-Vector4d TrajectoryAnalyzer::to_trajectory_frame(const utils::VehicleState& vehicle_state)
-{
+Vector4d TrajectoryAnalyzer::to_trajectory_frame(const utils::VehicleState& vehicle_state) {
     double x_cg = vehicle_state.x;
     double y_cg = vehicle_state.y;
     double cyaw = vehicle_state.yaw;
@@ -73,8 +72,7 @@ Vector4d TrajectoryAnalyzer::to_trajectory_frame(const utils::VehicleState& vehi
     return ret;
 }
 
-class LatController
-{
+class LatController {
 private:
     double dt;
     double e_cg_old;
@@ -84,6 +82,7 @@ private:
     MatrixXd B;
     MatrixXd Q;
     MatrixXd R;
+
 public:
     explicit LatController(double _dt = 0.1) : dt(_dt), e_cg_old(0), theta_e_old(0) {
         A = Matrix4d::Zero();
@@ -100,14 +99,13 @@ public:
     LatController() = delete;
     ~LatController() {}
 
-    double compute_input(
-        const utils::VehicleState& vehicle_state, TrajectoryAnalyzer& ref_trajectory);
+    double compute_input(const utils::VehicleState& vehicle_state,
+                         TrajectoryAnalyzer& ref_trajectory);
     MatrixXd solve_LQR(double tolerance = 0.01, size_t max_iter = 150);
 };
 
-double LatController::compute_input(
-        const utils::VehicleState& vehicle_state, TrajectoryAnalyzer& ref_trajectory)
-{
+double LatController::compute_input(const utils::VehicleState& vehicle_state,
+                                    TrajectoryAnalyzer& ref_trajectory) {
     Vector4d traj_vec = ref_trajectory.to_trajectory_frame(vehicle_state);
     double theta_e = traj_vec[0];
     double e_cg = traj_vec[1];
@@ -124,22 +122,23 @@ double LatController::compute_input(
     double steer_angle_feedback = utils::pi_2_pi(ustar(0, 0));
     double steer_angle_feedforward = atan2(vehicle_state.vc.WB * k_ref, 1);
     double steer_angle = steer_angle_feedback + steer_angle_feedforward;
-    
+
     e_cg_old = e_cg;
     theta_e_old = theta_e;
 
     return steer_angle;
 }
 
-MatrixXd LatController::solve_LQR(double tolerance, size_t max_iter)
-{
+MatrixXd LatController::solve_LQR(double tolerance, size_t max_iter) {
     MatrixXd P = Q;
     MatrixXd P_next = Q;
 
     // solve a Discrete-time Algebraic Riccati Equation
     for (size_t i = 0; i < max_iter; ++i) {
-        P_next = A.transpose() * P * A - A.transpose() * P * B * 
-            (R + B.transpose() * P * B).inverse() * B.transpose() * P * A + Q;
+        P_next =
+            A.transpose() * P * A -
+            A.transpose() * P * B * (R + B.transpose() * P * B).inverse() * B.transpose() * P * A +
+            Q;
 
         if ((P_next - P).array().abs().maxCoeff() < tolerance) {
             P = P_next;
@@ -153,20 +152,21 @@ MatrixXd LatController::solve_LQR(double tolerance, size_t max_iter)
     return K;
 }
 
-class LonController
-{
+class LonController {
 private:
     double kp;
+
 public:
     explicit LonController(double _kp = 0.3) : kp(_kp) {}
     LonController() = delete;
     ~LonController() {}
 
-    double compute_input(double target_speed, const utils::VehicleState& vehicle_state, double dist);
+    double compute_input(double target_speed, const utils::VehicleState& vehicle_state,
+                         double dist);
 };
 
-double LonController::compute_input(double target_speed, const utils::VehicleState& vehicle_state, double dist)
-{
+double LonController::compute_input(double target_speed, const utils::VehicleState& vehicle_state,
+                                    double dist) {
     // Longitudinal Controller using PID
     // Currently, the planned path is not converted to the frenet coordinate,
     // and this is not a longitudinal control in the frenet coordinate.
@@ -184,8 +184,7 @@ double LonController::compute_input(double target_speed, const utils::VehicleSta
     return accel;
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     vector<double> ax = {0.0, 10., 16., 20.0, 14., 4, 8};
     vector<double> ay = {0.0, -4., 2., 4.0, 12., 8, 4};
     Vector2d goal(ax.back(), ay.back());
@@ -200,7 +199,7 @@ int main(int argc, char** argv)
     LatController lat_controller(DT);
     LonController lon_controller(0.3);
     TrajectoryAnalyzer ref_trajectory(traj[0], traj[1], traj[2], traj[3]);
-    
+
     vector<double> x = {state.x};
     vector<double> y = {state.y};
     vector<double> yaw = {state.yaw};
@@ -227,9 +226,9 @@ int main(int argc, char** argv)
             plt::named_plot("course", traj[0], traj[1], "-r");
             plt::named_plot("trajectory", x, y, "-b");
             utils::draw_vehicle({state.x, state.y, state.yaw}, steer, vc);
-            
+
             plt::title("LQR with frenet frame Speed [km/h]: " +
-                            std::to_string(round(state.v * 3.6)).substr(0, 4));
+                       std::to_string(round(state.v * 3.6)).substr(0, 4));
             plt::axis("equal");
             plt::legend({{"loc", "upper left"}});
             plt::grid(true);

@@ -2,16 +2,15 @@
 #ifndef __UTILS_HPP
 #define __UTILS_HPP
 
-#include <chrono>
-#include <vector>
-#include <string>
-#include <numeric>
-#include <climits>
-#include <algorithm>
-
 #include <Eigen/Core>
+#include <algorithm>
+#include <chrono>
+#include <climits>
+#include <numeric>
+#include <string>
+#include <vector>
 
-enum class Gear {GEAR_DRIVE, GEAR_REVERSE};
+enum class Gear { GEAR_DRIVE, GEAR_REVERSE };
 
 namespace utils {
 
@@ -25,29 +24,23 @@ int sign(T num) {
 }
 
 template <typename T>
-Eigen::Matrix3d transformation_matrix2d(T x, T y, T theta)
-{
+Eigen::Matrix3d transformation_matrix2d(T x, T y, T theta) {
     Eigen::Matrix3d trans;
-    trans << cos(theta), -sin(theta), x, 
-            sin(theta), cos(theta), y, 
-            0, 0, 1;
-    
+    trans << cos(theta), -sin(theta), x, sin(theta), cos(theta), y, 0, 0, 1;
+
     return trans;
 }
 
 template <typename T>
-Eigen::Matrix2d rotation_matrix2d(T theta)
-{
+Eigen::Matrix2d rotation_matrix2d(T theta) {
     Eigen::Matrix2d rotation;
-    rotation << cos(theta), -sin(theta), 
-            sin(theta), cos(theta);
-    
+    rotation << cos(theta), -sin(theta), sin(theta), cos(theta);
+
     return rotation;
 }
 
 template <typename T>
-double pi_2_pi(T theta)
-{
+double pi_2_pi(T theta) {
     while (theta > M_PI) {
         theta -= 2.0 * M_PI;
     }
@@ -59,8 +52,7 @@ double pi_2_pi(T theta)
 }
 
 template <typename T>
-T max(std::vector<T> vec)
-{
+T max(std::vector<T> vec) {
     int size = vec.size();
     assert(size > 0);
 
@@ -70,13 +62,12 @@ T max(std::vector<T> vec)
             ret = vec[idx];
         }
     }
-    
+
     return ret;
 }
 
 template <typename T>
-T min(std::vector<T> vec)
-{
+T min(std::vector<T> vec) {
     int size = vec.size();
     assert(size > 0);
 
@@ -86,27 +77,25 @@ T min(std::vector<T> vec)
             ret = vec[idx];
         }
     }
-    
+
     return ret;
 }
 
 template <typename T>
-std::vector<T> diff(const std::vector<T>& vec)
-{
+std::vector<T> diff(const std::vector<T>& vec) {
     std::vector<T> ret;
     for (size_t idx = 1; idx < vec.size(); ++idx) {
         ret.push_back(vec[idx] - vec[idx - 1]);
     }
-    
+
     return ret;
 }
 
 template <typename T>
-std::vector<T> cumsum(std::vector<T> vec)
-{
+std::vector<T> cumsum(std::vector<T> vec) {
     std::vector<T> output;
     T tmp = 0;
-    for(size_t idx = 0; idx < vec.size(); ++idx) {
+    for (size_t idx = 0; idx < vec.size(); ++idx) {
         tmp += vec[idx];
         output.push_back(tmp);
     }
@@ -115,10 +104,9 @@ std::vector<T> cumsum(std::vector<T> vec)
 }
 
 template <typename T>
-int search_index(std::vector<T> nums, T target)
-{
+int search_index(std::vector<T> nums, T target) {
     int left = 0, right = nums.size() - 1;
-    while(left <= right){
+    while (left <= right) {
         int mid = (right - left) / 2 + left;
         int num = nums[mid];
         if (num == target) {
@@ -134,8 +122,7 @@ int search_index(std::vector<T> nums, T target)
 }
 
 template <typename T>
-double variance(const std::vector<T>& data) 
-{
+double variance(const std::vector<T>& data) {
     if (data.empty()) {
         return 0.0;
     }
@@ -151,16 +138,11 @@ double variance(const std::vector<T>& data)
     return variance;
 }
 
-class TicToc
-{
+class TicToc {
 public:
-    TicToc(void) {
-        tic();
-    }
+    TicToc(void) { tic(); }
 
-    void tic(void) {
-        start = std::chrono::system_clock::now();
-    }
+    void tic(void) { start = std::chrono::system_clock::now(); }
 
     double toc(void) {
         end = std::chrono::system_clock::now();
@@ -172,8 +154,7 @@ private:
     std::chrono::time_point<std::chrono::system_clock> start, end;
 };
 
-class VehicleConfig
-{
+class VehicleConfig {
 public:
     double RF;  // [m] distance from rear to vehicle front end of vehicle
     double RB;  // [m] distance from rear to vehicle back end of vehicle
@@ -186,33 +167,49 @@ public:
     double MAX_SPEED = 55.0 / 3.6;
     double MIN_SPEED = -20.0 / 3.6;
     // Trailer
-    double RTR; // [m] rear to trailer wheel
-    double RTF; // [m] distance from rear to vehicle front end of trailer
-    double RTB; // [m] distance from rear to vehicle back end of trailer
+    double RTR;  // [m] rear to trailer wheel
+    double RTF;  // [m] distance from rear to vehicle front end of trailer
+    double RTB;  // [m] distance from rear to vehicle back end of trailer
 
-    VehicleConfig(double scale = 1.0) :
-        RF(3.3), RB(0.8), W(2.4), WB(2.5), TR(0.44), TW(0.7), 
-        MAX_STEER(0.6), RTR(8.0), RTF(1.0), RTB(9.0) {
+    VehicleConfig(double scale = 1.0)
+        : RF(3.3),
+          RB(0.8),
+          W(2.4),
+          WB(2.5),
+          TR(0.44),
+          TW(0.7),
+          MAX_STEER(0.6),
+          RTR(8.0),
+          RTF(1.0),
+          RTB(9.0) {
         WD = 0.7 * W;
-        
+
         RF *= scale;
         RB *= scale;
-        W  *= scale;
+        W *= scale;
         WD *= scale;
         WB *= scale;
         TR *= scale;
         TW *= scale;
     }
-    VehicleConfig(double rf, double rb, double w = 2.4, double wb = 2.5,
-        double tr = 0.44, double tw = 0.7, double max_steer = 0.6, 
-        double rtr = 8.0, double rtf = 1.0, double rtb = 9.0) :
-        RF(rf), RB(rb), W(w), WB(wb), TR(tr), TW(tw), 
-        MAX_STEER(max_steer), RTR(rtr), RTF(rtf), RTB(rtb) {
+    VehicleConfig(double rf, double rb, double w = 2.4, double wb = 2.5, double tr = 0.44,
+                  double tw = 0.7, double max_steer = 0.6, double rtr = 8.0, double rtf = 1.0,
+                  double rtb = 9.0)
+        : RF(rf),
+          RB(rb),
+          W(w),
+          WB(wb),
+          TR(tr),
+          TW(tw),
+          MAX_STEER(max_steer),
+          RTR(rtr),
+          RTF(rtf),
+          RTB(rtb) {
         WD = 0.7 * W;
     }
 
     VehicleConfig(const VehicleConfig& other) {
-        RF = other.RF;  
+        RF = other.RF;
         RB = other.RB;
         W = other.W;
         WD = other.WD;
@@ -221,7 +218,7 @@ public:
         TW = other.TW;
         MAX_STEER = other.MAX_STEER;
         MAX_SPEED = other.MAX_SPEED;
-        MIN_SPEED = other.MIN_SPEED; 
+        MIN_SPEED = other.MIN_SPEED;
         RTR = other.RTR;
         RTF = other.RTF;
         RTB = other.RTB;
@@ -229,7 +226,7 @@ public:
 
     VehicleConfig& operator=(const VehicleConfig& other) {
         if (this != &other) {
-            RF = other.RF;  
+            RF = other.RF;
             RB = other.RB;
             W = other.W;
             WD = other.WD;
@@ -238,7 +235,7 @@ public:
             TW = other.TW;
             MAX_STEER = other.MAX_STEER;
             MAX_SPEED = other.MAX_SPEED;
-            MIN_SPEED = other.MIN_SPEED; 
+            MIN_SPEED = other.MIN_SPEED;
             RTR = other.RTR;
             RTF = other.RTF;
             RTB = other.RTB;
@@ -249,8 +246,7 @@ public:
     ~VehicleConfig() {}
 };
 
-class VehicleState
-{
+class VehicleState {
 public:
     double x;
     double y;
@@ -261,44 +257,44 @@ public:
 
     VehicleState() = delete;
 
-    VehicleState(VehicleConfig _vc, double _x = 0., double _y = 0.,
-        double _yaw = 0., double _v = 0.) : vc(_vc), x(_x), y(_y),
-        yaw(_yaw), v(_v), gear(Gear::GEAR_DRIVE) {}
-    
+    VehicleState(VehicleConfig _vc, double _x = 0., double _y = 0., double _yaw = 0.,
+                 double _v = 0.)
+        : vc(_vc), x(_x), y(_y), yaw(_yaw), v(_v), gear(Gear::GEAR_DRIVE) {}
+
     VehicleState(const VehicleState& other) {
-        x = other.x;  
+        x = other.x;
         y = other.y;
-        yaw  = other.yaw;
-        v    = other.v;
+        yaw = other.yaw;
+        v = other.v;
         gear = other.gear;
-        vc   = other.vc;
+        vc = other.vc;
     }
     VehicleState& operator=(const VehicleState& other) {
         if (this != &other) {
-            x = other.x;  
+            x = other.x;
             y = other.y;
-            yaw  = other.yaw;
-            v    = other.v;
+            yaw = other.yaw;
+            v = other.v;
             gear = other.gear;
-            vc   = other.vc;
+            vc = other.vc;
         }
         return *this;
     }
 
     ~VehicleState() {}
-    
+
     void update(double acc, double delta, double dt = 0.1);
     double calc_distance(double point_x, double point_y);
 };
 
 void draw_arrow(double x, double y, double theta, double L, std::string color);
 
-void draw_vehicle(Eigen::Vector3d state, double steer, VehicleConfig c,
-    std::string color="-k", bool show_wheel = true, bool show_arrow = true);
+void draw_vehicle(Eigen::Vector3d state, double steer, VehicleConfig c, std::string color = "-k",
+                  bool show_wheel = true, bool show_arrow = true);
 
-void draw_trailer(Eigen::Vector4d state, double steer, VehicleConfig c,
-    std::string color="-k", bool show_wheel = true, bool show_arrow = true);
+void draw_trailer(Eigen::Vector4d state, double steer, VehicleConfig c, std::string color = "-k",
+                  bool show_wheel = true, bool show_arrow = true);
 
-}
+}  // namespace utils
 
 #endif

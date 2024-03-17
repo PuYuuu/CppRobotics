@@ -1,23 +1,22 @@
+#include <fmt/core.h>
+
+#include <Eigen/Core>
 #include <cmath>
-#include <vector>
 #include <random>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
-#include <fmt/core.h>
-#include <Eigen/Core>
-
-#include "utils.hpp"
 #include "matplotlibcpp.h"
+#include "utils.hpp"
 
-using std::vector;
 using std::string;
+using std::vector;
 using namespace Eigen;
 namespace plt = matplotlibcpp;
 constexpr bool show_animation = true;
 
-class Node
-{
+class Node {
 public:
     double x;
     double y;
@@ -25,13 +24,12 @@ public:
     int parent_index;
 
     Node() {}
-    Node(double _x, double _y, double _cost = 0., int parent = -1) :
-        x(_x), y(_y), cost(_cost), parent_index(parent) {}
+    Node(double _x, double _y, double _cost = 0., int parent = -1)
+        : x(_x), y(_y), cost(_cost), parent_index(parent) {}
     ~Node() {}
 };
 
-class PRM
-{
+class PRM {
 private:
     Vector2d start;
     Vector2d goal;
@@ -45,15 +43,14 @@ private:
 
     bool check_collision(Vector2d node);
     bool check_collision(Vector2d node1, Vector2d node2);
-    vector<vector<double>> calc_final_path( const vector<vector<double>>& vertex,
-                                            const vector<vector<double>>& edge);
-    void plot_road_map( const vector<vector<double>>& vertex,
-                        const vector<vector<double>>& edge);
-    void plot_circle(double x, double y, double size,
-                    bool is_fill = false, string style = "-b");
+    vector<vector<double>> calc_final_path(const vector<vector<double>>& vertex,
+                                           const vector<vector<double>>& edge);
+    void plot_road_map(const vector<vector<double>>& vertex, const vector<vector<double>>& edge);
+    void plot_circle(double x, double y, double size, bool is_fill = false, string style = "-b");
+
 public:
-    PRM(Vector2d _start, Vector2d _goal, vector<vector<double>> obs,
-        Vector2d rand_area, double _robot_radius = 1., int _sample_num = 160) {
+    PRM(Vector2d _start, Vector2d _goal, vector<vector<double>> obs, Vector2d rand_area,
+        double _robot_radius = 1., int _sample_num = 160) {
         start = _start;
         goal = _goal;
         obstacle_list = obs;
@@ -65,12 +62,11 @@ public:
         engine.seed(seed());
     }
     ~PRM() {}
-    
+
     vector<vector<double>> planning(void);
 };
 
-vector<vector<double>> PRM::planning(void)
-{
+vector<vector<double>> PRM::planning(void) {
     vector<vector<double>> vertex = {{start[0], goal[0]}, {start[1], goal[1]}};
 
     if (show_animation) {
@@ -88,7 +84,7 @@ vector<vector<double>> PRM::planning(void)
             vertex[0].push_back(rnd[0]);
             vertex[1].push_back(rnd[1]);
         }
-        if (show_animation && vertex[0].size() % 10 == 0) { 
+        if (show_animation && vertex[0].size() % 10 == 0) {
             plt::plot(vertex[0], vertex[1], ".b");
             plt::pause(0.02);
         }
@@ -115,9 +111,8 @@ vector<vector<double>> PRM::planning(void)
 }
 
 // Use dijkstra to implement single source shortest path search
-vector<vector<double>> PRM::calc_final_path(
-    const vector<vector<double>>& vertex, const vector<vector<double>>& edge)
-{
+vector<vector<double>> PRM::calc_final_path(const vector<vector<double>>& vertex,
+                                            const vector<vector<double>>& edge) {
     bool path_found = true;
     vector<vector<double>> path(2);
     Node start_node(vertex[0][0], vertex[1][0], 1000, -1);
@@ -145,11 +140,10 @@ vector<vector<double>> PRM::calc_final_path(
         if (c_id == 1) {
             break;
         }
-        
+
         for (int idx = 0; idx < edge.size(); ++idx) {
             if (edge[c_id][idx] > 0 && idx != c_id) {
-                Node node(vertex[0][idx], vertex[1][idx],
-                        current.cost + edge[c_id][idx], c_id);
+                Node node(vertex[0][idx], vertex[1][idx], current.cost + edge[c_id][idx], c_id);
                 if (closed_set.find(idx) != closed_set.end()) {
                     continue;
                 }
@@ -180,8 +174,7 @@ vector<vector<double>> PRM::calc_final_path(
     return path;
 }
 
-bool PRM::check_collision(Vector2d node)
-{
+bool PRM::check_collision(Vector2d node) {
     for (vector<double> obs : obstacle_list) {
         double dx = obs[0] - node[0];
         double dy = obs[1] - node[1];
@@ -195,8 +188,7 @@ bool PRM::check_collision(Vector2d node)
     return true;
 }
 
-bool PRM::check_collision(Vector2d node1, Vector2d node2)
-{
+bool PRM::check_collision(Vector2d node1, Vector2d node2) {
     if (hypot(node2[0] - node1[0], node2[1] - node1[1]) < 0.01) {
         return true;
     }
@@ -213,9 +205,9 @@ bool PRM::check_collision(Vector2d node1, Vector2d node2)
         if (obs[2] >= d1 && obs[2] <= d2) {
             return false;
         } else if (obs[2] <= d1) {
-            double d = abs( (node2[0] - node1[0]) * (node1[1] - obs[1]) -
-                        (node1[0] - obs[0]) * (node2[1] - node1[1])) /
-                        hypot(node2[0] - node1[0], node2[1] - node1[1]);
+            double d = abs((node2[0] - node1[0]) * (node1[1] - obs[1]) -
+                           (node1[0] - obs[0]) * (node2[1] - node1[1])) /
+                       hypot(node2[0] - node1[0], node2[1] - node1[1]);
             Vector2d v1(obs[0] - node1[0], obs[1] - node1[1]);
             Vector2d v2(node2[0] - node1[0], node2[1] - node1[1]);
             if (d <= obs[2] && (v1[0] * v2[0] + v1[1] * v2[1]) >= 0) {
@@ -227,9 +219,7 @@ bool PRM::check_collision(Vector2d node1, Vector2d node2)
     return true;
 }
 
-void PRM::plot_road_map(
-    const vector<vector<double>>& vertex, const vector<vector<double>>& edge)
-{
+void PRM::plot_road_map(const vector<vector<double>>& vertex, const vector<vector<double>>& edge) {
     for (size_t i = 0; i < edge.size(); ++i) {
         for (size_t j = i + 1; j < edge.size(); ++j) {
             if (edge[i][j] > 0) {
@@ -246,11 +236,10 @@ void PRM::plot_road_map(
     plt::plot(vertex[0], vertex[1], ".b");
 }
 
-void PRM::plot_circle(double x, double y, double size, bool is_fill, string style)
-{
+void PRM::plot_circle(double x, double y, double size, bool is_fill, string style) {
     vector<double> xl;
     vector<double> yl;
-    for (double deg = 0; deg <= M_PI * 2; deg += ( M_PI / 36.0)) {
+    for (double deg = 0; deg <= M_PI * 2; deg += (M_PI / 36.0)) {
         xl.push_back(x + size * cos(deg));
         yl.push_back(y + size * sin(deg));
     }
@@ -261,10 +250,9 @@ void PRM::plot_circle(double x, double y, double size, bool is_fill, string styl
     }
 }
 
-int main(int argc, char** argv)
-{
-    vector<vector<double>> obstacle_list = {{5, 5, 1}, {3, 6, 2}, {3, 8, 2}, 
-                            {3, 10, 2}, {7, 5, 2}, {9, 5, 2}, {8, 10, 1}};
+int main(int argc, char** argv) {
+    vector<vector<double>> obstacle_list = {{5, 5, 1}, {3, 6, 2}, {3, 8, 2}, {3, 10, 2},
+                                            {7, 5, 2}, {9, 5, 2}, {8, 10, 1}};
     utils::TicToc t_m;
     Vector2d start(0, 0);
     Vector2d goal(6, 10);
@@ -294,6 +282,6 @@ int main(int argc, char** argv)
         plt::plot(path[0], path[1], "-r");
         plt::show();
     }
-    
+
     return 0;
 }

@@ -1,37 +1,31 @@
-#include <cmath>
-#include <vector>
-#include <string>
-
-#include <Eigen/Core>
 #include <fmt/core.h>
 
-#include "utils.hpp"
-#include "matplotlibcpp.h"
+#include <Eigen/Core>
+#include <cmath>
+#include <string>
+#include <vector>
 
-using std::vector;
+#include "matplotlibcpp.h"
+#include "utils.hpp"
+
 using std::string;
+using std::vector;
 using namespace Eigen;
 namespace plt = matplotlibcpp;
 
 typedef Matrix<double, 5, 1> Vector5d;
 constexpr bool show_animation = true;
 
-double mod2pi(double theta)
-{
-    return std::fmod(theta, 2 * M_PI);
-}
+double mod2pi(double theta) { return std::fmod(theta, 2 * M_PI); }
 
-Vector5d calc_trig_funcs(double alpha, double beta)
-{
+Vector5d calc_trig_funcs(double alpha, double beta) {
     Vector5d trig;
-    trig << sin(alpha), sin(beta), cos(alpha),
-            cos(beta), cos(alpha - beta);
-    
+    trig << sin(alpha), sin(beta), cos(alpha), cos(beta), cos(alpha - beta);
+
     return trig;
 }
 
-Vector3d lsl(double alpha, double beta, double d)
-{
+Vector3d lsl(double alpha, double beta, double d) {
     Vector5d trig = calc_trig_funcs(alpha, beta);
 
     double p_squared = 2 + d * d - (2 * trig[4]) + (2 * d * (trig[0] - trig[1]));
@@ -42,12 +36,11 @@ Vector3d lsl(double alpha, double beta, double d)
     double d1 = mod2pi(-alpha + tmp);
     double d2 = sqrt(p_squared);
     double d3 = mod2pi(beta - tmp);
-    
+
     return {d1, d2, d3};
 }
 
-Vector3d rsr(double alpha, double beta, double d)
-{
+Vector3d rsr(double alpha, double beta, double d) {
     Vector5d trig = calc_trig_funcs(alpha, beta);
 
     double p_squared = 2 + d * d - (2 * trig[4]) + (2 * d * (trig[1] - trig[0]));
@@ -58,12 +51,11 @@ Vector3d rsr(double alpha, double beta, double d)
     double d1 = mod2pi(alpha - tmp);
     double d2 = sqrt(p_squared);
     double d3 = mod2pi(-beta + tmp);
-    
+
     return {d1, d2, d3};
 }
 
-Vector3d lsr(double alpha, double beta, double d)
-{
+Vector3d lsr(double alpha, double beta, double d) {
     Vector5d trig = calc_trig_funcs(alpha, beta);
 
     double p_squared = -2 + d * d + (2 * trig[4]) + (2 * d * (trig[0] + trig[1]));
@@ -74,12 +66,11 @@ Vector3d lsr(double alpha, double beta, double d)
     double tmp = atan2((-trig[2] - trig[3]), (d + trig[0] + trig[1])) - atan2(-2.0, d1);
     double d2 = mod2pi(-alpha + tmp);
     double d3 = mod2pi(-mod2pi(beta) + tmp);
-    
+
     return {d2, d1, d3};
 }
 
-Vector3d rsl(double alpha, double beta, double d)
-{
+Vector3d rsl(double alpha, double beta, double d) {
     Vector5d trig = calc_trig_funcs(alpha, beta);
 
     double p_squared = d * d - 2 + (2 * trig[4]) - (2 * d * (trig[0] + trig[1]));
@@ -94,8 +85,7 @@ Vector3d rsl(double alpha, double beta, double d)
     return {d2, d1, d3};
 }
 
-Vector3d rlr(double alpha, double beta, double d)
-{
+Vector3d rlr(double alpha, double beta, double d) {
     Vector5d trig = calc_trig_funcs(alpha, beta);
 
     double tmp = (6.0 - d * d + 2.0 * trig[4] + 2.0 * d * (trig[0] - trig[1])) / 8.0;
@@ -105,12 +95,11 @@ Vector3d rlr(double alpha, double beta, double d)
     double d2 = mod2pi(2 * M_PI - acos(tmp));
     double d1 = mod2pi(alpha - atan2(trig[2] - trig[3], d - trig[0] + trig[1]) + d2 / 2.0);
     double d3 = mod2pi(alpha - beta - d1 + d2);
-    
+
     return {d1, d2, d3};
 }
 
-Vector3d lrl(double alpha, double beta, double d)
-{
+Vector3d lrl(double alpha, double beta, double d) {
     Vector5d trig = calc_trig_funcs(alpha, beta);
 
     double tmp = (6.0 - d * d + 2.0 * trig[4] + 2.0 * d * (-trig[0] + trig[1])) / 8.0;
@@ -120,12 +109,11 @@ Vector3d lrl(double alpha, double beta, double d)
     double d2 = mod2pi(2 * M_PI - acos(tmp));
     double d1 = mod2pi(-alpha - atan2(trig[2] - trig[3], d + trig[0] - trig[1]) + d2 / 2.0);
     double d3 = mod2pi(mod2pi(beta) - alpha - d1 + mod2pi(d2));
-    
+
     return {d1, d2, d3};
 }
 
-Vector3d interpolate(double length, char mode, double max_curvature, Vector3d origin)
-{
+Vector3d interpolate(double length, char mode, double max_curvature, Vector3d origin) {
     Vector3d inter;
 
     if (mode == 'S') {
@@ -154,11 +142,10 @@ Vector3d interpolate(double length, char mode, double max_curvature, Vector3d or
     return inter;
 }
 
-vector<vector<double>> generate_local_course(
-    Vector3d lengths, string modes, double max_curvature, double step_size)
-{
+vector<vector<double>> generate_local_course(Vector3d lengths, string modes, double max_curvature,
+                                             double step_size) {
     vector<vector<double>> course = {{0.}, {0.}, {0.}};
-    
+
     for (size_t idx = 0; idx < 3; ++idx) {
         if (lengths[idx] == 0.0) {
             continue;
@@ -166,16 +153,13 @@ vector<vector<double>> generate_local_course(
         Vector3d origin = {course[0].back(), course[1].back(), course[2].back()};
         double current_length = step_size;
         while (abs(current_length + step_size) <= abs(lengths[idx])) {
-
-            Vector3d inter = interpolate(
-                    current_length, modes[idx], max_curvature, origin);
+            Vector3d inter = interpolate(current_length, modes[idx], max_curvature, origin);
             course[0].push_back(inter[0]);
             course[1].push_back(inter[1]);
             course[2].push_back(inter[2]);
             current_length += step_size;
         }
-        Vector3d inter = interpolate(
-            lengths[idx], modes[idx], max_curvature, origin);
+        Vector3d inter = interpolate(lengths[idx], modes[idx], max_curvature, origin);
         course[0].push_back(inter[0]);
         course[1].push_back(inter[1]);
         course[2].push_back(inter[2]);
@@ -184,10 +168,10 @@ vector<vector<double>> generate_local_course(
     return course;
 }
 
-vector<vector<double>> dubins_path_planning_from_origin(
-    double end_x, double end_y, double end_yaw, double curvature,
-    double step_size, const vector<string>& planning_funcs, string& m)
-{
+vector<vector<double>> dubins_path_planning_from_origin(double end_x, double end_y, double end_yaw,
+                                                        double curvature, double step_size,
+                                                        const vector<string>& planning_funcs,
+                                                        string& m) {
     double dx = end_x;
     double dy = end_y;
     double d = hypot(dx, dy) * curvature;
@@ -197,7 +181,7 @@ vector<vector<double>> dubins_path_planning_from_origin(
     double best_cost = std::numeric_limits<double>::max();
     Vector3d best_dis;
     string best_mode;
-    
+
     for (string planner : planning_funcs) {
         Vector3d distance;
         if (planner == "LSL") {
@@ -229,15 +213,14 @@ vector<vector<double>> dubins_path_planning_from_origin(
     }
 
     m = best_mode;
-    vector<vector<double>> course = generate_local_course(
-                    best_dis, best_mode, curvature, step_size);
-    
+    vector<vector<double>> course =
+        generate_local_course(best_dis, best_mode, curvature, step_size);
+
     return course;
 }
 
-vector<vector<double>> convert_xy(const vector<vector<double>>& path,
-                                        Matrix2d rot, Vector3d start)
-{
+vector<vector<double>> convert_xy(const vector<vector<double>>& path, Matrix2d rot,
+                                  Vector3d start) {
     vector<vector<double>> convert_path(3);
 
     for (size_t idx = 0; idx < path[0].size(); ++idx) {
@@ -251,10 +234,9 @@ vector<vector<double>> convert_xy(const vector<vector<double>>& path,
     return convert_path;
 }
 
-vector<vector<double>> plan_dubins_path(Vector3d start, Vector3d goal, 
-        double curvature, string& mode, double step_size = 0.1,
-        vector<string> selected_types = {})
-{
+vector<vector<double>> plan_dubins_path(Vector3d start, Vector3d goal, double curvature,
+                                        string& mode, double step_size = 0.1,
+                                        vector<string> selected_types = {}) {
     double s_x = start[0];
     double s_y = start[1];
     double s_yaw = start[2];
@@ -274,15 +256,13 @@ vector<vector<double>> plan_dubins_path(Vector3d start, Vector3d goal,
     double local_goal_yaw = g_yaw - s_yaw;
 
     vector<vector<double>> path = dubins_path_planning_from_origin(
-        local_goal_x, local_goal_y, local_goal_yaw, curvature,
-        step_size, selected_types, mode);
+        local_goal_x, local_goal_y, local_goal_yaw, curvature, step_size, selected_types, mode);
     Matrix2d rot = utils::rotation_matrix2d(-s_yaw);
-    
+
     return convert_xy(path, rot, start);
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     Vector3d start(1., 1., M_PI_4);
     Vector3d goal(-3., -3., -M_PI_4);
     double curvature = 1.0;

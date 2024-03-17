@@ -1,35 +1,33 @@
-#include <cmath>
-#include <vector>
+#include <fmt/core.h>
+
 #include <algorithm>
+#include <cmath>
 #include <random>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
-#include <fmt/core.h>
-
-#include "utils.hpp"
 #include "matplotlibcpp.h"
+#include "utils.hpp"
 
-using std::vector;
 using std::string;
+using std::vector;
 using namespace Eigen;
 namespace plt = matplotlibcpp;
 constexpr bool show_animation = true;
 
-class Node
-{
+class Node {
 public:
     double x;
     double y;
     Node* parent;
-    
+
     Node() : x(0), y(0), parent(nullptr) {}
     Node(double _x, double _y, Node* p = nullptr) : x(_x), y(_y), parent(p) {}
     ~Node() {}
 };
 
-class RRT
-{
+class RRT {
 private:
     Node* start;
     Node* goal;
@@ -49,14 +47,14 @@ private:
     Node* steer(Node* from_node, Node* to_node);
     Vector2d calc_distance_and_angle(Node* from_node, Node* to_node);
     bool check_collision(Node* new_node);
-    void plot_circle(double x, double y, double size,
-                    bool is_fill = false, string style = "-b");
+    void plot_circle(double x, double y, double size, bool is_fill = false, string style = "-b");
     void draw_graph(Node rnd);
     vector<vector<double>> generate_final_course(void);
+
 public:
-    RRT(Vector2d _start, Vector2d _goal, vector<vector<double>> obs,
-        Vector2d rand_area, double expand = 0.5, double goal_sample = 0.5, 
-        int _max_iter = 1000, double _robot_radius = 0.5) {
+    RRT(Vector2d _start, Vector2d _goal, vector<vector<double>> obs, Vector2d rand_area,
+        double expand = 0.5, double goal_sample = 0.5, int _max_iter = 1000,
+        double _robot_radius = 0.5) {
         start = new Node(_start[0], _start[1]);
         goal = new Node(_goal[0], _goal[1]);
         min_rand = rand_area[0];
@@ -74,15 +72,13 @@ public:
     vector<vector<double>> planning(void);
 };
 
-RRT::~RRT()
-{
+RRT::~RRT() {
     for (Node* n : node_list) {
         delete n;
     }
 }
 
-vector<vector<double>> RRT::planning(void)
-{
+vector<vector<double>> RRT::planning(void) {
     boundary.resize(2);
     for (double i = min_rand - 1; i < (max_rand + 1); i += 0.2) {
         boundary[0].push_back(i);
@@ -96,7 +92,7 @@ vector<vector<double>> RRT::planning(void)
     }
 
     node_list.push_back(start);
-    
+
     for (int iter = 0; iter < max_iter; ++iter) {
         Node rnd_node = get_random_node();
         Node* nearest_node = get_nearest_node(rnd_node);
@@ -122,8 +118,7 @@ vector<vector<double>> RRT::planning(void)
     return generate_final_course();
 }
 
-Node RRT::get_random_node(void)
-{
+Node RRT::get_random_node(void) {
     Node rnd;
     std::uniform_real_distribution<double> dist(0.0, 1.0);
     if (dist(engine) > goal_sample_rate) {
@@ -136,8 +131,7 @@ Node RRT::get_random_node(void)
     return rnd;
 }
 
-Node* RRT::get_nearest_node(Node rnd_node)
-{
+Node* RRT::get_nearest_node(Node rnd_node) {
     Node* min_node = new Node(node_list[0]->x, node_list[0]->y);
     double distance = hypot(min_node->x - rnd_node.x, min_node->y - rnd_node.y);
     for (int idx = 1; idx < node_list.size(); ++idx) {
@@ -151,20 +145,18 @@ Node* RRT::get_nearest_node(Node rnd_node)
     return min_node;
 }
 
-Node* RRT::steer(Node* from_node, Node* to_node)
-{
+Node* RRT::steer(Node* from_node, Node* to_node) {
     Node new_node(from_node->x, from_node->x);
     Vector2d d_angle = calc_distance_and_angle(from_node, to_node);
     double dist = std::min(expand_dis, d_angle[0]);
-    Node* node_new = new Node(from_node->x + dist * cos(d_angle[1]),
-                         from_node->y + dist * sin(d_angle[1]));
+    Node* node_new =
+        new Node(from_node->x + dist * cos(d_angle[1]), from_node->y + dist * sin(d_angle[1]));
     node_new->parent = from_node;
 
     return node_new;
 }
 
-Vector2d RRT::calc_distance_and_angle(Node* from_node, Node* to_node)
-{
+Vector2d RRT::calc_distance_and_angle(Node* from_node, Node* to_node) {
     Vector2d d_angle;
     double dx = to_node->x - from_node->x;
     double dy = to_node->y - from_node->y;
@@ -175,8 +167,7 @@ Vector2d RRT::calc_distance_and_angle(Node* from_node, Node* to_node)
     return d_angle;
 }
 
-bool RRT::check_collision(Node* new_node)
-{
+bool RRT::check_collision(Node* new_node) {
     if (new_node == nullptr) {
         return true;
     }
@@ -194,11 +185,10 @@ bool RRT::check_collision(Node* new_node)
     return true;
 }
 
-void RRT::plot_circle(double x, double y, double size, bool is_fill, string style)
-{
+void RRT::plot_circle(double x, double y, double size, bool is_fill, string style) {
     vector<double> xl;
     vector<double> yl;
-    for (double deg = 0; deg <= M_PI * 2; deg += ( M_PI / 36.0)) {
+    for (double deg = 0; deg <= M_PI * 2; deg += (M_PI / 36.0)) {
         xl.push_back(x + size * cos(deg));
         yl.push_back(y + size * sin(deg));
     }
@@ -209,10 +199,9 @@ void RRT::plot_circle(double x, double y, double size, bool is_fill, string styl
     }
 }
 
-void RRT::draw_graph(Node rnd)
-{
+void RRT::draw_graph(Node rnd) {
     plt::clf();
-    
+
     plt::plot(boundary[0], boundary[1], "sk");
     plt::plot({rnd.x}, {rnd.y}, "^k");
     if (robot_radius > 0.0) {
@@ -237,8 +226,7 @@ void RRT::draw_graph(Node rnd)
     plt::pause(0.01);
 }
 
-vector<vector<double>> RRT::generate_final_course(void)
-{
+vector<vector<double>> RRT::generate_final_course(void) {
     vector<vector<double>> final_path(2);
     Node* n = goal;
 
@@ -247,14 +235,13 @@ vector<vector<double>> RRT::generate_final_course(void)
         final_path[1].emplace_back(n->y);
         n = n->parent;
     }
-    
+
     return final_path;
 }
 
-int main(int argc, char** argv)
-{
-    vector<vector<double>> obstacle_list = {{5, 5, 1}, {3, 6, 2}, {3, 8, 2}, 
-                            {3, 10, 2}, {7, 5, 2}, {9, 5, 2}, {8, 10, 1}};
+int main(int argc, char** argv) {
+    vector<vector<double>> obstacle_list = {{5, 5, 1}, {3, 6, 2}, {3, 8, 2}, {3, 10, 2},
+                                            {7, 5, 2}, {9, 5, 2}, {8, 10, 1}};
     utils::TicToc t_m;
     Vector2d start(0, 0);
     Vector2d goal(6, 10);

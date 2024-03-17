@@ -1,41 +1,39 @@
-#include <cmath>
-#include <vector>
+#include <fmt/core.h>
+
 #include <algorithm>
+#include <cmath>
 #include <memory>
 #include <queue>
 #include <unordered_map>
+#include <vector>
 
-#include <fmt/core.h>
-
-#include "utils.hpp"
-#include "matplotlibcpp.h"
 #include "GraphSearchPlanner.hpp"
+#include "matplotlibcpp.h"
+#include "utils.hpp"
 
 using std::queue;
-using std::vector;
 using std::shared_ptr;
 using std::unordered_map;
+using std::vector;
 namespace plt = matplotlibcpp;
 constexpr bool show_animation = true;
 
-class BreadthFirstSearchPlanner : public GraphSearchPlanner
-{
+class BreadthFirstSearchPlanner : public GraphSearchPlanner {
 public:
     BreadthFirstSearchPlanner() {}
-    BreadthFirstSearchPlanner(vector<double> ox, vector<double> oy, double reso, double radius) :
-        GraphSearchPlanner(ox, oy, reso, radius) {}
+    BreadthFirstSearchPlanner(vector<double> ox, vector<double> oy, double reso, double radius)
+        : GraphSearchPlanner(ox, oy, reso, radius) {}
     ~BreadthFirstSearchPlanner() override {}
 
     vector<vector<double>> planning(double sx, double sy, double gx, double gy) override;
 };
 
-vector<vector<double>> BreadthFirstSearchPlanner::planning(
-    double sx, double sy, double gx, double gy)
-{
-    shared_ptr<Node> nstart = std::make_shared<Node>(calc_xyindex(sx, get_minx()),
-                                calc_xyindex(sy, get_miny()), 0.0, -1, nullptr);
+vector<vector<double>> BreadthFirstSearchPlanner::planning(double sx, double sy, double gx,
+                                                           double gy) {
+    shared_ptr<Node> nstart = std::make_shared<Node>(
+        calc_xyindex(sx, get_minx()), calc_xyindex(sy, get_miny()), 0.0, -1, nullptr);
     shared_ptr<Node> ngoal = std::make_shared<Node>(calc_xyindex(gx, get_minx()),
-                                calc_xyindex(gy, get_miny()), 0.0, -1, nullptr);
+                                                    calc_xyindex(gy, get_miny()), 0.0, -1, nullptr);
     unordered_map<double, shared_ptr<Node>> open_set;
     unordered_map<double, shared_ptr<Node>> closed_set;
     open_set[calc_grid_index(nstart)] = nstart;
@@ -56,7 +54,7 @@ vector<vector<double>> BreadthFirstSearchPlanner::planning(
 
         if (show_animation) {
             plt::plot({calc_grid_position(current->x, get_minx())},
-                    {calc_grid_position(current->y, get_miny())}, "xc");
+                      {calc_grid_position(current->y, get_miny())}, "xc");
             if (closed_set.size() % 10 == 0) {
                 plt::pause(0.001);
             }
@@ -70,26 +68,26 @@ vector<vector<double>> BreadthFirstSearchPlanner::planning(
 
         for (const vector<double>& m : get_motion()) {
             shared_ptr<Node> node = std::make_shared<Node>(current->x + m[0], current->y + m[1],
-                                                    current->cost + m[2], key, current);
+                                                           current->cost + m[2], key, current);
             double n_id = calc_grid_index(node);
             if (!verify_node(node)) {
                 continue;
             }
 
-            if (closed_set.find(n_id) == closed_set.end() && open_set.find(n_id) == open_set.end()) {
+            if (closed_set.find(n_id) == closed_set.end() &&
+                open_set.find(n_id) == open_set.end()) {
                 // node->parent = current;
                 open_set[n_id] = node;
                 node_queue.emplace(node);
             }
-        }    
+        }
     }
     vector<vector<double>> path = calc_final_path(ngoal, closed_set);
 
     return path;
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     double start_x = 10.0;
     double start_y = 10.0;
     double goal_x = 50.0;

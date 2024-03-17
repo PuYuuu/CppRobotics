@@ -1,15 +1,15 @@
-#include <cmath>
-#include <vector>
-#include <algorithm>
-#include <tuple>
-
 #include <fmt/core.h>
 
-#include "utils.hpp"
-#include "matplotlibcpp.h"
+#include <algorithm>
+#include <cmath>
+#include <tuple>
+#include <vector>
 
-using std::vector;
+#include "matplotlibcpp.h"
+#include "utils.hpp"
+
 using std::tuple;
+using std::vector;
 namespace plt = matplotlibcpp;
 constexpr double DT = 0.1;
 constexpr double k = 0.1;
@@ -17,8 +17,7 @@ constexpr double Lfc = 2.0;
 constexpr double Kp = 1.0;
 constexpr bool show_animation = true;
 
-class TargetCourse
-{
+class TargetCourse {
 public:
     vector<double> cx;
     vector<double> cy;
@@ -31,8 +30,7 @@ public:
     tuple<int, double> search_target_index(utils::VehicleState state);
 };
 
-tuple<int, double> TargetCourse::search_target_index(utils::VehicleState state)
-{
+tuple<int, double> TargetCourse::search_target_index(utils::VehicleState state) {
     int ind = -1;
 
     if (old_nearest_point_index == -1) {
@@ -72,13 +70,10 @@ tuple<int, double> TargetCourse::search_target_index(utils::VehicleState state)
     return std::make_tuple(ind, Lf);
 }
 
-double proportional_control(double target, double current)
-{
-    return Kp * (target - current);
-}
+double proportional_control(double target, double current) { return Kp * (target - current); }
 
-tuple<int, double> pure_pursuit_steer_control(utils::VehicleState& state, TargetCourse& trajectory, int pind)
-{
+tuple<int, double> pure_pursuit_steer_control(utils::VehicleState& state, TargetCourse& trajectory,
+                                              int pind) {
     tuple<int, double> ret = trajectory.search_target_index(state);
     int ind = std::get<0>(ret);
     double Lf = std::get<1>(ret);
@@ -104,8 +99,7 @@ tuple<int, double> pure_pursuit_steer_control(utils::VehicleState& state, Target
     return std::make_tuple(ind, delta);
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     vector<double> cx;
     vector<double> cy;
     for (double idx = 0; idx <= 50; idx += 0.5) {
@@ -151,7 +145,7 @@ int main(int argc, char** argv)
             plt::axis("equal");
             plt::grid(true);
             plt::legend();
-            plt::title("Pure Pursuit Speed[km/h]:" + std::to_string(state.v * 3.6).substr(0,4));
+            plt::title("Pure Pursuit Speed[km/h]:" + std::to_string(state.v * 3.6).substr(0, 4));
             plt::pause(0.001);
         }
     }

@@ -1,17 +1,16 @@
+#include <algorithm>
 #include <cmath>
 #include <string>
 #include <vector>
-#include <algorithm>
 
-#include "utils.hpp"
 #include "matplotlibcpp.h"
+#include "utils.hpp"
 
 using std::vector;
 namespace plt = matplotlibcpp;
 
-unsigned long long factorial(int n)
-{
-    unsigned long long result = 1;
+uint64_t factorial(int n) {
+    uint64_t result = 1;
     for (int i = 2; i <= n; ++i) {
         result *= i;
     }
@@ -19,8 +18,7 @@ unsigned long long factorial(int n)
     return result;
 }
 
-unsigned long long comb(int n, int k) 
-{
+uint64_t comb(int n, int k) {
     if (k < 0 || k > n) {
         return 0;
     }
@@ -28,13 +26,9 @@ unsigned long long comb(int n, int k)
     return factorial(n) / (factorial(k) * factorial(n - k));
 }
 
-double bernstein_poly(int n, int i, double t)
-{
-    return comb(n, i) * pow(t, i) * pow(1 - t, n - i);
-}
+double bernstein_poly(int n, int i, double t) { return comb(n, i) * pow(t, i) * pow(1 - t, n - i); }
 
-vector<double> bezier(double t, const vector<vector<double>>& control_points)
-{
+vector<double> bezier(double t, const vector<vector<double>>& control_points) {
     int n = control_points[0].size() - 1;
     vector<double> point = {0.0, 0.0};
     for (size_t idx = 0; idx < (n + 1); ++idx) {
@@ -47,8 +41,7 @@ vector<double> bezier(double t, const vector<vector<double>>& control_points)
 }
 
 vector<vector<double>> calc_bezier_path(const vector<vector<double>>& control_points,
-    int n_points = 100)
-{
+                                        int n_points = 100) {
     vector<vector<double>> traj(2);
     double step = 1.0 / n_points;
     for (double t = 0.0; t <= 1.0; t += step) {
@@ -60,9 +53,9 @@ vector<vector<double>> calc_bezier_path(const vector<vector<double>>& control_po
     return traj;
 }
 
-vector<vector<double>> calc_4points_bezier_path(double sx, double sy, double syaw,
-    double ex, double ey, double eyaw, double offset, vector<vector<double>>& cp)
-{
+vector<vector<double>> calc_4points_bezier_path(double sx, double sy, double syaw, double ex,
+                                                double ey, double eyaw, double offset,
+                                                vector<vector<double>>& cp) {
     double dist = hypot(sx - ex, sy - ey) / offset;
     vector<vector<double>> control_points = {
         {sx, sx + dist * cos(syaw), ex - dist * cos(eyaw), ex},
@@ -70,17 +63,16 @@ vector<vector<double>> calc_4points_bezier_path(double sx, double sy, double sya
 
     cp = control_points;
     vector<vector<double>> path = calc_bezier_path(control_points);
-    
+
     return path;
 }
 
-void dynamic_effect(void)
-{
+void dynamic_effect(void) {
     vector<double> sx = {-3, 0, 4, 6};
     vector<double> sy = {2, 0, 1.5, 6};
     vector<double> pathx;
     vector<double> pathy;
-    
+
     for (double t = 0; t <= 1.0; t += 0.01) {
         vector<double> x;
         vector<double> y;
@@ -117,8 +109,7 @@ void dynamic_effect(void)
     plt::show();
 }
 
-void bezier_path(void)
-{
+void bezier_path(void) {
     double start_x = 10.0;
     double start_y = 1.0;
     double start_yaw = M_PI;
@@ -128,9 +119,9 @@ void bezier_path(void)
     double end_yaw = -M_PI_4;
     double offset = 3.0;
     vector<vector<double>> control_points;
-    vector<vector<double>> path = calc_4points_bezier_path(start_x, start_y,
-                    start_yaw, end_x, end_y, end_yaw, offset, control_points);
-    
+    vector<vector<double>> path = calc_4points_bezier_path(start_x, start_y, start_yaw, end_x,
+                                                           end_y, end_yaw, offset, control_points);
+
     plt::named_plot("Bezier Path", path[0], path[1]);
     plt::named_plot("Control Points", control_points[0], control_points[1], "--o");
     plt::arrow(start_x, start_y, cos(start_yaw), sin(start_yaw), "r", 0.15);
@@ -141,8 +132,7 @@ void bezier_path(void)
     plt::show();
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     std::string mode = "static";
     if (argc > 1) {
         mode = argv[1];

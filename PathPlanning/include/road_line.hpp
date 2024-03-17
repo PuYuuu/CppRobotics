@@ -5,8 +5,7 @@
 #include <cmath>
 #include <vector>
 
-class RoadLine
-{
+class RoadLine {
 protected:
     double road_width;
 
@@ -15,7 +14,7 @@ public:
     std::vector<std::vector<double>> bound_in;
     std::vector<std::vector<double>> bound_out;
 
-    RoadLine(double width = 8.0) : road_width(width) {}
+    explicit RoadLine(double width = 8.0) : road_width(width) {}
     ~RoadLine() {}
 
     virtual std::vector<std::vector<double>> design_reference_line(void) = 0;
@@ -23,14 +22,12 @@ public:
     virtual std::vector<std::vector<double>> design_boundary_right(void) = 0;
 };
 
-class CruiseRoadLine : public RoadLine
-{
+class CruiseRoadLine : public RoadLine {
 private:
     double max_c;
 
 public:
-    CruiseRoadLine(double c = 0.15, double width = 8.0) :
-        max_c(c), RoadLine(width) {}
+    explicit CruiseRoadLine(double c = 0.15, double width = 8.0) : max_c(c), RoadLine(width) {}
     ~CruiseRoadLine() {}
 
     std::vector<std::vector<double>> design_reference_line(void) override;
@@ -38,8 +35,7 @@ public:
     std::vector<std::vector<double>> design_boundary_right(void) override;
 };
 
-std::vector<std::vector<double>> CruiseRoadLine::design_reference_line(void)
-{
+std::vector<std::vector<double>> CruiseRoadLine::design_reference_line(void) {
     std::vector<std::vector<double>> rxy(2);
     double step_curve = M_PI * 0.1;
     size_t step_line = 4;
@@ -94,8 +90,7 @@ std::vector<std::vector<double>> CruiseRoadLine::design_reference_line(void)
     return rxy;
 }
 
-std::vector<std::vector<double>> CruiseRoadLine::design_boundary_left(void)
-{
+std::vector<std::vector<double>> CruiseRoadLine::design_boundary_left(void) {
     std::vector<std::vector<double>> rxy(2);
     double step_curve = M_PI * 0.1;
     size_t step_line = 2;
@@ -150,8 +145,7 @@ std::vector<std::vector<double>> CruiseRoadLine::design_boundary_left(void)
     return rxy;
 }
 
-std::vector<std::vector<double>> CruiseRoadLine::design_boundary_right(void)
-{
+std::vector<std::vector<double>> CruiseRoadLine::design_boundary_right(void) {
     std::vector<std::vector<double>> rxy(2);
     double step_curve = M_PI * 0.05;
     size_t step_line = 2;
@@ -206,10 +200,9 @@ std::vector<std::vector<double>> CruiseRoadLine::design_boundary_right(void)
     return rxy;
 }
 
-class StopRoadLine : public RoadLine
-{
+class StopRoadLine : public RoadLine {
 public:
-    StopRoadLine(double width = 8.0) : RoadLine(width) {}
+    explicit StopRoadLine(double width = 8.0) : RoadLine(width) {}
     ~StopRoadLine() {}
 
     std::vector<std::vector<double>> design_reference_line(void) override;
@@ -217,8 +210,7 @@ public:
     std::vector<std::vector<double>> design_boundary_right(void) override;
 };
 
-std::vector<std::vector<double>> StopRoadLine::design_reference_line(void)
-{
+std::vector<std::vector<double>> StopRoadLine::design_reference_line(void) {
     std::vector<std::vector<double>> rxy(2);
 
     for (double i = 0.0; i < 60.0; i += 1.0) {
@@ -229,8 +221,7 @@ std::vector<std::vector<double>> StopRoadLine::design_reference_line(void)
     return rxy;
 }
 
-std::vector<std::vector<double>> StopRoadLine::design_boundary_left(void)
-{
+std::vector<std::vector<double>> StopRoadLine::design_boundary_left(void) {
     std::vector<std::vector<double>> rxy(2);
 
     for (double i = 0.0; i < 60.0; i += 1.0) {
@@ -241,8 +232,7 @@ std::vector<std::vector<double>> StopRoadLine::design_boundary_left(void)
     return rxy;
 }
 
-std::vector<std::vector<double>> StopRoadLine::design_boundary_right(void)
-{
+std::vector<std::vector<double>> StopRoadLine::design_boundary_right(void) {
     std::vector<std::vector<double>> rxy(2);
 
     for (double i = 0.0; i < 60.0; i += 1.0) {

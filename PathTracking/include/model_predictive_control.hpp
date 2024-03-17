@@ -2,13 +2,13 @@
 #ifndef __MODEL_PREDICTIVE_CONTROL_HPP
 #define __MODEL_PREDICTIVE_CONTROL_HPP
 
-#include <vector>
-#include <string>
+#include <OsqpEigen/OsqpEigen.h>
 
 #include <Eigen/Core>
 #include <cppad/cppad.hpp>
 #include <cppad/ipopt/solve.hpp>
-#include <OsqpEigen/OsqpEigen.h>
+#include <string>
+#include <vector>
 
 #include "utils.hpp"
 
@@ -21,8 +21,7 @@ typedef Eigen::Vector4d VectorG;
 typedef Eigen::Vector4d VectorX;
 typedef Eigen::Vector2d VectorU;
 
-class MPCController
-{
+class MPCController {
 private:
     size_t n_vars;
     size_t n_constraints;
@@ -50,6 +49,7 @@ private:
     Eigen::SparseMatrix<double> Cx_, lx_, ux_;  // p, v constrains
     Eigen::SparseMatrix<double> Cu_, lu_, uu_;  // a delta vs constrains
     Eigen::SparseMatrix<double> Qx_;
+
 public:
     using Dvector = CPPAD_TESTVECTOR(double);
 

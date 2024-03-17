@@ -1,14 +1,14 @@
+#include <fmt/core.h>
+
+#include <Eigen/Core>
+#include <Eigen/Eigen>
 #include <cmath>
 #include <random>
 #include <string>
 #include <vector>
 
-#include <fmt/core.h>
-#include <Eigen/Core>
-#include <Eigen/Eigen>
-
-#include "utils.hpp"
 #include "matplotlibcpp.h"
+#include "utils.hpp"
 
 using std::vector;
 using namespace Eigen;
@@ -17,46 +17,35 @@ constexpr double DT = 0.1;
 constexpr double SIM_TIME = 50.0;
 constexpr bool show_animation = true;
 
-Vector2d calc_input(void)
-{
-    double v = 1.0;         // [m/s]
-    double yawrate = 0.1;   // [rad/s]
-    
+Vector2d calc_input(void) {
+    double v = 1.0;        // [m/s]
+    double yawrate = 0.1;  // [rad/s]
+
     return {v, yawrate};
 }
 
-Vector4d motion_model(Vector4d x, Vector2d u)
-{
+Vector4d motion_model(Vector4d x, Vector2d u) {
     Matrix4d F;
-    F << 1., 0., 0., 0.,
-         0., 1., 0., 0.,
-         0., 0., 1., 0.,
-         0., 0., 0., 1.;
-    
+    F << 1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1.;
+
     Matrix<double, 4, 2> B;
-    B << DT * cos(x(2,0)),  0,
-         DT * sin(x(2,0)),  0,
-         0.0,  DT,
-         1.0,  0.0;
+    B << DT * cos(x(2, 0)), 0, DT * sin(x(2, 0)), 0, 0.0, DT, 1.0, 0.0;
 
     Vector4d x_next = F * x + B * u;
 
     return x_next;
 }
 
-Vector2d observation_model(Vector4d x)
-{
+Vector2d observation_model(Vector4d x) {
     Matrix<double, 2, 4> H;
-    H << 1, 0, 0, 0,
-         0, 1, 0, 0;
+    H << 1, 0, 0, 0, 0, 1, 0, 0;
 
     Vector2d z = H * x;
 
     return z;
 }
 
-Matrix4d jacob_f(Vector4d x, Vector2d u)
-{
+Matrix4d jacob_f(Vector4d x, Vector2d u) {
     Matrix4d jF = Matrix4d::Identity();
     double yaw = x[2];
     double v = u[0];
@@ -64,22 +53,19 @@ Matrix4d jacob_f(Vector4d x, Vector2d u)
     jF(0, 3) = DT * cos(yaw);
     jF(1, 2) = DT * v * cos(yaw);
     jF(1, 3) = DT * sin(yaw);
-    
+
     return jF;
 }
 
-Matrix<double, 2, 4> jacob_h()
-{
+Matrix<double, 2, 4> jacob_h() {
     Matrix<double, 2, 4> jH;
-    jH << 1, 0, 0, 0,
-          0, 1, 0, 0;
+    jH << 1, 0, 0, 0, 0, 1, 0, 0;
 
     return jH;
 }
 
-void ekf_estimation(Vector4d& xEst, Matrix4d& PEst,
-    Vector2d z, Vector2d u, Matrix4d Q, Matrix2d R)
-{
+void ekf_estimation(Vector4d& xEst, Matrix4d& PEst, Vector2d z, Vector2d u, Matrix4d Q,
+                    Matrix2d R) {
     Vector4d xPred = motion_model(xEst, u);
     Matrix4d jF = jacob_f(xPred, u);
     Matrix4d PPred = jF * PEst * jF.transpose() + Q;
@@ -89,14 +75,13 @@ void ekf_estimation(Vector4d& xEst, Matrix4d& PEst,
     Vector2d y = z - zPred;
     Matrix2d S = jH * PPred * jH.transpose() + R;
     Matrix<double, 4, 2> K = PPred * jH.transpose() * S.inverse();
-    
+
     xEst = xPred + K * y;
     PEst = (Matrix4d::Identity() - K * jH) * PPred;
 }
 
-void plot_covariance_ellipse(double x, double y, Matrix2d cov,
-                    double chi2 = 3.0, std::string style = "-r")
-{
+void plot_covariance_ellipse(double x, double y, Matrix2d cov, double chi2 = 3.0,
+                             std::string style = "-r") {
     EigenSolver<Matrix2d> ces(cov);
     Matrix2d e_value = ces.pseudoEigenvalueMatrix();
     Matrix2d e_vector = ces.pseudoEigenvectors();
@@ -121,19 +106,18 @@ void plot_covariance_ellipse(double x, double y, Matrix2d cov,
     plt::plot(px, py, style);
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     double time = 0.0;
-    Vector2d u(1., 0.1); // control input
-    Vector2d ud;         // nosie control input
-    Vector2d z;          // observation z
+    Vector2d u(1., 0.1);  // control input
+    Vector2d ud;          // nosie control input
+    Vector2d z;           // observation z
 
     // State vector [x y yaw v]
     Vector4d xEst(0., 0., 0., 0.);
     Vector4d xTrue(0., 0., 0., 0.);
     Vector4d xDR(0., 0., 0., 0.);
     Matrix4d PEst = Matrix4d::Identity();
-    
+
     vector<Vector4d> hxEst = {xEst};
     vector<Vector4d> hxTrue = {xTrue};
     vector<Vector4d> hxDR = {xTrue};
@@ -201,7 +185,7 @@ int main(int argc, char** argv)
             plt::named_plot("Ground-truth", hxTrue_vec[0], hxTrue_vec[1], "-b");
             plt::named_plot("Dead-reckoning", hxDR_vec[0], hxDR_vec[1], "-k");
             plt::named_plot("Estimation", hxEst_vec[0], hxEst_vec[1], "-r");
-            plot_covariance_ellipse(xEst[0], xEst[1], PEst.block(0,0,2,2));
+            plot_covariance_ellipse(xEst[0], xEst[1], PEst.block(0, 0, 2, 2));
             plt::title("EKF Localization");
             plt::axis("equal");
             plt::grid(true);

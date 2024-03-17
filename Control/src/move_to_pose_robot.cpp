@@ -1,16 +1,16 @@
-#include <cmath>
-#include <random>
-#include <tuple>
-#include <vector>
-#include <string>
+#include <fmt/core.h>
 #include <unistd.h>
 
-#include <fmt/core.h>
 #include <Eigen/Core>
+#include <cmath>
+#include <random>
+#include <string>
+#include <tuple>
+#include <vector>
 
 #include "PathFinderController.hpp"
-#include "utils.hpp"
 #include "matplotlibcpp.h"
+#include "utils.hpp"
 
 using namespace Eigen;
 using std::string;
@@ -27,25 +27,24 @@ constexpr int PLOT_FONT_SIZE = 8;
 bool simulation_running = true;
 bool all_robots_are_at_target = false;
 
-class Pose
-{
+class Pose {
 public:
     double x;
     double y;
     double theta;
+
 public:
     Pose() : x(0), y(0), theta(0) {}
-    Pose(double _x, double _y, double _theta) :
-        x(_x), y(_y), theta(_theta) {}
+    Pose(double _x, double _y, double _theta) : x(_x), y(_y), theta(_theta) {}
     ~Pose() {}
 };
 
-class Robot
-{
+class Robot {
 private:
     double max_linear_speed;
     double max_angular_speed;
     PathFinderController path_finder_controller;
+
 public:
     string name;
     string color;
@@ -57,7 +56,7 @@ public:
     Pose pose_target;
 
     Robot(string _name, string _color, double _max_linear_speed, double _max_angular_speed,
-                 PathFinderController _controller) {
+          PathFinderController _controller) {
         name = _name;
         color = _color;
         max_linear_speed = _max_linear_speed;
@@ -69,18 +68,15 @@ public:
 
     void set_start_target_poses(Pose _pose_start, Pose _pose_target);
     void move(double dt);
-
 };
 
-void Robot::set_start_target_poses(Pose _pose_start, Pose _pose_target)
-{
+void Robot::set_start_target_poses(Pose _pose_start, Pose _pose_target) {
     pose_start = _pose_start;
     pose_target = _pose_target;
     pose = pose_start;
 }
 
-void Robot::move(double dt)
-{
+void Robot::move(double dt) {
     double linear_velocity;
     double angular_velocity;
     double rho;
@@ -104,9 +100,8 @@ void Robot::move(double dt)
     pose.y = pose.y + linear_velocity * sin(pose.theta) * dt;
 }
 
-void plot_vehicle(double x, double y, double theta, string color,
-            const std::vector<double>& x_traj, const std::vector<double>& y_traj)
-{
+void plot_vehicle(double x, double y, double theta, string color, const std::vector<double>& x_traj,
+                  const std::vector<double>& y_traj) {
     Vector3d p1_i(0.5, 0, 1);
     Vector3d p2_i(-0.5, 0.25, 1);
     Vector3d p3_i(-0.5, -0.25, 1);
@@ -121,8 +116,7 @@ void plot_vehicle(double x, double y, double theta, string color,
     plt::plot(x_traj, y_traj, color + "--");
 }
 
-void run_simulation(std::vector<Robot>& robots)
-{
+void run_simulation(std::vector<Robot>& robots) {
     double time = 0;
     int at_target_robot_num = 0;
     std::vector<string> robots_names;
@@ -145,30 +139,29 @@ void run_simulation(std::vector<Robot>& robots)
         if (at_target_robot_num == robots.size()) {
             simulation_running = false;
         }
-        
+
         if (SHOW_ANIMATION) {
             plt::clf();
             plt::xlim(0, PLOT_WINDOW_SIZE_X);
             plt::ylim(0, PLOT_WINDOW_SIZE_Y);
             plt::text(0.3, double(PLOT_WINDOW_SIZE_Y - 1), fmt::format("Time: {:.2f}", time));
-            plt::text(0.3, double(PLOT_WINDOW_SIZE_Y - 2), fmt::format("Reached target robot num: {}",
-                                                                            at_target_robot_num));
+            plt::text(0.3, double(PLOT_WINDOW_SIZE_Y - 2),
+                      fmt::format("Reached target robot num: {}", at_target_robot_num));
             for (Robot& robo : robots) {
-                plt::arrow(robo.pose_start.x, robo.pose_start.y, cos(robo.pose_start.theta), 
-                    sin(robo.pose_start.theta), "r");
-                plt::arrow(robo.pose_target.x, robo.pose_target.y, cos(robo.pose_target.theta), 
-                    sin(robo.pose_target.theta), "g");
+                plt::arrow(robo.pose_start.x, robo.pose_start.y, cos(robo.pose_start.theta),
+                           sin(robo.pose_start.theta), "r");
+                plt::arrow(robo.pose_target.x, robo.pose_target.y, cos(robo.pose_target.theta),
+                           sin(robo.pose_target.theta), "g");
                 plt::title("move_to_pose_robots");
-                plot_vehicle(robo.pose.x, robo.pose.y, robo.pose.theta, robo.color,
-                    robo.x_traj, robo.y_traj);
+                plot_vehicle(robo.pose.x, robo.pose.y, robo.pose.theta, robo.color, robo.x_traj,
+                             robo.y_traj);
             }
             plt::pause(TIME_STEP);
         }
     }
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     Pose pose_target = Pose(15, 15, -1);
     Pose pose_start_1 = Pose(5, 2, 0);
     Pose pose_start_2 = Pose(5, 2, 0);

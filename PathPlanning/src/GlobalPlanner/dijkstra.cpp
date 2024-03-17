@@ -1,40 +1,39 @@
-#include <cmath>
-#include <vector>
-#include <memory>
-#include <unordered_map>
-
 #include <fmt/core.h>
 
-#include "utils.hpp"
-#include "matplotlibcpp.h"
-#include "GraphSearchPlanner.hpp"
+#include <cmath>
+#include <memory>
+#include <unordered_map>
+#include <vector>
 
-using std::vector;
+#include "GraphSearchPlanner.hpp"
+#include "matplotlibcpp.h"
+#include "utils.hpp"
+
 using std::shared_ptr;
 using std::unordered_map;
+using std::vector;
 namespace plt = matplotlibcpp;
 constexpr bool show_animation = true;
 
-class Dijkstra : public GraphSearchPlanner
-{
+class Dijkstra : public GraphSearchPlanner {
 private:
     shared_ptr<Node> get_mincost_node(const unordered_map<double, shared_ptr<Node>>& node_set);
+
 public:
     Dijkstra() {}
-    Dijkstra(vector<double> ox, vector<double> oy, double reso, double radius) :
-        GraphSearchPlanner(ox, oy, reso, radius) {}
+    Dijkstra(vector<double> ox, vector<double> oy, double reso, double radius)
+        : GraphSearchPlanner(ox, oy, reso, radius) {}
     ~Dijkstra() override {}
 
     vector<vector<double>> planning(double sx, double sy, double gx, double gy) override;
 };
 
-vector<vector<double>> Dijkstra::planning(double sx, double sy, double gx, double gy)
-{
-    shared_ptr<Node> nstart = std::make_shared<Node>(calc_xyindex(sx, get_minx()),
-                                calc_xyindex(sy, get_miny()), 0.0, -1, nullptr);
+vector<vector<double>> Dijkstra::planning(double sx, double sy, double gx, double gy) {
+    shared_ptr<Node> nstart = std::make_shared<Node>(
+        calc_xyindex(sx, get_minx()), calc_xyindex(sy, get_miny()), 0.0, -1, nullptr);
     shared_ptr<Node> ngoal = std::make_shared<Node>(calc_xyindex(gx, get_minx()),
-                                calc_xyindex(gy, get_miny()), 0.0, -1, nullptr);
-    
+                                                    calc_xyindex(gy, get_miny()), 0.0, -1, nullptr);
+
     unordered_map<double, shared_ptr<Node>> open_set;
     unordered_map<double, shared_ptr<Node>> closed_set;
     open_set[calc_grid_index(nstart)] = nstart;
@@ -51,7 +50,7 @@ vector<vector<double>> Dijkstra::planning(double sx, double sy, double gx, doubl
 
         if (show_animation) {
             plt::plot({calc_grid_position(current->x, get_minx())},
-                    {calc_grid_position(current->y, get_miny())}, "xc");
+                      {calc_grid_position(current->y, get_miny())}, "xc");
             if (closed_set.size() % 10 == 0) {
                 plt::pause(0.001);
             }
@@ -66,7 +65,7 @@ vector<vector<double>> Dijkstra::planning(double sx, double sy, double gx, doubl
         closed_set[c_id] = current;
         for (const vector<double>& m : get_motion()) {
             shared_ptr<Node> node = std::make_shared<Node>(current->x + m[0], current->y + m[1],
-                                                    current->cost + m[2], c_id, current);
+                                                           current->cost + m[2], c_id, current);
             double n_id = calc_grid_index(node);
 
             if (!verify_node(node) || closed_set.find(n_id) != closed_set.end()) {
@@ -83,10 +82,10 @@ vector<vector<double>> Dijkstra::planning(double sx, double sy, double gx, doubl
     return path;
 }
 
-shared_ptr<Node> Dijkstra::get_mincost_node(const unordered_map<double, shared_ptr<Node>>& node_set)
-{
+shared_ptr<Node> Dijkstra::get_mincost_node(
+    const unordered_map<double, shared_ptr<Node>>& node_set) {
     shared_ptr<Node> min_node = nullptr;
-    for (const auto& n : node_set ) {
+    for (const auto& n : node_set) {
         if (min_node == nullptr || min_node->cost > n.second->cost) {
             min_node = n.second;
         }
@@ -94,8 +93,7 @@ shared_ptr<Node> Dijkstra::get_mincost_node(const unordered_map<double, shared_p
     return min_node;
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     double start_x = -5;
     double start_y = -5;
     double goal_x = 50.0;

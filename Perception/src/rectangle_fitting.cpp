@@ -1,31 +1,30 @@
-#include <cmath>
-#include <random>
-#include <string>
-#include <vector>
-#include <tuple>
-#include <set>
-
 #include <fmt/core.h>
+
 #include <Eigen/Core>
 #include <Eigen/Eigen>
+#include <cmath>
+#include <random>
+#include <set>
+#include <string>
+#include <tuple>
+#include <vector>
 
+#include "matplotlibcpp.h"
 #include "simulator.hpp"
 #include "utils.hpp"
-#include "matplotlibcpp.h"
 
 using std::set;
-using std::vector;
 using std::tuple;
+using std::vector;
 using namespace Eigen;
 namespace plt = matplotlibcpp;
 constexpr double DT = 0.2;
 constexpr double SIM_TIME = 30.0;
 constexpr bool show_animation = true;
 
-enum class Criteria {AREA, CLOSENESS, VARIANCE};
+enum class Criteria { AREA, CLOSENESS, VARIANCE };
 
-class RectangleData
-{
+class RectangleData {
 public:
     vector<double> a;
     vector<double> b;
@@ -44,41 +43,32 @@ public:
 
     void plot(void);
     void calc_rect_contour(void);
-    tuple<double, double> calc_cross_point(
-        vector<double> _a, vector<double> _b, vector<double> _c);
+    tuple<double, double> calc_cross_point(vector<double> _a, vector<double> _b, vector<double> _c);
 };
 
-void RectangleData::plot(void)
-{
+void RectangleData::plot(void) {
     calc_rect_contour();
     plt::plot(rect_c_x, rect_c_y, "-r");
 }
 
-void RectangleData::calc_rect_contour(void)
-{
-    std::tie(rect_c_x[0], rect_c_y[0]) = calc_cross_point(
-        {a[0], a[1]}, {b[0], b[1]}, {c[0], c[1]});
-    std::tie(rect_c_x[1], rect_c_y[1]) = calc_cross_point(
-        {a[1], a[2]}, {b[1], b[2]}, {c[1], c[2]});
-    std::tie(rect_c_x[2], rect_c_y[2]) = calc_cross_point(
-        {a[2], a[3]}, {b[2], b[3]}, {c[2], c[3]});
-    std::tie(rect_c_x[3], rect_c_y[3]) = calc_cross_point(
-        {a[3], a[0]}, {b[3], b[0]}, {c[3], c[0]});
+void RectangleData::calc_rect_contour(void) {
+    std::tie(rect_c_x[0], rect_c_y[0]) = calc_cross_point({a[0], a[1]}, {b[0], b[1]}, {c[0], c[1]});
+    std::tie(rect_c_x[1], rect_c_y[1]) = calc_cross_point({a[1], a[2]}, {b[1], b[2]}, {c[1], c[2]});
+    std::tie(rect_c_x[2], rect_c_y[2]) = calc_cross_point({a[2], a[3]}, {b[2], b[3]}, {c[2], c[3]});
+    std::tie(rect_c_x[3], rect_c_y[3]) = calc_cross_point({a[3], a[0]}, {b[3], b[0]}, {c[3], c[0]});
     rect_c_x[4] = rect_c_x[0];
     rect_c_y[4] = rect_c_y[0];
 }
 
-tuple<double, double> RectangleData::calc_cross_point(
-        vector<double> _a, vector<double> _b, vector<double> _c)
-{
-    double x = (_b[0] * -_c[1] - _b[1] * - _c[0]) / (_a[0] * _b[1] - _a[1] * _b[0]);
-    double y = (_a[1] * -_c[0] - _a[0] * - _c[1]) / (_a[0] * _b[1] - _a[1] * _b[0]);
-    
+tuple<double, double> RectangleData::calc_cross_point(vector<double> _a, vector<double> _b,
+                                                      vector<double> _c) {
+    double x = (_b[0] * -_c[1] - _b[1] * -_c[0]) / (_a[0] * _b[1] - _a[1] * _b[0]);
+    double y = (_a[1] * -_c[0] - _a[0] * -_c[1]) / (_a[0] * _b[1] - _a[1] * _b[0]);
+
     return std::make_tuple(x, y);
 }
 
-class LShapeFitting
-{
+class LShapeFitting {
 private:
     Criteria criteria;
     double min_dist_of_closeness_criteria;
@@ -92,6 +82,7 @@ private:
     double calc_area_criterion(const vector<double>& c1, const vector<double>& c2);
     double calc_closeness_criterion(const vector<double>& c1, const vector<double>& c2);
     double calc_variance_criterion(const vector<double>& c1, const vector<double>& c2);
+
 public:
     LShapeFitting() {
         criteria = Criteria::VARIANCE;
@@ -102,12 +93,10 @@ public:
     }
     ~LShapeFitting() {}
 
-    vector<RectangleData> fitting(const vector<vector<double>>& oxy, 
-                                        vector<vector<int>>& id_sets);
+    vector<RectangleData> fitting(const vector<vector<double>>& oxy, vector<vector<int>>& id_sets);
 };
 
-Vector4d LShapeFitting::find_min_max(const vector<double>& c1, const vector<double>& c2)
-{
+Vector4d LShapeFitting::find_min_max(const vector<double>& c1, const vector<double>& c2) {
     double c1_max = utils::max(c1);
     double c2_max = utils::max(c2);
     double c1_min = utils::min(c1);
@@ -118,9 +107,7 @@ Vector4d LShapeFitting::find_min_max(const vector<double>& c1, const vector<doub
     return min_max;
 }
 
-vector<vector<int>> LShapeFitting::adoptive_range_segmentation(
-                                    const vector<vector<double>>& oxy)
-{
+vector<vector<int>> LShapeFitting::adoptive_range_segmentation(const vector<vector<double>>& oxy) {
     vector<set<int>> segment_list;
 
     for (size_t i = 0; i < oxy[0].size(); ++i) {
@@ -139,20 +126,20 @@ vector<vector<int>> LShapeFitting::adoptive_range_segmentation(
         for (size_t j = i + 1; j < segment_list.size(); ++j) {
             std::set<int> tmp;
             std::set_intersection(segment_list[i].begin(), segment_list[i].end(),
-                                    segment_list[j].begin(), segment_list[j].end(), 
-                                    std::inserter(tmp, tmp.begin()));
+                                  segment_list[j].begin(), segment_list[j].end(),
+                                  std::inserter(tmp, tmp.begin()));
             if (!tmp.empty()) {
                 tmp.clear();
                 std::set_union(segment_list[i].begin(), segment_list[i].end(),
-                                segment_list[j].begin(), segment_list[j].end(), 
-                                std::inserter(tmp, tmp.begin()));
+                               segment_list[j].begin(), segment_list[j].end(),
+                               std::inserter(tmp, tmp.begin()));
                 segment_list[i].clear();
                 segment_list[j].clear();
                 segment_list[i] = tmp;
             }
         }
     }
-    
+
     vector<vector<int>> id_sets;
     for (size_t idx = 0; idx < segment_list.size(); ++idx) {
         if (!segment_list[idx].empty()) {
@@ -167,16 +154,14 @@ vector<vector<int>> LShapeFitting::adoptive_range_segmentation(
     return id_sets;
 }
 
-double LShapeFitting::calc_area_criterion(const vector<double>& c1, const vector<double>& c2)
-{
+double LShapeFitting::calc_area_criterion(const vector<double>& c1, const vector<double>& c2) {
     Vector4d min_max = find_min_max(c1, c2);
     double alpha = -(min_max[0] - min_max[1]) * (min_max[0] - min_max[1]);
-    
+
     return alpha;
 }
 
-double LShapeFitting::calc_closeness_criterion(const vector<double>& c1, const vector<double>& c2)
-{
+double LShapeFitting::calc_closeness_criterion(const vector<double>& c1, const vector<double>& c2) {
     Vector4d min_max = find_min_max(c1, c2);
     double beta = 0.0;
     for (size_t idx = 0; idx < c1.size(); ++idx) {
@@ -189,8 +174,7 @@ double LShapeFitting::calc_closeness_criterion(const vector<double>& c1, const v
     return beta;
 }
 
-double LShapeFitting::calc_variance_criterion(const vector<double>& c1, const vector<double>& c2)
-{
+double LShapeFitting::calc_variance_criterion(const vector<double>& c1, const vector<double>& c2) {
     Vector4d min_max = find_min_max(c1, c2);
     vector<double> e1;
     vector<double> e2;
@@ -211,8 +195,7 @@ double LShapeFitting::calc_variance_criterion(const vector<double>& c1, const ve
     return gamma;
 }
 
-RectangleData LShapeFitting::rectangle_search(const vector<vector<double>>& cxy)
-{
+RectangleData LShapeFitting::rectangle_search(const vector<vector<double>>& cxy) {
     double d_theta = d_theta_deg_for_search * M_PI / 180.0;
     Vector2d min_cost(-1e6, 0.);
 
@@ -268,9 +251,8 @@ RectangleData LShapeFitting::rectangle_search(const vector<vector<double>>& cxy)
     return rect;
 }
 
-vector<RectangleData> LShapeFitting::fitting(
-    const vector<vector<double>>& oxy, vector<vector<int>>& id_sets)
-{
+vector<RectangleData> LShapeFitting::fitting(const vector<vector<double>>& oxy,
+                                             vector<vector<int>>& id_sets) {
     id_sets = adoptive_range_segmentation(oxy);
     vector<RectangleData> rects;
 
@@ -287,8 +269,7 @@ vector<RectangleData> LShapeFitting::fitting(
     return rects;
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     double angle_resolution = 3 * M_PI / 180.0;
     VehicleSimulator v1(-10.0, 0.0, M_PI_2, 0.0, 50.0 / 3.6, 3.0, 5.0);
     VehicleSimulator v2(20.0, 10.0, M_PI, 0.0, 50.0 / 3.6, 4.0, 10.0);
@@ -304,8 +285,7 @@ int main(int argc, char** argv)
         v2.update(DT, 0.1, -0.05);
 
         vector<vector<int>> id_sets;
-        vector<vector<double>> oxy =
-            lidar_sim.get_observation_points({v1, v2}, angle_resolution);
+        vector<vector<double>> oxy = lidar_sim.get_observation_points({v1, v2}, angle_resolution);
         vector<RectangleData> rects = l_shape_fitting.fitting(oxy, id_sets);
         if (show_animation) {
             plt::cla();

@@ -1,17 +1,16 @@
+#include <algorithm>
 #include <cmath>
 #include <vector>
-#include <algorithm>
 
-#include "utils.hpp"
-#include "matplotlibcpp.h"
 #include "cubic_spline.hpp"
+#include "matplotlibcpp.h"
+#include "utils.hpp"
 
 using std::vector;
 using namespace Eigen;
 namespace plt = matplotlibcpp;
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     int mode = 0;
     if (argc > 1) {
         mode = atoi(argv[1]);

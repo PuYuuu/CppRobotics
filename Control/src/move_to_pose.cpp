@@ -1,15 +1,15 @@
+#include <fmt/core.h>
+#include <unistd.h>
+
+#include <Eigen/Core>
 #include <cmath>
 #include <random>
 #include <tuple>
 #include <vector>
-#include <unistd.h>
-
-#include <fmt/core.h>
-#include <Eigen/Core>
 
 #include "PathFinderController.hpp"
-#include "utils.hpp"
 #include "matplotlibcpp.h"
+#include "utils.hpp"
 
 using namespace Eigen;
 namespace plt = matplotlibcpp;
@@ -21,9 +21,8 @@ constexpr int MAX_LINEAR_SPEED = 15;
 constexpr int MAX_ANGULAR_SPEED = 10;
 bool show_animation = true;
 
-void plot_vehicle(double x, double y, double theta, 
-            const std::vector<double>& x_traj, const std::vector<double>& y_traj)
-{
+void plot_vehicle(double x, double y, double theta, const std::vector<double>& x_traj,
+                  const std::vector<double>& y_traj) {
     Vector3d p1_i(0.5, 0, 1);
     Vector3d p2_i(-0.5, 0.25, 1);
     Vector3d p3_i(-0.5, -0.25, 1);
@@ -41,9 +40,8 @@ void plot_vehicle(double x, double y, double theta,
     plt::pause(dt);
 }
 
-void move_to_pose(double x_start, double y_start, double theta_start,
-                double x_goal, double y_goal, double theta_goal)
-{
+void move_to_pose(double x_start, double y_start, double theta_start, double x_goal, double y_goal,
+                  double theta_goal) {
     double x = x_start;
     double y = y_start;
     double theta = theta_start;
@@ -63,7 +61,7 @@ void move_to_pose(double x_start, double y_start, double theta_start,
         y_traj.emplace_back(y);
         x_diff = x_goal - x;
         y_diff = y_goal - y;
-        
+
         std::tie(rho, v, w) = controller.calc_control_command(x_diff, y_diff, theta, theta_goal);
         if (abs(v) > MAX_LINEAR_SPEED) {
             v = utils::sign(v) * MAX_LINEAR_SPEED;
@@ -90,8 +88,7 @@ void move_to_pose(double x_start, double y_start, double theta_start,
     }
 }
 
-int main(int argv, char** argc)
-{
+int main(int argv, char** argc) {
     std::random_device seed;
     std::mt19937 eigine(seed());
     std::uniform_real_distribution<double> distrib(0, 1);
@@ -103,15 +100,13 @@ int main(int argv, char** argc)
         double x_goal = 18 * distrib(eigine) + 1.0;
         double y_goal = 18 * distrib(eigine) + 1.0;
         double theta_goal = 2 * M_PI * distrib(eigine) - M_PI;
-        fmt::print("Initial x: {:.2f} m\tInitial y: {:.2f} m\tInitial theta: {:.2f} rad\n",
-            x_start, y_start, theta_start);
-        fmt::print("Goal x: {:.2f} m\t\tGoal y: {:.2f} m\t\tGoal theta: {:.2f} rad\n",
-            x_goal, x_goal, theta_goal);
+        fmt::print("Initial x: {:.2f} m\tInitial y: {:.2f} m\tInitial theta: {:.2f} rad\n", x_start,
+                   y_start, theta_start);
+        fmt::print("Goal x: {:.2f} m\t\tGoal y: {:.2f} m\t\tGoal theta: {:.2f} rad\n", x_goal,
+                   x_goal, theta_goal);
         move_to_pose(x_start, y_start, theta_start, x_goal, y_goal, theta_goal);
         fmt::print("\n");
     }
-    
 
     return 0;
 }
-

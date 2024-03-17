@@ -1,33 +1,34 @@
-#include <cmath>
-#include <vector>
-
-#include <Eigen/Core>
-#include <fmt/core.h>
-#include <cppad/cppad.hpp>
-#include <cppad/ipopt/solve.hpp>
-#include <OsqpEigen/OsqpEigen.h>
-
-#include "utils.hpp"
-#include "matplotlibcpp.h"
-#include "PathPlanning/include/cubic_spline.hpp"
 #include "PathTracking/include/model_predictive_control.hpp"
 
-using std::vector;
+#include <OsqpEigen/OsqpEigen.h>
+#include <fmt/core.h>
+
+#include <Eigen/Core>
+#include <cmath>
+#include <cppad/cppad.hpp>
+#include <cppad/ipopt/solve.hpp>
+#include <vector>
+
+#include "PathPlanning/include/cubic_spline.hpp"
+#include "matplotlibcpp.h"
+#include "utils.hpp"
+
 using CppAD::AD;
+using std::vector;
 using namespace Eigen;
 namespace plt = matplotlibcpp;
 
-constexpr size_t TT = 20;                   // horizon length
-constexpr double GOAL_DIS = 1.0;            // goal distance
-constexpr double MAX_SIM_TIME = 500.0;      // max simulation time
-constexpr double MAX_STEER = M_PI_4;        // maximum steering angle [rad]
-constexpr double MAX_DSTEER = M_PI_2 / 3;   // maximum steering speed [rad/s]
-constexpr double MAX_SPEED = 55.0 / 3.6;    // maximum speed [m/s]
-constexpr double MIN_SPEED = -20.0 / 3.6;   // minimum speed [m/s]
-constexpr double MAX_ACCEL = 2.0;           // maximum accel [m/ss]
+constexpr size_t TT = 20;                  // horizon length
+constexpr double GOAL_DIS = 1.0;           // goal distance
+constexpr double MAX_SIM_TIME = 500.0;     // max simulation time
+constexpr double MAX_STEER = M_PI_4;       // maximum steering angle [rad]
+constexpr double MAX_DSTEER = M_PI_2 / 3;  // maximum steering speed [rad/s]
+constexpr double MAX_SPEED = 55.0 / 3.6;   // maximum speed [m/s]
+constexpr double MIN_SPEED = -20.0 / 3.6;  // minimum speed [m/s]
+constexpr double MAX_ACCEL = 2.0;          // maximum accel [m/ss]
 
-constexpr double TARGET_SPEED = 10.0 / 3.6; // [m/s] target speed
-constexpr double DT = 0.2;      // [s] time tick
+constexpr double TARGET_SPEED = 10.0 / 3.6;  // [m/s] target speed
+constexpr double DT = 0.2;                   // [s] time tick
 constexpr double WB = 2.5;
 constexpr double show_animation = true;
 
@@ -39,8 +40,7 @@ constexpr size_t v_start = yaw_start + TT;
 constexpr size_t delta_start = v_start + TT;
 constexpr size_t a_start = delta_start + TT - 1;
 
-double find_nearest_s(Vector2d p, const CubicSpline2D& sp) 
-{
+double find_nearest_s(Vector2d p, const CubicSpline2D& sp) {
     static double last_min_s = sp.s.front();
     double min_dist = (sp.calc_position(sp.s.front()) - p).norm();
     double min_s = last_min_s;
@@ -57,8 +57,7 @@ double find_nearest_s(Vector2d p, const CubicSpline2D& sp)
     return min_s;
 }
 
-void cal_ref_point(double s0, Vector4d& state, const CubicSpline2D& sp) 
-{
+void cal_ref_point(double s0, Vector4d& state, const CubicSpline2D& sp) {
     Vector2d xy = sp(s0, 0);
     Vector2d dxy = sp(s0, 1);
     Vector2d ddxy = sp(s0, 2);
@@ -73,8 +72,7 @@ void cal_ref_point(double s0, Vector4d& state, const CubicSpline2D& sp)
     state[3] = atan2(WB * dphi, 1.0);
 }
 
-MatrixXd calc_ref_trajectory(const utils::VehicleState& state, const CubicSpline2D& sp)
-{
+MatrixXd calc_ref_trajectory(const utils::VehicleState& state, const CubicSpline2D& sp) {
     MatrixXd ref_traj = Matrix<double, 5, TT>::Zero();
     double s0 = find_nearest_s({state.x, state.y}, sp);
 
@@ -98,25 +96,23 @@ MatrixXd calc_ref_trajectory(const utils::VehicleState& state, const CubicSpline
     return ref_traj;
 }
 
-class FG_EVAL{
+class FG_EVAL {
 public:
     Matrix<double, 5, TT> traj_ref;
 
-    FG_EVAL(Matrix<double, 5, TT> traj_ref){
-        this->traj_ref = traj_ref;
-    }
+    FG_EVAL(Matrix<double, 5, TT> traj_ref) { this->traj_ref = traj_ref; }
 
     typedef CPPAD_TESTVECTOR(AD<double>) ADvector;
 
     void operator()(ADvector& fg, const ADvector& vars) {
         fg[0] = 0;
 
-        for(size_t idx = 0; idx < TT - 1; ++idx) {
+        for (size_t idx = 0; idx < TT - 1; ++idx) {
             fg[0] += 0.01 * CppAD::pow(vars[a_start + idx], 2);
             fg[0] += 0.01 * CppAD::pow(vars[delta_start + idx], 2);
         }
 
-        for(size_t idx = 0; idx < TT - 2; ++idx){
+        for (size_t idx = 0; idx < TT - 2; ++idx) {
             fg[0] += 0.01 * CppAD::pow(vars[a_start + idx + 1] - vars[a_start + idx], 2);
             fg[0] += 1 * CppAD::pow(vars[delta_start + idx + 1] - vars[delta_start + idx], 2);
         }
@@ -158,14 +154,14 @@ public:
             // cost with the ref traj
             fg[0] += CppAD::pow(traj_ref(0, idx + 1) - (x0 + v0 * CppAD::cos(yaw0) * DT), 2);
             fg[0] += CppAD::pow(traj_ref(1, idx + 1) - (y0 + v0 * CppAD::sin(yaw0) * DT), 2);
-            // fg[0] += 0.5 * CppAD::pow(traj_ref(2, idx + 1) - (yaw0 + v0 * CppAD::tan(delta0) / WB * DT), 2);
+            // fg[0] += 0.5 * CppAD::pow(traj_ref(2, idx + 1) - (yaw0 + v0 * CppAD::tan(delta0) / WB
+            // * DT), 2);
             fg[0] += CppAD::pow(traj_ref(4, 0) - (v0 + a0 * DT), 2);
         }
     }
 };
 
-MPCController::MPCController(void)
-{
+MPCController::MPCController(void) {
     ll_ = WB;
     dt_ = DT;
     rho_ = 1.0;
@@ -247,15 +243,14 @@ MPCController::MPCController(void)
     }
 }
 
-int MPCController::solve_with_ipopt(utils::VehicleState& x0, MatrixXd traj_ref)
-{
+int MPCController::solve_with_ipopt(utils::VehicleState& x0, MatrixXd traj_ref) {
     double x = x0.x;
     double y = x0.y;
     double yaw = x0.yaw;
     double v = x0.v;
 
     Dvector vars(n_vars);
-    for (size_t idx = 0; idx < n_vars; ++idx){
+    for (size_t idx = 0; idx < n_vars; ++idx) {
         vars[idx] = 0.0;
     }
     vars[x_start] = x;
@@ -303,15 +298,15 @@ int MPCController::solve_with_ipopt(utils::VehicleState& x0, MatrixXd traj_ref)
     CppAD::ipopt::solve_result<Dvector> solution;
 
     // solve the problem
-    CppAD::ipopt::solve<Dvector, FG_EVAL>(
-      optimize_options, vars, vars_lowerbound, vars_upperbound,
-      constraints_lowerbound, constraints_upperbound, fg_eval, solution);
+    CppAD::ipopt::solve<Dvector, FG_EVAL>(optimize_options, vars, vars_lowerbound, vars_upperbound,
+                                          constraints_lowerbound, constraints_upperbound, fg_eval,
+                                          solution);
 
     bool ok = true;
     ok &= solution.status == CppAD::ipopt::solve_result<Dvector>::success;
 
     vector<double> result;
-    for (size_t idx = 0 ; idx < n_vars; ++idx) {
+    for (size_t idx = 0; idx < n_vars; ++idx) {
         result.push_back(static_cast<double>(solution.x[idx]));
     }
 
@@ -331,8 +326,7 @@ int MPCController::solve_with_ipopt(utils::VehicleState& x0, MatrixXd traj_ref)
     return 0;
 }
 
-void MPCController::linearization(const double& phi, const double& v, const double& delta)
-{
+void MPCController::linearization(const double& phi, const double& v, const double& delta) {
     // set values to Ad_, Bd_, gd_
     Ad_(0, 2) = -v * sin(phi) * dt_;
     Ad_(0, 3) = cos(phi) * dt_;
@@ -345,8 +339,7 @@ void MPCController::linearization(const double& phi, const double& v, const doub
     gd_(2) = -v / ll_ / cos(delta) / cos(delta) * dt_ * delta;
 }
 
-int MPCController::solve_with_osqp(utils::VehicleState& x0_, MatrixXd traj_ref)
-{
+int MPCController::solve_with_osqp(utils::VehicleState& x0_, MatrixXd traj_ref) {
     lu_.coeffRef(2, 0) = predictInput_.front()(1) - ddelta_max_ * dt_;
     uu_.coeffRef(2, 0) = predictInput_.front()(1) + ddelta_max_ * dt_;
     VectorX x0 = {x0_.x, x0_.y, x0_.yaw, x0_.v};
@@ -386,14 +379,14 @@ int MPCController::solve_with_osqp(utils::VehicleState& x0_, MatrixXd traj_ref)
         }
         // calculate big state-space matrices
         /* *                BB                AA
-        * x1    /       B    0  ... 0 \    /   A \
-        * x2    |      AB    B  ... 0 |    |  A2 |
-        * x3  = |    A^2B   AB  ... 0 |u + | ... |x0 + gg
-        * ...   |     ...  ...  ... 0 |    | ... |
-        * xN    \A^(n-1)B  ...  ... B /    \ A^N /
-        *
-        *     X = BB * U + AA * x0 + gg
-        * */
+         * x1    /       B    0  ... 0 \    /   A \
+         * x2    |      AB    B  ... 0 |    |  A2 |
+         * x3  = |    A^2B   AB  ... 0 |u + | ... |x0 + gg
+         * ...   |     ...  ...  ... 0 |    | ... |
+         * xN    \A^(n-1)B  ...  ... B /    \ A^N /
+         *
+         *     X = BB * U + AA * x0 + gg
+         * */
         if (i == 0) {
             BB.block(0, 0, NX, NU) = Bd_;
             AA.block(0, 0, NX, NX) = Ad_;
@@ -479,10 +472,9 @@ int MPCController::solve_with_osqp(utils::VehicleState& x0_, MatrixXd traj_ref)
     return 0;
 }
 
-enum class MPC_Solver {IPOPT, OSQP};
+enum class MPC_Solver { IPOPT, OSQP };
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     // vector<double> ax = {0.0, 60.0, 125.0, 50.0, 75.0, 35.0, -10.0};
     // vector<double> ay = {0.0, 0.0, 50.0, 65.0, 30.0, 50.0, -20.0};
     vector<double> ax = {0.0, 30.0, 6.0, 20.0, 35.0, 10.0, -1.0};
@@ -566,7 +558,7 @@ int main(int argc, char** argv)
             utils::draw_vehicle({state.x, state.y, state.yaw}, steer, state.vc);
             plt::axis("equal");
             plt::grid(true);
-            plt::title("MPC Tracking Speed[km/h]:" + std::to_string(state.v * 3.6).substr(0,4));
+            plt::title("MPC Tracking Speed[km/h]:" + std::to_string(state.v * 3.6).substr(0, 4));
             plt::legend({{"loc", "upper left"}});
             plt::pause(0.01);
         }

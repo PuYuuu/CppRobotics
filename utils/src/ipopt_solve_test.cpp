@@ -1,19 +1,17 @@
-#include <iostream>
 #include <cppad/ipopt/solve.hpp>
+#include <iostream>
 
 namespace {
 
 using CppAD::AD;
 
-class FG_eval 
-{
+class FG_eval {
 public:
     typedef CPPAD_TESTVECTOR(AD<double>) ADvector;
 
-    void operator()(ADvector& fg, const ADvector& x)
-    {  
-        assert( fg.size() == 3 );
-        assert( x.size()  == 4 );
+    void operator()(ADvector& fg, const ADvector& x) {
+        assert(fg.size() == 3);
+        assert(x.size() == 4);
 
         // Fortran style indexing
         AD<double> x1 = x[0];
@@ -30,12 +28,11 @@ public:
         return;
     }
 };
-}
+}  // namespace
 
-bool get_started(void)
-{  
+bool get_started(void) {
     bool ok = true;
-    typedef CPPAD_TESTVECTOR( double ) Dvector;
+    typedef CPPAD_TESTVECTOR(double) Dvector;
 
     // number of independent variables (domain dimension for f and g)
     size_t nx = 4;
@@ -47,11 +44,11 @@ bool get_started(void)
     xi[1] = 5.0;
     xi[2] = 5.0;
     xi[3] = 1.0;
-    
+
     // lower and upper limits for x
     Dvector xl(nx);
     Dvector xu(nx);
-    for (size_t i = 0; i < nx; ++i) {  
+    for (size_t i = 0; i < nx; ++i) {
         xl[i] = 1.0;
         xu[i] = 5.0;
     }
@@ -88,22 +85,21 @@ bool get_started(void)
     CppAD::ipopt::solve_result<Dvector> solution;
 
     // solve the problem
-    CppAD::ipopt::solve<Dvector, FG_eval>(
-        options, xi, xl, xu, gl, gu, fg_eval, solution);
+    CppAD::ipopt::solve<Dvector, FG_eval>(options, xi, xl, xu, gl, gu, fg_eval, solution);
 
     std::cout << "solution: " << solution.x << std::endl;
 
     // Check some of the solution values
     ok &= solution.status == CppAD::ipopt::solve_result<Dvector>::success;
 
-    double check_x[]  = { 1.000000, 4.743000, 3.82115, 1.379408 };
-    double check_zl[] = { 1.087871, 0.,       0.,      0.       };
-    double check_zu[] = { 0.,       0.,       0.,      0.       };
-    double rel_tol    = 1e-6;  // relative tolerance
-    double abs_tol    = 1e-6;  // absolute tolerance
-    
-    for(size_t i = 0; i < nx; ++i) {
-        ok &= CppAD::NearEqual(check_x[i],  solution.x[i], rel_tol, abs_tol);
+    double check_x[] = {1.000000, 4.743000, 3.82115, 1.379408};
+    double check_zl[] = {1.087871, 0., 0., 0.};
+    double check_zu[] = {0., 0., 0., 0.};
+    double rel_tol = 1e-6;  // relative tolerance
+    double abs_tol = 1e-6;  // absolute tolerance
+
+    for (size_t i = 0; i < nx; ++i) {
+        ok &= CppAD::NearEqual(check_x[i], solution.x[i], rel_tol, abs_tol);
         ok &= CppAD::NearEqual(check_zl[i], solution.zl[i], rel_tol, abs_tol);
         ok &= CppAD::NearEqual(check_zu[i], solution.zu[i], rel_tol, abs_tol);
     }
@@ -111,8 +107,7 @@ bool get_started(void)
     return ok;
 }
 
-int main (int argc, char** argv)
-{
+int main(int argc, char** argv) {
     bool status = get_started();
 
     return 0;
