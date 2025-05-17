@@ -1,22 +1,25 @@
 #include <algorithm>
 #include <cmath>
 #include <vector>
+#include <string>
 
 #include "cubic_spline.hpp"
 #include "matplotlibcpp.h"
 #include "utils.hpp"
+#include "cmdline.h"
 
 using std::vector;
 using namespace Eigen;
 namespace plt = matplotlibcpp;
 
 int main(int argc, char** argv) {
-    int mode = 0;
-    if (argc > 1) {
-        mode = atoi(argv[1]);
-    }
+    cmdline::parser parser;
+    parser.add<std::string>("mode", 'm', "interpolation type", false, "1D",
+                            cmdline::oneof<std::string>("1D", "2D"));
+    parser.parse_check(argc, argv);
 
-    if (mode == 0) {
+    if (parser.get<std::string>("mode") == "1D") {
+        // 1D cubic spline interpolation
         vector<double> x = {0, 1, 2, 3, 4};
         vector<double> y = {1.7, -6, 5, 6.5, 0.0};
         CubicSpline sp(x, y);
@@ -34,6 +37,7 @@ int main(int argc, char** argv) {
         plt::title("Cubic Spline");
         plt::show();
     } else {
+        // 2D cubic spline interpolation
         vector<double> x = {-2.5, 0.0, 2.5, 5.0, 7.5, 3.0, -1.0};
         vector<double> y = {0.7, -6, 5, 6.5, 0.0, 5.0, -2.0};
         CubicSpline2D sp(x, y);

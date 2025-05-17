@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "KDTree.hpp"
+#include "KDTree/KDTree.hpp"
 #include "PathPlanning/include/reeds_shepp_path.hpp"
 #include "dynamic_programming_heuristic.hpp"
 #include "matplotlibcpp.h"
